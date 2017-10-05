@@ -1,6 +1,6 @@
 from sense_hat import SenseHat
 
-sense = SenseHat()
+sense = SenseHat();
 
 r = (255, 0, 0)
 o = (255, 127, 0)
