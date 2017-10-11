@@ -1,12 +1,12 @@
 .text
 .global main
 
+/*<instruction> <Dest>, <Operand>, <Operand>*/
+
 main:
-MOV R0, #65
-MOV R1, #232
+MOV R1, #0xA
+ADD R0, R1, #0xB
+
 MOV R7, #1
-
-ADD R3, R1, R0
-
 SWI 0
 
