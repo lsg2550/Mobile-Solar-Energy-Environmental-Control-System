@@ -1,4 +1,4 @@
-1. naon [FileName].s
+1. nano [FileName].s
 2. as -o [FileName].o [FileName].s
 3. gcc -o [FileName] [FileName].o
 4. ./[FileName] ; echo $?

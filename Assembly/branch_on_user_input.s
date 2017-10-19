@@ -6,49 +6,51 @@ notEqual: .asciz "\nBoth digits are not equal.\n"
 message: .asciz " "
 
 .global main
+.extern printf
 
 main:
-PUSH {ip,lr}
 BL enableOutput
-LDR R1, =firstInput
+LDR R0, =firstInput
+BL printf
+
 BL enableInput
-LDR R1, =message
-MOV R5, R2
+LDR R5, =R0
+
 BL enableOutput
-LDR R1, =secondInput
+LDR R0, =secondInput
+BL printf
+
 BL enableInput
-LDR R1, =message
-MOV R6, R2
+LDR R6, =R0
+
 BL enableOutput
 CMP R5, R6
 BEQ ifEqual
-BL ifNotEqual
-POP {ip, pc}
+BNE ifNotEqual
 B end
 
 enableOutput:
-PUSH {R4, lr}
 MOV R7, #4 @Output string
 MOV R0, #1 @To monitor
 MOV R2, #5 @Write Characters
-POP {R4, pc}
+MOV PC, LR
 
-enableInput: @Enable input for 2 characters
-PUSH {R4, lr}
+enableInput:
 MOV R7, #3 @Allow keyboard input
 MOV R0, #0 @Read from keyboard
 MOV R2, #2 @Read 2 characters
-POP {R4, pc}
+LDR R0, =message
+MOV PC, LR
 
 ifEqual:
-PUSH {R4, lr}
-LDR R1, =equal
-POP {R4, pc}
+LDR R0, =equal
+BL printf
+B end
 
 ifNotEqual:
-PUSH {R4, lr}
-LDR R1, =notEqual
-POP {R4, pc}
+LDR R0, =notEqual
+BL printf
+B end
 
 end:
 MOV R7, #1

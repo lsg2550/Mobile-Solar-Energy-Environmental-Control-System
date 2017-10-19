@@ -1,0 +1,27 @@
+.data
+message: .asciz " "
+
+.global main
+
+main:
+MOV R7, #3 @Allow keyboard input
+MOV R0, #0 @Read from keyboard
+MOV R2, #10 @Read 10 Characters
+LDR R1, =message
+SWI 0
+
+write:
+MOV R7, #4 @Allow keyboard input
+MOV R0, #1 @Read from keyboar
+MOV R7, #3 @Allow keyboard input
+MOV R0, #0 @Read from keyboard
+MOV R2, #10 @Read 10 Characters
+LDR R1, =message
+SWI 0d
+MOV R2, #10 @Read 10 Characters
+LDR R1, =message
+SWI 0
+
+end:
+MOV R7, #1
+SWI 0
