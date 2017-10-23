@@ -30,3 +30,6 @@ for x in range(0,2):
 		print "Red LED is Off!"
 		GPIO.output(18, GPIO.LOW) #Turn 18 Off
 	time.sleep(2.5)
+
+#Cleanup
+GPIO.cleanup()
