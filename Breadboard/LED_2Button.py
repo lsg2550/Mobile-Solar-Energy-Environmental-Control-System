@@ -11,7 +11,7 @@ count = 0
 #Init Pin Locations
 redLED = 18
 greenLED = 17
-button = 6
+button = 21
 
 #Setup Inputs
 GPIO.setup(redLED, GPIO.OUT)
