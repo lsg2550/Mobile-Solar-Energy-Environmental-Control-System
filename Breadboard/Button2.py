@@ -4,13 +4,13 @@ import time
 
 #Init
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(21, GPIO.IN, pull_up_down = GPIO.PUD_Up)
+GPIO.setup(19, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
 #Do
 try:
 	while True:
-		isButtonPressed = GPIO.input(21)
-		if isButtonPressed != False:
+		isButtonPressed = GPIO.input(19)
+		if isButtonPressed == False:
 			print ("Button is Pressed!")
 			time.sleep(0.2)
 		time.sleep(0.1)

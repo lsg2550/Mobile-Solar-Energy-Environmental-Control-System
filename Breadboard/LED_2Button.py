@@ -11,7 +11,7 @@ count = 0
 #Init Pin Locations
 redLED = 18
 greenLED = 17
-button = 21
+button = 19
 
 #Setup Inputs
 GPIO.setup(redLED, GPIO.OUT)
@@ -23,17 +23,17 @@ try:
 		print("Press the Button")
 		buttonPress = GPIO.input(button)
 		if buttonPress == False and count == 0:
-			GPIO.output(redLED, GPIO.High)
+			GPIO.output(redLED, GPIO.HIGH)
 			print("Red LED is ON")
 			time.sleep(3)
-			GPIO.output(redLED, GPIO.Low)
+			GPIO.output(redLED, GPIO.LOW)
 			print("Red LED is OFF")
 			count += 1
 		elif buttonPress == False and count == 1:
-			GPIO.output(greenLED, GPIO.High)
+			GPIO.output(greenLED, GPIO.HIGH)
 			print("Green LED is ON")
 			time.sleep(3)
-			GPIO.output(greenLED, GPIO.Low)
+			GPIO.output(greenLED, GPIO.LOW)
 			print("Green LED is OFF")
 			count += 1
 		time.sleep(0.5)
