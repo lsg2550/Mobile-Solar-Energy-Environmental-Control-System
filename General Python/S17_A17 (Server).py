@@ -1,11 +1,15 @@
 #import
 import socketserver
 
-#Init
+#Init - Server Information
+serverName = "127.0.0.1"
+port = 43525
 serverPassword = "123456"
+isClientConnected = False
+
+#Init - Other
 secretArray = ["note1", "renewable", "fossil", "2020"]
 secretArrayCount = 0
-isClientConnected = False
 
 class MyTCPHandler(socketserver.StreamRequestHandler):
 
@@ -28,27 +32,20 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
 					self.wfile.write(secretArray[secretArrayCount].encode('utf-8'))
 					secretArrayCount += 1
 				elif self.data == "Y" and secretArrayCount > 3 and isClientConnected == True: #Y = More
-					self.wfile.write("No more content. Closing Session...".encode('utf-8'))
-					raise BrokenPipeError
-				elif self.data == "QUIT" and isClientConnected == True:
+					self.wfile.write("NOMORE".encode('utf-8'))
+					break
+				elif self.data == "QUIT":
 					self.wfile.write("QUIT".encode('utf-8'))
-					raise BrokenPipeError
 					break			
 				else:
-					self.wfile.write("BADINPUT".encode('utf-8'))
-					raise BrokenPipeError					
+					self.wfile.write("BADINPUT".encode('utf-8'))					
 					break
-		except BrokenPipeError: #Shutting the Server Down raises this exception, so I have it handled
+		finally: #Shutting the Server Down raises this exception, so I have it handled
 			print("Server is shutting down...")
 			server.server_close()
 			quit()
-		print("Reached end of function")
-
-if __name__ == "__main__":
-	#Init
-	serverName = "127.0.0.1"
-	port = 43525	
 		
+if __name__ == "__main__":
 	#Set up Server
 	server = socketserver.TCPServer((serverName, port), MyTCPHandler)
 	server.serve_forever()
