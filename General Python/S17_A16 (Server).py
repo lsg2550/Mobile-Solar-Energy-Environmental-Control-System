@@ -22,6 +22,8 @@ class MyTCPHandler(socketserver.StreamRequestHandler):
 					self.data = "Wrong Input"
 					self.wfile.write(self.data.encode('utf-8'))
 		except BrokenPipeError:
+			print("Server is shutting down...")
+			server.server_close()
 			quit()
 
 if __name__ == "__main__":

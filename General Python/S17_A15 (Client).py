@@ -1,6 +1,5 @@
 #import
 import socket
-import sys
 
 #Init
 servername = "127.0.0.1"
