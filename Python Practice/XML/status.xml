@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<currentstatus>
+	<log>
+		<time>05:00pm</time>
+		<date>November 10, 2017</date>
+	</log>
+
+	<temperature>
+		<celsius>20°C</celsius>
+		<fahrenheit>68°F</fahrenheit>
+	</temperature>
+
+	<battery>12.6V</battery>
+	<exhaust>off</exhaust>
+	<solarpanel>not charging</solarpanel>
+</currentstatus>
