@@ -10,7 +10,8 @@
         <h1>Remote Site - Mobile Solar Energy & Environmental Control System</h1>
     </div>
     <div>
-        <fieldset><legend>Car Status - {If possible, insert Log (Time,Date) from Code? Otherwise add it as a row}</legend>
+        <fieldset><legend>Car Status - {If possible, insert Log (Time,Date) from Code? Otherwise
+            add it as a row}</legend>
             <table>
                 <tr>
                     <th>Temperature</th>
@@ -30,7 +31,6 @@
                 </tr>
             </table>
         </fieldset>
-
         <fieldset><legend>Car Status - 05:00PM - July 24, 2017</legend>
             <table>
                 <tr>
@@ -51,6 +51,11 @@
                 </tr>
             </table>
         </fieldset>
+    </div>
+    <div>
+        <form runat="server">
+        <asp:Button ID="Button1" runat="server" Text="Back" PostBackUrl="~/Default.aspx" />
+        </form>
     </div>
 </body>
 </html>
