@@ -407,6 +407,6 @@ ENV/
 # mypy
 .mypy_cache/
 
-/nbproject/
+nbproject/
 build.xml
 manifest.mf
