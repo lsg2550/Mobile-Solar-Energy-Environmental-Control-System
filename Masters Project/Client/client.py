@@ -13,6 +13,7 @@ try:
 	while True:
 		#End Program or Continue Requesting Data
 		request = input("Enter 'Quit': ")
+		client.sendall(bytes(request + "\n", 'utf-8'))
 		
 		#Process Received Data
 		if request.upper() == "QUIT":
