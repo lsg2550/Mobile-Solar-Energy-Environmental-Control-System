@@ -1,5 +1,6 @@
-package launcher;
+package signin;
 
+import alert.AlertDialog;
 import connections.MySQL;
 import java.io.IOException;
 import java.net.URL;
@@ -11,16 +12,16 @@ import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import launcher.Launcher;
 
 /**
  * FXML Controller class
  *
  * @author luis
  */
-public class SignInController implements Initializable {
+public final class SignInController implements Initializable {
 
     @FXML
     private PasswordField pField;
@@ -28,16 +29,15 @@ public class SignInController implements Initializable {
     private TextField uField;
 
     @FXML
-    private void signIn_OnClick(ActionEvent event) {
+    private void signinOnClick(ActionEvent event) {
         try {
             MySQL.init(uField.getText(), pField.getText()); //Connects to MySQL DB
-            Parent serverlog = FXMLLoader.load(getClass().getResource("MainFXMLDocument.fxml"));
-            Scene scene = new Scene(serverlog);
+            Parent serverLog = FXMLLoader.load(getClass().getResource("/log/LogDocument.fxml"));
+            Scene scene = new Scene(serverLog);
             Launcher.getStage().setScene(scene);
         } catch (SQLException | IOException e) {
-            Alert a = new Alert(Alert.AlertType.ERROR);
-            a.setContentText(e.toString());
-            a.showAndWait();
+            e.printStackTrace();
+            AlertDialog.showAlert(e.toString());
         }
     }
 

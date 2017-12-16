@@ -9,14 +9,14 @@ import java.sql.Statement;
  *
  * @author Luis
  */
-public class MySQL {
+public final class MySQL {
 
     //SQL Connection
     private static Connection connection;
     private static Statement statement;
 
     public static void init(String username, String password) throws SQLException {
-        //Connection connection = DriverManager.getConnection("jdbc:mariadb://localhost:3306/DB?user=username&password=password");        
+        //Connection connection = DriverManager.getConnection("jdbc:mariadb://localhost:3306/DB?user=root&password=password"); 
         connection = DriverManager.getConnection("jdbc:mariadb://localhost:3306/remotesite?user=" + username + "&password=" + password);
         statement = connection.createStatement();
     }

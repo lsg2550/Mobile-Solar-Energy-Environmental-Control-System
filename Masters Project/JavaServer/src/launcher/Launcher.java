@@ -17,7 +17,7 @@ public class Launcher extends Application {
     @Override
     public void start(Stage stage) throws Exception {
         //Load GUI
-        Parent root = FXMLLoader.load(getClass().getResource("SignIn.fxml"));
+        Parent root = FXMLLoader.load(getClass().getResource("/signin/SignInDocument.fxml"));
         Scene scene = new Scene(root);
         this.stage.setTitle("Administrative Log");
         this.stage.setResizable(false);
