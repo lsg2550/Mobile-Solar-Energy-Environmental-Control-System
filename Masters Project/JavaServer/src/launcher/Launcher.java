@@ -20,7 +20,6 @@ public class Launcher extends Application {
         Parent root = FXMLLoader.load(getClass().getResource("/signin/SignInDocument.fxml"));
         Scene scene = new Scene(root);
         this.stage.setTitle("Administrative Log");
-        this.stage.setResizable(false);
         this.stage.setScene(scene);
         this.stage.show();
         this.stage.setOnCloseRequest(e -> {

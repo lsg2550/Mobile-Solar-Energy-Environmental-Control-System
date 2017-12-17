@@ -36,8 +36,8 @@ public final class SignInController implements Initializable {
             Scene scene = new Scene(serverLog);
             Launcher.getStage().setScene(scene);
         } catch (SQLException | IOException e) {
-            e.printStackTrace();
             AlertDialog.showAlert(e.toString());
+            //e.printStackTrace();
         }
     }
 

@@ -10,9 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import javafx.application.Platform;
 import log.LogSingleton;
 
 /**
@@ -31,7 +29,6 @@ public final class Server extends Thread {
     private BufferedWriter serverOutputStream;
 
     //Cooldown
-    private final DateFormat DATE_FORMAT = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss a");
     private final long COOLDOWN = 60000; //1 Min Cooldown
     private long currentTime = System.currentTimeMillis();
 
@@ -41,6 +38,9 @@ public final class Server extends Thread {
             //Start Server
             serverSocket = new ServerSocket(8080);
             serverSocket.setSoTimeout(30000);
+
+            //Debug
+            LogSingleton.getInstance().updateLog("Server socket [" + Server.getServerSocket().getLocalSocketAddress() + "] is open...");
         } catch (IOException e) {
             AlertDialog.showAlert("Failed to Create Server Socket: " + e.toString());
             e.printStackTrace();
@@ -49,10 +49,6 @@ public final class Server extends Thread {
 
         while (!this.isInterrupted()) {
             try {
-                //Debug
-                LogSingleton.getInstance().getLog().appendText("\nServer socket [" + Server.getServerSocket().getLocalSocketAddress() + "] is open...");
-                System.out.println("Server socket [" + Server.getServerSocket().getLocalSocketAddress() + "] is open...");
-
                 //Wait for Connection
                 socket = serverSocket.accept();
 
@@ -64,8 +60,7 @@ public final class Server extends Thread {
                 isClientConnected = true;
 
                 //Debug
-                LogSingleton.getInstance().getLog().appendText("\n" + socket.getLocalAddress() + " has connected...");
-                System.out.println(socket.getLocalAddress() + " has connected...");
+                LogSingleton.getInstance().updateLog(socket.getLocalAddress() + " has connected...");
             } catch (IOException e) {
                 AlertDialog.showAlert("Failed to Create Server Socket: " + e.toString());
                 e.printStackTrace();
@@ -78,10 +73,7 @@ public final class Server extends Thread {
                     //Debug
                     if (currentTime + COOLDOWN <= System.currentTimeMillis()) {
                         currentTime = System.currentTimeMillis();
-                        String idleMessage = DATE_FORMAT.format(new Date()) + ": Waiting for data...";
-                        LogSingleton.getInstance().getLog().appendText("\n" + idleMessage);
-                        System.out.println(idleMessage);
-                        updateLog("Waiting for data...");
+                        LogSingleton.getInstance().updateLog("Waiting for data...");
                     }
 
                     //Process Client Input
@@ -92,44 +84,40 @@ public final class Server extends Thread {
                                 isClientConnected = false;
                                 break;
                             case "XML":
-                                String systemMessage = DATE_FORMAT.format(new Date()) + ": Preparing for XML input...";
-                                System.out.println(systemMessage);
-                                updateLog("Preparing for XML input...");
+                                LogSingleton.getInstance().updateLog("Preparing for XML input...");
+                                Thread.sleep(1000);
+                                LogSingleton.getInstance().updateLog(serverInputStream.readLine());
+                                //MySQL.getStatement().executeUpdate(clientInput);
                                 break;
                             default:
                                 //Display ClientInput
-                                String clientMessage = DATE_FORMAT.format(new Date()) + ": " + clientInput;
-                                LogSingleton.getInstance().getLog().appendText("\n" + clientMessage);
-                                System.out.println(clientMessage);
-
-                                //Send Server Response
-                                serverOutputStream.write("Thank you for your message!\n");
-                                serverOutputStream.flush();
+                                LogSingleton.getInstance().updateLog(clientInput);
                                 break;
                         }
+
+                        //Send Server Response
+                        serverOutputStream.write("Thank you for your message!\n");
+                        serverOutputStream.flush();
                     }
                 } catch (SocketException e) {
-                    System.out.println("Client Timed Out...");
-                    updateLog("Client Timed Out...");
+                    LogSingleton.getInstance().updateLog("Client Timed Out...");
                     isClientConnected = false;
                 } catch (IOException e) {
+                    System.out.println(e.toString());
+                } catch (InterruptedException e) {
+                    System.out.println(e.toString());
                 }
             }
 
             try {
-                System.out.println(socket.getInetAddress() + " has disconnected...");
-                updateLog(socket.getInetAddress() + " has disconnected...");
+                LogSingleton.getInstance().updateLog(socket.getInetAddress() + " has disconnected...");
                 Thread.sleep(5000);
-            } catch (InterruptedException ex) {
+            } catch (InterruptedException e) {
+                AlertDialog.showAlert(e.toString());
+                e.printStackTrace();
+                return;
             }
         }
-    }
-
-    /**
-     * @param message - message to display on log
-     */
-    private void updateLog(String message) {
-        LogSingleton.getInstance().getLog().appendText(DATE_FORMAT.format(new Date()) + ": " + message + "\n");
     }
 
     /**
