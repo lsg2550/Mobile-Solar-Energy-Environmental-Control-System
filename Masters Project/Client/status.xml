@@ -1,8 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<log>
-	<date></date>
-	<temperature>20°C</temperature>
-	<battery>12.6V</battery>
-	<exhaust>off</exhaust>
+<currentstatus>
+	<log>2017-12-18 19:19:31</log>
+	<temperature>20</temperature>
+	<battery>12.6</battery>
 	<solarpanel>not charging</solarpanel>
-</log>
+	<exhaust>off</exhaust>
+	<photo>0.5</photo>
+</currentstatus>
