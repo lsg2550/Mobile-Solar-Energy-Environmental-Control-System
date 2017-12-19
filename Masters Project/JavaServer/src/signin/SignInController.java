@@ -21,7 +21,7 @@ import launcher.Launcher;
  *
  * @author luis
  */
-public final class SignInController implements Initializable {
+public class SignInController implements Initializable {
 
     @FXML
     private PasswordField pField;
