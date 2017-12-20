@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -52,8 +53,7 @@ public final class Server extends Thread {
     public void run() {
         try {
             //Start Server
-            serverSocket = new ServerSocket(8080);
-            serverSocket.setSoTimeout(30000);
+            serverSocket = new ServerSocket(8080, 5, InetAddress.getByName("127.0.0.1"));
 
             //Debug
             LogSingleton.getInstance().updateLog("Server socket [" + Server.getServerSocket().getLocalSocketAddress() + "] is open...");
@@ -82,7 +82,9 @@ public final class Server extends Thread {
                 //Debug
                 LogSingleton.getInstance().updateLog(socket.getLocalAddress() + " has connected...");
             } catch (IOException e) {
-                AlertDialog.showAlert("Failed to Create Server Socket: " + e.toString());
+                Platform.runLater(() -> {
+                    AlertDialog.showAlert("Failed to Create Server Socket: " + e.toString());
+                });
                 e.printStackTrace();
                 return;
             }
@@ -158,6 +160,11 @@ public final class Server extends Thread {
                                 } catch (SQLException e) {
                                     e.printStackTrace();
                                 }
+                                break;
+                            case "REQUEST":
+                                //Website or Client Request for Data
+                                LogSingleton.getInstance().updateLog("Preparing for Status Retrieval...");
+
                                 break;
                             case "QUIT":
                                 isClientConnected = false;
