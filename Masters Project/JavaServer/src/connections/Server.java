@@ -161,45 +161,52 @@ public final class Server extends Thread {
                             case "REQUEST": //Retreive Data
                                 LogSingleton.getInstance().updateLog("Preparing for Data Retrieval...");
                                 serverOutputStream = new BufferedOutputStream(socket.getOutputStream());
-                                Thread.sleep(1000); //1 sec
 
                                 //Retreive from MySQL DB
-                                ResultSet rsStatus = MySQL.getStatement().executeQuery("SELECT * FROM status;");
-                                ResultSet rsLog = MySQL.getStatement().executeQuery("SELECT * FROM log;");
+                                ResultSet result = MySQL.getStatement().executeQuery("SELECT * FROM status;");
                                 String resultDebug = "",
                                  resultData = "";
 
                                 //Select from CurrentStatus
                                 serverOutputStream.write("CURRENT".getBytes());
                                 serverOutputStream.flush();
-                                while (rsStatus.next()) {
+                                Thread.sleep(1000);
+                                while (result.next()) {
                                     //For server output
-                                    resultDebug += "[" + rsStatus.getString("VID") + "," + rsStatus.getString("VV") + "," + rsStatus.getString("TS") + "]\n";
+                                    resultDebug += "[" + result.getString("VID") + "," + result.getString("VV") + "," + result.getString("TS") + "]\n";
                                     //For client output
-                                    resultData = "[" + rsStatus.getString("VID") + "," + rsStatus.getString("VV") + "," + rsStatus.getString("TS") + "]";
+                                    resultData = "[" + result.getString("VID") + "," + result.getString("VV") + "," + result.getString("TS") + "]";
 
                                     //Send Data
                                     serverOutputStream.write(resultData.getBytes());
                                     serverOutputStream.flush();
+                                    Thread.sleep(1000);
                                 }
-                                serverOutputStream.write("CURRENT".getBytes());
+                                serverOutputStream.write("CURRENTEND".getBytes());
                                 serverOutputStream.flush();
+                                Thread.sleep(1000);
 
                                 //Select from Log
+                                result = MySQL.getStatement().executeQuery("SELECT * FROM log;");
                                 serverOutputStream.write("LOG".getBytes());
                                 serverOutputStream.flush();
-                                while (rsLog.next()) {
+                                Thread.sleep(1000);
+                                while (result.next()) {
                                     //For server output
-                                    resultDebug += "[" + rsLog.getString("NUM") + "," + rsLog.getString("VID") + "," + rsLog.getString("TYP") + ","
-                                            + rsStatus.getString("V1") + "," + rsStatus.getString("V2") + "," + rsStatus.getString("TS") + "]\n";
+                                    resultDebug += "[" + result.getString("NUM") + "," + result.getString("VID") + "," + result.getString("TYP") + ","
+                                            + result.getString("V1") + "," + result.getString("V2") + "," + result.getString("TS") + "]\n";
                                     //For client output
-                                    resultData = "[" + rsLog.getString("NUM") + "," + rsLog.getString("VID") + "," + rsLog.getString("TYP") + ","
-                                            + rsLog.getString("V1") + "," + rsLog.getString("V2") + "," + rsLog.getString("TS") + "]";
+                                    resultData = "[" + result.getString("NUM") + "," + result.getString("VID") + "," + result.getString("TYP") + ","
+                                            + result.getString("V1") + "," + result.getString("V2") + "," + result.getString("TS") + "]";
 
                                     //Send Data
                                     serverOutputStream.write(resultData.getBytes());
                                     serverOutputStream.flush();
+                                    Thread.sleep(1000);
                                 }
+                                serverOutputStream.write("LOGEND".getBytes());
+                                serverOutputStream.flush();
+                                Thread.sleep(1000);
 
                                 //Debug & Close Stream
                                 LogSingleton.getInstance().updateLog(resultDebug.getBytes().length + " bytes of data sent...");
