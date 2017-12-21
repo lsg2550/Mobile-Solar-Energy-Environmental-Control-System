@@ -170,7 +170,7 @@ public final class Server extends Thread {
                                 //Select from CurrentStatus
                                 serverOutputStream.write("CURRENT".getBytes());
                                 serverOutputStream.flush();
-                                Thread.sleep(1000);
+                                Thread.sleep(5000);
                                 while (result.next()) {
                                     //For server output
                                     resultDebug += "[" + result.getString("VID") + "," + result.getString("VV") + "," + result.getString("TS") + "]\n";
@@ -180,17 +180,17 @@ public final class Server extends Thread {
                                     //Send Data
                                     serverOutputStream.write(resultData.getBytes());
                                     serverOutputStream.flush();
-                                    Thread.sleep(1000);
+                                    Thread.sleep(2500);
                                 }
                                 serverOutputStream.write("CURRENTEND".getBytes());
                                 serverOutputStream.flush();
-                                Thread.sleep(1000);
+                                Thread.sleep(2500);
 
                                 //Select from Log
                                 result = MySQL.getStatement().executeQuery("SELECT * FROM log;");
                                 serverOutputStream.write("LOG".getBytes());
                                 serverOutputStream.flush();
-                                Thread.sleep(1000);
+                                Thread.sleep(5000);
                                 while (result.next()) {
                                     //For server output
                                     resultDebug += "[" + result.getString("NUM") + "," + result.getString("VID") + "," + result.getString("TYP") + ","
@@ -202,11 +202,11 @@ public final class Server extends Thread {
                                     //Send Data
                                     serverOutputStream.write(resultData.getBytes());
                                     serverOutputStream.flush();
-                                    Thread.sleep(1000);
+                                    Thread.sleep(2500);
                                 }
                                 serverOutputStream.write("LOGEND".getBytes());
                                 serverOutputStream.flush();
-                                Thread.sleep(1000);
+                                Thread.sleep(2500);
 
                                 //Debug & Close Stream
                                 LogSingleton.getInstance().updateLog(resultDebug.getBytes().length + " bytes of data sent...");

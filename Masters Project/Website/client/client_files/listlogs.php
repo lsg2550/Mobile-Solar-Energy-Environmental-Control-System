@@ -1,12 +1,12 @@
 <?php
-if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE) || !session_id()) {
-    session_start();
-}
-
-if ($_SESSION['user'] !== 1) {
-    header('Location: ../index.html');
-    exit();
-}
+//if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE) || !session_id()) {
+//    session_start();
+//}
+//
+//if ($_SESSION['user'] !== 1) {
+//    header('Location: ../index.html');
+//    exit();
+//}
 
 /* Init Misc */
 error_reporting(E_ALL);
@@ -18,39 +18,48 @@ $ipaddress = '127.0.0.1';
 $port = 8080;
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 
-/* Check if socket was created 
-  if ($socket === false) {
-  echo "socket_create() failed: reason " . socket_strerror(socket_last_error()) . "\n";
-  } else {
-  echo "Socket Created!\n";
-  }
- */
-
 /* Try to connect to server */
 $result = socket_connect($socket, $ipaddress, $port);
-/*
-  if ($result === false) {
-  echo "Socket failed to connect: " . socket_strerror(socket_last_error($socket)) . "\n";
-  } else {
-  echo "Socket successfully connected.\n";
-  }
- */
 
 /* Get Data */
-//echo "Writing to server...\n";
-$request = 'request' . chr(10); //chr(10) == '\n', for some reason I have to do it this way
+$request = 'request' . chr(10); //chr(10) == '\n'
 socket_write($socket, $request, strlen($request));
 
-//echo "Reading from server...\n";
-$buffer = '';
-while ($currentmessage = socket_read($socket, 1024)) {
-    $buffer .= $currentmessage;
+//Buffers
+$bufferCurrent = $bufferStatus = $bufferLog = '';
+$bufferStatusBool = $bufferLogBool = false;
+while (($bufferCurrent = socket_read($socket, 1024)) !== false) {
+
+    echo 'Checking if Current or Log: ' . $bufferCurrent . chr(10);
+    if (strcmp($bufferCurrent, "CURRENT") === 0) { //Server is sending CurrentStatus data
+        $bufferCurrent = socket_read($socket, 1024);
+
+        while (strcmp($bufferCurrent, "CURRENTEND") !== 0) {
+            $bufferStatus .= $bufferCurrent;
+            $bufferCurrent = socket_read($socket, 1024);
+        }
+
+        $bufferStatusBool = true;
+    } elseif (strcmp($bufferCurrent, "LOG") === 0) {
+        $bufferCurrent = socket_read($socket, 1024);
+
+        while (strcmp($bufferCurrent, "LOGEND") !== 0) {
+            $bufferLog .= $bufferCurrent;
+            $bufferCurrent = socket_read($socket, 1024);
+        }
+
+        $bufferLogBool = true;
+    }
+
+    if ($bufferStatusBool === true && $bufferLogBool === true) {
+        break;
+    }
+
+    sleep(5);
 }
-//echo $buffer . '\n';
 
 /* End Connection */
-//echo "Closing socket...";
-socket_write($socket, 'quit');
+socket_write($socket, 'QUIT');
 socket_close($socket);
 ?>
 
@@ -60,11 +69,11 @@ socket_close($socket);
         <table>
             <tr>
                 <th>Temperature</th>
-                <th><?php echo $buffer ?></th>
+                <th><?php echo $bufferStatus; ?></th>
             </tr>
             <tr>
                 <th>Battery Voltage</th>
-                <th>{Voltage}</th>
+                <th><?php echo $bufferLog; ?></th>
             </tr>
             <tr>
                 <th>Exhaust</th>
