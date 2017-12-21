@@ -1,12 +1,12 @@
 <?php
-//if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE) || !session_id()) {
-//    session_start();
-//}
-//
-//if ($_SESSION['user'] !== 1) {
-//    header('Location: ../index.html');
-//    exit();
-//}
+if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE) || !session_id()) {
+    session_start();
+}
+
+if ($_SESSION['user'] !== 1) {
+    header('Location: ../index.html');
+    exit();
+}
 
 /* Init Misc */
 error_reporting(E_ALL);
@@ -18,33 +18,38 @@ $ipaddress = '127.0.0.1';
 $port = 8080;
 $socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
 
-
-/* Check if socket was created */
-if ($socket === false) {
-    echo "socket_create() failed: reason " . socket_strerror(socket_last_error()) . "\n";
-} else {
-    echo "Socket Created!\n";
-}
+/* Check if socket was created 
+  if ($socket === false) {
+  echo "socket_create() failed: reason " . socket_strerror(socket_last_error()) . "\n";
+  } else {
+  echo "Socket Created!\n";
+  }
+ */
 
 /* Try to connect to server */
 $result = socket_connect($socket, $ipaddress, $port);
-if ($result === false) {
-    echo "Socket failed to connect: " . socket_strerror(socket_last_error($socket)) . "\n";
-} else {
-    echo "Socket successfully connected.\n";
-}
+/*
+  if ($result === false) {
+  echo "Socket failed to connect: " . socket_strerror(socket_last_error($socket)) . "\n";
+  } else {
+  echo "Socket successfully connected.\n";
+  }
+ */
 
 /* Get Data */
-echo "Writing to server...\n";
-socket_write($socket, 'request');
-$buf = '';
-echo "Reading from server...\n";
-socket_recv($socket, $buf, 1024, MSG_WAITALL);
+//echo "Writing to server...\n";
+$request = 'request' . chr(10); //chr(10) == '\n', for some reason I have to do it this way
+socket_write($socket, $request, strlen($request));
 
-echo $buf . "\n";
+//echo "Reading from server...\n";
+$buffer = '';
+while ($currentmessage = socket_read($socket, 1024)) {
+    $buffer .= $currentmessage;
+}
+//echo $buffer . '\n';
 
 /* End Connection */
-echo "Closing socket...";
+//echo "Closing socket...";
 socket_write($socket, 'quit');
 socket_close($socket);
 ?>
@@ -55,7 +60,7 @@ socket_close($socket);
         <table>
             <tr>
                 <th>Temperature</th>
-                <th>{celsius}/{fahrenheit}</th>
+                <th><?php echo $buffer ?></th>
             </tr>
             <tr>
                 <th>Battery Voltage</th>

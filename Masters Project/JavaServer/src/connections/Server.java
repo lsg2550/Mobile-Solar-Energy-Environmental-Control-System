@@ -1,6 +1,5 @@
 package connections;
 
-import alert.AlertDialog;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
@@ -19,7 +18,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import javafx.application.Platform;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -55,18 +53,16 @@ public final class Server extends Thread {
         try {
             //Start Server
             serverSocket = new ServerSocket(8080, 5, InetAddress.getByName("127.0.0.1"));
-
             //Debug
-            LogSingleton.getInstance().updateLog("Server socket [" + Server.getServerSocket().getLocalSocketAddress() + "] is open...");
+            LogSingleton.getInstance().updateLog("Server socket [" + serverSocket.getLocalSocketAddress() + "] is open...");
         } catch (IOException e) {
-            Platform.runLater(() -> {
-                AlertDialog.showAlert("Failed to Create Server Socket: " + e.toString());
-            });
+            LogSingleton.getInstance().updateLog("Failed to Create Server Socket: " + e.toString());
             e.printStackTrace();
             return;
         }
 
         while (!this.isInterrupted()) {
+            /* Wait for a connection */
             try {
                 //Wait for Connection
                 socket = serverSocket.accept();
@@ -83,22 +79,20 @@ public final class Server extends Thread {
                 //Debug
                 LogSingleton.getInstance().updateLog(socket.getLocalAddress() + " has connected...");
             } catch (IOException e) {
-                Platform.runLater(() -> {
-                    AlertDialog.showAlert("Failed to Create Server Socket: " + e.toString());
-                });
+                LogSingleton.getInstance().updateLog("Failed to Create Server Socket: " + e.toString());
                 e.printStackTrace();
                 return;
             }
 
-            //Start Server/Client Communication
+            /* Start Server/Client Communication */
             while (isClientConnected) {
                 try {
                     String clientInput = null;
                     while (((clientInput = serverReader.readLine()) != null)) {
                         switch (clientInput.toUpperCase()) {
-                            case "XML": //About to receive an XML
+                            case "XML": //Receive XML
                                 LogSingleton.getInstance().updateLog("Preparing for XML input...");
-                                Thread.sleep(1000);
+                                Thread.sleep(1000); //1 sec
 
                                 if (!xmlFile.exists()) {
                                     xmlFile.createNewFile();
@@ -117,9 +111,8 @@ public final class Server extends Thread {
                                 int dataLength = 0;
 
                                 LogSingleton.getInstance().updateLog("Receiving File...");
-
-                                //TODO: Look back at this, for some reason this while loop won't break properly
                                 while ((dataLength = serverInputStream.read(dataBuffer)) > 0) {
+                                    //TODO: Look back at this, for some reason this while loop won't break properly
                                     serverOutputStream.write(dataBuffer, 0, dataLength);
                                     serverFileOutputStream.flush();
                                     serverOutputStream.flush();
@@ -140,7 +133,7 @@ public final class Server extends Thread {
                                     Document xmlDoc = xmlBuilder.parse(xmlFile);
 
                                     String xmlLogTimeStamp = xmlDoc.getElementsByTagName("log").item(0).getTextContent();
-                                    List<String> xmlNodeList = new ArrayList<String>();
+                                    List<String> xmlNodeList = new ArrayList<>();
                                     xmlNodeList.add(xmlDoc.getElementsByTagName("temperature").item(0).getTextContent());
                                     xmlNodeList.add(xmlDoc.getElementsByTagName("battery").item(0).getTextContent());
                                     xmlNodeList.add(xmlDoc.getElementsByTagName("solarpanel").item(0).getTextContent());
@@ -150,91 +143,94 @@ public final class Server extends Thread {
                                     //TODO: Create Prepared Statements in MySQL class
                                     for (int i = 0; i < xmlNodeList.size(); i++) {
                                         String currentVital = xmlNodeList.get(i);
-                                        MySQL.getStatement().executeUpdate("UPDATE status SET VV = '" + currentVital + "', TS = '" + xmlLogTimeStamp + "' WHERE VID = " + (i + 1) + ";");
-                                        MySQL.getStatement().executeUpdate("INSERT INTO log (VID, TYP, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');");
-                                        System.out.println("UPDATE status SET VV = '" + currentVital + "', TS = '" + xmlLogTimeStamp + "' WHERE VID = " + (i + 1) + ";");
-                                        System.out.println("INSERT INTO log (VID, TYP, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');");
+                                        String updateQuery = "UPDATE status SET VV = '" + currentVital + "', TS = '" + xmlLogTimeStamp + "' WHERE VID = " + (i + 1) + ";";
+                                        String insertQuery = "INSERT INTO log (VID, TYP, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');";
+
+                                        //Execute Queries
+                                        MySQL.getStatement().executeUpdate(updateQuery);
+                                        MySQL.getStatement().executeUpdate(insertQuery);
+
+                                        //Debug
+                                        LogSingleton.getInstance().updateLog(updateQuery);
+                                        LogSingleton.getInstance().updateLog(insertQuery);
                                     }
-                                } catch (ParserConfigurationException e) {
-                                    e.printStackTrace();
-                                } catch (SAXException e) {
+                                } catch (ParserConfigurationException | SAXException e) {
                                     e.printStackTrace();
                                 }
                                 break;
-                            case "REQUEST": //Website or Client Request for Data
-                                LogSingleton.getInstance().updateLog("Preparing for Status Retrieval...");
-                                Thread.sleep(1000);
+                            case "REQUEST": //Retreive Data
+                                LogSingleton.getInstance().updateLog("Preparing for Data Retrieval...");
+                                serverOutputStream = new BufferedOutputStream(socket.getOutputStream());
+                                Thread.sleep(1000); //1 sec
 
-                                //serverOutputStream = new BufferedOutputStream(socket.getOutputStream());
-                                ResultSet rs = MySQL.getStatement().executeQuery("SELECT * FROM status;");
-                                System.out.println("im here");
-                                String result = "";
-                                
-                                System.out.println("im dsfasdfasf");
-                                while (rs.next()) {
-                                    result += "Vital ID: " + rs.getString("VID")
-                                            + "\nVital State: " + rs.getString("VV")
-                                            + "\nStatus Timestamp: " + rs.getString("TS")
-                                            + "\n";
+                                //Retreive from MySQL DB
+                                ResultSet rsStatus = MySQL.getStatement().executeQuery("SELECT * FROM status;");
+                                ResultSet rsLog = MySQL.getStatement().executeQuery("SELECT * FROM log;");
+                                String resultDebug = "",
+                                 resultData = "";
+
+                                //Select from CurrentStatus
+                                serverOutputStream.write("CURRENT".getBytes());
+                                serverOutputStream.flush();
+                                while (rsStatus.next()) {
+                                    //For server output
+                                    resultDebug += "[" + rsStatus.getString("VID") + "," + rsStatus.getString("VV") + "," + rsStatus.getString("TS") + "]\n";
+                                    //For client output
+                                    resultData = "[" + rsStatus.getString("VID") + "," + rsStatus.getString("VV") + "," + rsStatus.getString("TS") + "]";
+
+                                    //Send Data
+                                    serverOutputStream.write(resultData.getBytes());
+                                    serverOutputStream.flush();
+                                }
+                                serverOutputStream.write("CURRENT".getBytes());
+                                serverOutputStream.flush();
+
+                                //Select from Log
+                                serverOutputStream.write("LOG".getBytes());
+                                serverOutputStream.flush();
+                                while (rsLog.next()) {
+                                    //For server output
+                                    resultDebug += "[" + rsLog.getString("NUM") + "," + rsLog.getString("VID") + "," + rsLog.getString("TYP") + ","
+                                            + rsStatus.getString("V1") + "," + rsStatus.getString("V2") + "," + rsStatus.getString("TS") + "]\n";
+                                    //For client output
+                                    resultData = "[" + rsLog.getString("NUM") + "," + rsLog.getString("VID") + "," + rsLog.getString("TYP") + ","
+                                            + rsLog.getString("V1") + "," + rsLog.getString("V2") + "," + rsLog.getString("TS") + "]";
+
+                                    //Send Data
+                                    serverOutputStream.write(resultData.getBytes());
+                                    serverOutputStream.flush();
                                 }
 
-                                //Output data to client
-                                LogSingleton.getInstance().updateLog(result);
-                                //serverOutputStream.write(result.getBytes());
-                                //serverOutputStream.flush();
-                                //serverOutputStream.close();
-                                serverWriter.write(result + "\r\n");
-                                serverWriter.flush();
+                                //Debug & Close Stream
+                                LogSingleton.getInstance().updateLog(resultDebug.getBytes().length + " bytes of data sent...");
+                                serverOutputStream.close();
                                 break;
                             case "QUIT": //Quit
                                 isClientConnected = false;
                                 break;
                             default:
                                 LogSingleton.getInstance().updateLog(clientInput);
+                                serverWriter.write("Message Received!\n");
+                                serverWriter.flush();
                                 break;
                         }
-
-                        //Send Server Response
-                        //serverWriter.write("Message Received.\n");
-                        //serverWriter.flush();
                     }
-                } catch (SocketException e) {
+                } catch (SocketException e) { //Client Disconnects
                     isClientConnected = false;
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                } catch (SQLException e) {
+                    //e.printStackTrace();
+                } catch (IOException | SQLException | InterruptedException e) {
                     e.printStackTrace();
                 }
             }
 
             try {
                 LogSingleton.getInstance().updateLog(socket.getInetAddress() + " has disconnected...");
-                Thread.sleep(5000);
+                Thread.sleep(5000); //5 sec
             } catch (InterruptedException e) {
-                Platform.runLater(() -> {
-                    AlertDialog.showAlert(e.toString());
-                });
+                LogSingleton.getInstance().updateLog("Server thread was interrupted: " + e.toString());
                 e.printStackTrace();
                 return;
             }
         }
     }
-
-    /**
-     * @return the serverSocket
-     */
-    public static ServerSocket getServerSocket() {
-        return serverSocket;
-    }
-
-    /**
-     * @return the socket
-     */
-    public static Socket getSocket() {
-        return socket;
-    }
-
 }
