@@ -15,6 +15,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -93,9 +94,9 @@ public final class Server extends Thread {
             while (isClientConnected) {
                 try {
                     String clientInput = null;
-                    while ((clientInput = serverReader.readLine()) != null) {
+                    while (((clientInput = serverReader.readLine()) != null)) {
                         switch (clientInput.toUpperCase()) {
-                            case "XML":
+                            case "XML": //About to receive an XML
                                 LogSingleton.getInstance().updateLog("Preparing for XML input...");
                                 Thread.sleep(1000);
 
@@ -146,10 +147,11 @@ public final class Server extends Thread {
                                     xmlNodeList.add(xmlDoc.getElementsByTagName("exhaust").item(0).getTextContent());
                                     xmlNodeList.add(xmlDoc.getElementsByTagName("photo").item(0).getTextContent());
 
+                                    //TODO: Create Prepared Statements in MySQL class
                                     for (int i = 0; i < xmlNodeList.size(); i++) {
                                         String currentVital = xmlNodeList.get(i);
-                                        MySQL.getStatement().executeUpdate("UPDATE status SET VV = '" + currentVital + "', TS = '" + xmlLogTimeStamp + "' WHERE VID = " + (i + 1) + ";"); //TODO: Create a Prepared Statement in MySQL class
-                                        MySQL.getStatement().executeUpdate("INSERT INTO log (VID, TYP, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');"); //TODO: Create a Prepared Statement in MySQL class
+                                        MySQL.getStatement().executeUpdate("UPDATE status SET VV = '" + currentVital + "', TS = '" + xmlLogTimeStamp + "' WHERE VID = " + (i + 1) + ";");
+                                        MySQL.getStatement().executeUpdate("INSERT INTO log (VID, TYP, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');");
                                         System.out.println("UPDATE status SET VV = '" + currentVital + "', TS = '" + xmlLogTimeStamp + "' WHERE VID = " + (i + 1) + ";");
                                         System.out.println("INSERT INTO log (VID, TYP, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');");
                                     }
@@ -157,32 +159,53 @@ public final class Server extends Thread {
                                     e.printStackTrace();
                                 } catch (SAXException e) {
                                     e.printStackTrace();
-                                } catch (SQLException e) {
-                                    e.printStackTrace();
                                 }
                                 break;
-                            case "REQUEST":
-                                //Website or Client Request for Data
+                            case "REQUEST": //Website or Client Request for Data
                                 LogSingleton.getInstance().updateLog("Preparing for Status Retrieval...");
+                                Thread.sleep(1000);
 
+                                //serverOutputStream = new BufferedOutputStream(socket.getOutputStream());
+                                ResultSet rs = MySQL.getStatement().executeQuery("SELECT * FROM status;");
+                                System.out.println("im here");
+                                String result = "";
+                                
+                                System.out.println("im dsfasdfasf");
+                                while (rs.next()) {
+                                    result += "Vital ID: " + rs.getString("VID")
+                                            + "\nVital State: " + rs.getString("VV")
+                                            + "\nStatus Timestamp: " + rs.getString("TS")
+                                            + "\n";
+                                }
+
+                                //Output data to client
+                                LogSingleton.getInstance().updateLog(result);
+                                //serverOutputStream.write(result.getBytes());
+                                //serverOutputStream.flush();
+                                //serverOutputStream.close();
+                                serverWriter.write(result + "\r\n");
+                                serverWriter.flush();
                                 break;
-                            case "QUIT":
+                            case "QUIT": //Quit
                                 isClientConnected = false;
                                 break;
                             default:
-                                LogSingleton.getInstance().updateLog(clientInput); //Display ClientInput
+                                LogSingleton.getInstance().updateLog(clientInput);
                                 break;
                         }
 
                         //Send Server Response
-                        serverWriter.write("Message Received.\n");
-                        serverWriter.flush();
+                        //serverWriter.write("Message Received.\n");
+                        //serverWriter.flush();
                     }
                 } catch (SocketException e) {
                     isClientConnected = false;
+                    e.printStackTrace();
                 } catch (IOException e) {
                     e.printStackTrace();
                 } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } catch (SQLException e) {
                     e.printStackTrace();
                 }
             }
