@@ -163,7 +163,8 @@ public final class Server extends Thread {
                                 serverOutputStream = new BufferedOutputStream(socket.getOutputStream());
 
                                 //Retreive from MySQL DB
-                                ResultSet result = MySQL.getStatement().executeQuery("SELECT * FROM status;");
+                                ResultSet result = MySQL.getStatement().executeQuery("SELECT v.VN ,s.VV, s.TS "
+                                        + "FROM status s JOIN vitals v ON s.VID = v.VID ORDER BY s.VID;");
                                 String resultDebug = "",
                                  resultData = "";
 
@@ -173,9 +174,9 @@ public final class Server extends Thread {
                                 Thread.sleep(5000);
                                 while (result.next()) {
                                     //For server output
-                                    resultDebug += "[" + result.getString("VID") + "," + result.getString("VV") + "," + result.getString("TS") + "]\n";
+                                    resultDebug += "[" + result.getString("VN") + "," + result.getString("VV") + "," + result.getString("TS") + "]\n";
                                     //For client output
-                                    resultData = "[" + result.getString("VID") + "," + result.getString("VV") + "," + result.getString("TS") + "]";
+                                    resultData = "[" + result.getString("VN") + "," + result.getString("VV") + "," + result.getString("TS") + "]";
 
                                     //Send Data
                                     serverOutputStream.write(resultData.getBytes());
@@ -187,16 +188,17 @@ public final class Server extends Thread {
                                 Thread.sleep(2500);
 
                                 //Select from Log
-                                result = MySQL.getStatement().executeQuery("SELECT * FROM log;");
+                                result = MySQL.getStatement().executeQuery("SELECT l.NUM, v.VN, l.TYP, l.V1, l.V2, l.TS "
+                                        + "FROM log l JOIN vitals v ON l.VID = v.VID ORDER BY l.NUM;");
                                 serverOutputStream.write("LOG".getBytes());
                                 serverOutputStream.flush();
                                 Thread.sleep(5000);
                                 while (result.next()) {
                                     //For server output
-                                    resultDebug += "[" + result.getString("NUM") + "," + result.getString("VID") + "," + result.getString("TYP") + ","
+                                    resultDebug += "[" + result.getString("NUM") + "," + result.getString("VN") + "," + result.getString("TYP") + ","
                                             + result.getString("V1") + "," + result.getString("V2") + "," + result.getString("TS") + "]\n";
                                     //For client output
-                                    resultData = "[" + result.getString("NUM") + "," + result.getString("VID") + "," + result.getString("TYP") + ","
+                                    resultData = "[" + result.getString("NUM") + "," + result.getString("VN") + "," + result.getString("TYP") + ","
                                             + result.getString("V1") + "," + result.getString("V2") + "," + result.getString("TS") + "]";
 
                                     //Send Data
@@ -209,6 +211,7 @@ public final class Server extends Thread {
                                 Thread.sleep(2500);
 
                                 //Debug & Close Stream
+                                LogSingleton.getInstance().updateLog(resultDebug);
                                 LogSingleton.getInstance().updateLog(resultDebug.getBytes().length + " bytes of data sent...");
                                 serverOutputStream.close();
                                 break;

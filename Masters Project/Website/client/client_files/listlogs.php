@@ -1,4 +1,28 @@
 <?php
+
+function getData($stringToReplace) {
+    //Remove extra characters and place data into array
+    $charToReplace = array('[', ']');
+    $stringReplaced = str_replace($charToReplace, '', $stringToReplace);
+    $stringSplit = preg_split("/[,]+/", $stringReplaced);
+
+    //Get Data and Return HTML Table
+    $stringHTML = '<tr>';
+    for ($i = 0; $i < count($stringSplit) - 1; $i++) {
+        $stringHTML .= '<th>' . $stringSplit [$i] . '</th>';
+    }
+    $stringHTML .= '</tr>';
+    return $stringHTML;
+}
+
+function getTimeStamp($stringToReplace) {
+    //Remove extra characters and place data into array
+    $charToReplace = array('[', ']');
+    $stringReplaced = str_replace($charToReplace, '', $stringToReplace);
+    $stringSplit = preg_split("/[,]+/", $stringReplaced);
+    return end($stringSplit);
+}
+
 //if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE) || !session_id()) {
 //    session_start();
 //}
@@ -26,7 +50,8 @@ $request = 'request' . chr(10); //chr(10) == '\n'
 socket_write($socket, $request, strlen($request));
 
 //Buffers
-$bufferCurrent = $bufferStatus = $bufferLog = '';
+$bufferCurrent = '';
+$bufferStatus = $bufferLog = array();
 $bufferStatusBool = $bufferLogBool = false;
 while (($bufferCurrent = socket_read($socket, 1024)) !== false) {
 
@@ -35,7 +60,7 @@ while (($bufferCurrent = socket_read($socket, 1024)) !== false) {
         $bufferCurrent = socket_read($socket, 1024);
 
         while (strcmp($bufferCurrent, "CURRENTEND") !== 0) {
-            $bufferStatus .= $bufferCurrent;
+            $bufferStatus[] = $bufferCurrent;
             $bufferCurrent = socket_read($socket, 1024);
         }
 
@@ -44,7 +69,7 @@ while (($bufferCurrent = socket_read($socket, 1024)) !== false) {
         $bufferCurrent = socket_read($socket, 1024);
 
         while (strcmp($bufferCurrent, "LOGEND") !== 0) {
-            $bufferLog .= $bufferCurrent;
+            $bufferLog[] = $bufferCurrent;
             $bufferCurrent = socket_read($socket, 1024);
         }
 
@@ -65,27 +90,18 @@ socket_close($socket);
 
 <!DOCTYPE html>
 <html>
-    <fieldset><legend>Current Status</legend>
-        <table>
-            <tr>
-                <th>Temperature</th>
-                <th><?php echo $bufferStatus; ?></th>
-            </tr>
-            <tr>
-                <th>Battery Voltage</th>
-                <th><?php echo $bufferLog; ?></th>
-            </tr>
-            <tr>
-                <th>Exhaust</th>
-                <th>{ON/OFF}</th>
-            </tr>
-            <tr>
-                <th>Solar Panel</th>
-                <th>{Charging/NotCharging}</th>
-            </tr>
-        </table>
+    <fieldset><legend>Current Status - <?php echo getTimeStamp($bufferStatus[0]); ?></legend>
+        <?php
+        echo "<table>";
+
+        foreach ($bufferStatus as $bS) {
+            echo getData($bS) . chr(10);
+        }
+
+        echo "</table>";
+        ?>
     </fieldset>
     <fieldset><legend>Log</legend>
-        <!-- TODO: Loop Through and Display All Logs-->
+        <?php print_r($bufferLog); ?>
     </fieldset>
 </html>
