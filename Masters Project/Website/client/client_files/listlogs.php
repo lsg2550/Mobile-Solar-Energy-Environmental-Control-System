@@ -1,17 +1,23 @@
 <?php
 
-function getData($stringToReplace) {
+function getData($stringToReplace, $printAll) {
     //Remove extra characters and place data into array
     $charToReplace = array('[', ']');
     $stringReplaced = str_replace($charToReplace, '', $stringToReplace);
     $stringSplit = preg_split("/[,]+/", $stringReplaced);
 
     //Get Data and Return HTML Table
+    $print = -1;
+    if ($printAll === true) {
+        $print = 0;
+    }
+
     $stringHTML = '<tr>';
-    for ($i = 0; $i < count($stringSplit) - 1; $i++) {
+    for ($i = 0; $i < count($stringSplit) + $print; $i++) {
         $stringHTML .= '<th>' . $stringSplit [$i] . '</th>';
     }
     $stringHTML .= '</tr>';
+
     return $stringHTML;
 }
 
@@ -95,7 +101,7 @@ socket_close($socket);
         echo '<table>';
 
         foreach ($bufferStatus as $bS) {
-            echo getData($bS);
+            echo getData($bS, false);
         }
 
         echo '</table>';
@@ -106,7 +112,7 @@ socket_close($socket);
         echo '<table>';
 
         foreach ($bufferLog as $bL) {
-            echo getData($bL);
+            echo getData($bL, true);
         }
 
         echo '</table>';
