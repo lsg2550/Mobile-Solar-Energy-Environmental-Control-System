@@ -23,14 +23,14 @@ function getTimeStamp($stringToReplace) {
     return end($stringSplit);
 }
 
-//if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE) || !session_id()) {
-//    session_start();
-//}
-//
-//if ($_SESSION['user'] !== 1) {
-//    header('Location: ../index.html');
-//    exit();
-//}
+if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE) || !session_id()) {
+    session_start();
+}
+
+if ($_SESSION['user'] !== 1) {
+    header('Location: ../index.html');
+    exit();
+}
 
 /* Init Misc */
 error_reporting(E_ALL);
@@ -55,7 +55,7 @@ $bufferStatus = $bufferLog = array();
 $bufferStatusBool = $bufferLogBool = false;
 while (($bufferCurrent = socket_read($socket, 1024)) !== false) {
 
-    echo 'Checking if Current or Log: ' . $bufferCurrent . chr(10);
+    //echo 'Checking if Current or Log: ' . $bufferCurrent . chr(10);
     if (strcmp($bufferCurrent, "CURRENT") === 0) { //Server is sending CurrentStatus data
         $bufferCurrent = socket_read($socket, 1024);
 
@@ -92,16 +92,24 @@ socket_close($socket);
 <html>
     <fieldset><legend>Current Status - <?php echo getTimeStamp($bufferStatus[0]); ?></legend>
         <?php
-        echo "<table>";
+        echo '<table>';
 
         foreach ($bufferStatus as $bS) {
-            echo getData($bS) . chr(10);
+            echo getData($bS);
         }
 
-        echo "</table>";
+        echo '</table>';
         ?>
     </fieldset>
     <fieldset><legend>Log</legend>
-        <?php print_r($bufferLog); ?>
+        <?php
+        echo '<table>';
+
+        foreach ($bufferLog as $bL) {
+            echo getData($bL);
+        }
+
+        echo '</table>';
+        ?>
     </fieldset>
 </html>

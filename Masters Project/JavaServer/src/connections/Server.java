@@ -211,7 +211,6 @@ public final class Server extends Thread {
                                 Thread.sleep(2500);
 
                                 //Debug & Close Stream
-                                LogSingleton.getInstance().updateLog(resultDebug);
                                 LogSingleton.getInstance().updateLog(resultDebug.getBytes().length + " bytes of data sent...");
                                 serverOutputStream.close();
                                 break;
