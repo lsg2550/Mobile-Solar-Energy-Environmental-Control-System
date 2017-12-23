@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" prefHeight="197.0" prefWidth="337.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="log.LogController">
+    <children>
+        <Label alignment="CENTER" layoutX="97.0" layoutY="14.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="19.0" prefWidth="146.0" text="MariaDB Database" textAlignment="CENTER" AnchorPane.leftAnchor="97.0" AnchorPane.rightAnchor="94.0" AnchorPane.topAnchor="14.0" />
+        <TextArea fx:id="taLog" editable="false" layoutX="6.0" layoutY="41.0" minHeight="-Infinity" minWidth="-Infinity" prefHeight="151.0" prefWidth="327.0" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="6.0" AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="41.0" />
+    </children>
+</AnchorPane>
