@@ -1,13 +1,11 @@
 ﻿using Android.App;
 using Android.Webkit;
 using Android.OS;
-using RemoteSite.Views;
-using RemoteSite.Models;
 
 namespace RemoteSite {
     [Activity(Label = "RemoteSite", MainLauncher = true)]
     public class MainActivity : Activity {
-        //WebVie
+        //WebView
         private WebView webView;
 
         protected override void OnCreate(Bundle bundle) {
@@ -20,8 +18,7 @@ namespace RemoteSite {
             webView.Settings.JavaScriptEnabled = true;
 
             //Load URL
-            webView.LoadUrl("file:///android_asset/index.html");
-            
+            webView.LoadUrl("http://192.168.2.");
         }
 
         public override void OnBackPressed() {
