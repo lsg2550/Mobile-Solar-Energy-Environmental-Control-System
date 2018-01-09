@@ -18,8 +18,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -34,16 +32,9 @@ import org.xml.sax.SAXException;
 public final class Server extends Thread {
 
     //Server Creation
-    //private boolean isClientConnected = false;
     private static ServerSocket serverSocket = null;
     private static Socket socket = null;
 
-    //Server Streams
-    //private BufferedInputStream serverInputStream;
-    //private BufferedOutputStream serverOutputStream;
-    //private FileOutputStream serverFileOutputStream;
-    //private BufferedReader serverReader;
-    //private BufferedWriter serverWriter;
     //Local XML File
     private int xmlFileCount = 0;
     private String xmlFileName = "log";
@@ -72,7 +63,7 @@ public final class Server extends Thread {
 
             new Thread(() -> {
                 //Init Socket Streams
-                boolean isClientConnected = false;
+                boolean isClientConnected = true;
                 BufferedInputStream serverInputStream = null;
                 BufferedOutputStream serverOutputStream = null;
                 FileOutputStream serverFileOutputStream = null;
@@ -85,9 +76,6 @@ public final class Server extends Thread {
                     //serverOutputStream = new BufferedOutputStream(socket.getOutputStream());
                     serverReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
                     serverWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
-
-                    //Client Connection Status
-                    isClientConnected = true;
 
                     //Debug
                     LogSingleton.getInstance().updateLog(socket.getLocalAddress() + " has connected...");
@@ -105,12 +93,12 @@ public final class Server extends Thread {
                             switch (clientInput.toUpperCase()) {
                                 case "XML": //Receive XML
                                     LogSingleton.getInstance().updateLog("Preparing for XML input...");
-                                    Thread.sleep(1000); //1 sec
 
+                                    //Check if XML File Exists
                                     if (!xmlFile.exists()) {
                                         xmlFile.createNewFile();
                                     } else {
-                                        while (xmlFile.exists()) {
+                                        while (xmlFile.exists()) { //In case the server resets, it'll count back up to the current log count
                                             xmlFileCount++;
                                             xmlFile = new File("docs/" + xmlFileName + xmlFileCount + ".xml");
                                         }
@@ -176,7 +164,7 @@ public final class Server extends Thread {
                                     serverOutputStream = new BufferedOutputStream(socket.getOutputStream());
 
                                     //Retreive from MySQL DB
-                                    ResultSet result = MySQL.getStatement().executeQuery("SELECT v.VN ,s.VV, s.TS "
+                                    ResultSet resultREQUEST = MySQL.getStatement().executeQuery("SELECT v.VN ,s.VV, s.TS "
                                             + "FROM status s JOIN vitals v ON s.VID = v.VID ORDER BY s.VID;");
                                     String resultDebug = "",
                                      resultData = "";
@@ -184,12 +172,12 @@ public final class Server extends Thread {
                                     //Select from CurrentStatus
                                     serverOutputStream.write("CURRENT".getBytes());
                                     serverOutputStream.flush();
-                                    Thread.sleep(5000);
-                                    while (result.next()) {
+                                    Thread.sleep(2500); //
+                                    while (resultREQUEST.next()) {
                                         //For server output
-                                        resultDebug += "[" + result.getString("VN") + "," + result.getString("VV") + "," + result.getString("TS") + "]\n";
+                                        resultDebug += "[" + resultREQUEST.getString("VN") + "," + resultREQUEST.getString("VV") + "," + resultREQUEST.getString("TS") + "]\n";
                                         //For client output
-                                        resultData = "[" + result.getString("VN") + "," + result.getString("VV") + "," + result.getString("TS") + "]";
+                                        resultData = "[" + resultREQUEST.getString("VN") + "," + resultREQUEST.getString("VV") + "," + resultREQUEST.getString("TS") + "]";
 
                                         //Send Data
                                         serverOutputStream.write(resultData.getBytes());
@@ -201,18 +189,18 @@ public final class Server extends Thread {
                                     Thread.sleep(2500);
 
                                     //Select from Log
-                                    result = MySQL.getStatement().executeQuery("SELECT l.NUM, v.VN, l.TYP, l.V1, l.V2, l.TS "
+                                    resultREQUEST = MySQL.getStatement().executeQuery("SELECT l.NUM, v.VN, l.TYP, l.V1, l.V2, l.TS "
                                             + "FROM log l JOIN vitals v ON l.VID = v.VID ORDER BY l.NUM;");
                                     serverOutputStream.write("LOG".getBytes());
                                     serverOutputStream.flush();
-                                    Thread.sleep(5000);
-                                    while (result.next()) {
+                                    Thread.sleep(2500); // 
+                                    while (resultREQUEST.next()) {
                                         //For server output
-                                        resultDebug += "[" + result.getString("NUM") + "," + result.getString("VN") + "," + result.getString("TYP") + ","
-                                                + result.getString("V1") + "," + result.getString("V2") + "," + result.getString("TS") + "]\n";
+                                        resultDebug += "[" + resultREQUEST.getString("NUM") + "," + resultREQUEST.getString("VN") + "," + resultREQUEST.getString("TYP") + ","
+                                                + resultREQUEST.getString("V1") + "," + resultREQUEST.getString("V2") + "," + resultREQUEST.getString("TS") + "]\n";
                                         //For client output
-                                        resultData = "[" + result.getString("NUM") + "," + result.getString("VN") + "," + result.getString("TYP") + ","
-                                                + result.getString("V1") + "," + result.getString("V2") + "," + result.getString("TS") + "]";
+                                        resultData = "[" + resultREQUEST.getString("NUM") + "," + resultREQUEST.getString("VN") + "," + resultREQUEST.getString("TYP") + ","
+                                                + resultREQUEST.getString("V1") + "," + resultREQUEST.getString("V2") + "," + resultREQUEST.getString("TS") + "]";
 
                                         //Send Data
                                         serverOutputStream.write(resultData.getBytes());
@@ -226,6 +214,33 @@ public final class Server extends Thread {
                                     //Debug & Close Stream
                                     LogSingleton.getInstance().updateLog(resultDebug.getBytes().length + " bytes of data sent...");
                                     serverOutputStream.close();
+                                    break;
+                                case "SIGNIN":
+                                    LogSingleton.getInstance().updateLog("Preparing for Sign-In Credentials...");
+
+                                    //Receive Credentials
+                                    LogSingleton.getInstance().updateLog("Receiving Credentials...");
+                                    String[] userpass = new String[2];
+                                    for (int i = 0; i < userpass.length; i++) {
+                                        userpass[i] = serverReader.readLine(); //TODO: PHP will send $_POST username and password in different lines
+                                    }
+
+                                    ResultSet resultSIGNIN = MySQL.getStatement().executeQuery("SELECT username, password FROM users;");
+                                    boolean isCredentialsCorrect = false;
+                                    while (resultSIGNIN.next()) {
+                                        if (userpass[0].equals(resultSIGNIN.getString("username")) && userpass[1].equals(resultSIGNIN.getString("password"))) {
+                                            isCredentialsCorrect = true;
+                                            serverWriter.write("ACCEPT\n");
+                                            break;
+                                        }
+                                    }
+
+                                    if (!isCredentialsCorrect) {
+                                        serverWriter.write("REJECT\n");
+                                    }
+
+                                    //Debug
+                                    LogSingleton.getInstance().updateLog("Done Verifying Credentials...");
                                     break;
                                 case "QUIT": //Quit
                                     isClientConnected = false;
@@ -247,7 +262,7 @@ public final class Server extends Thread {
 
                 try {
                     LogSingleton.getInstance().updateLog(socket.getInetAddress() + " has disconnected...");
-                    Thread.sleep(5000); //5 sec
+                    Thread.sleep(2500); //2.5 sec
                 } catch (InterruptedException e) {
                     LogSingleton.getInstance().updateLog("Server thread was interrupted: " + e.toString());
                     e.printStackTrace();
