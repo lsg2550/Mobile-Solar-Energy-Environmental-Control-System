@@ -1,4 +1,5 @@
 <?php
+require('../../connect.php');
 
 function getData($stringToReplace, $printAll) {
     //Remove extra characters and place data into array
@@ -34,22 +35,9 @@ if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE)
 }
 
 if ($_SESSION['user'] !== 1) {
-    header('Location: ../index.html');
+    header('Location: ../../index.html');
     exit();
 }
-
-/* Init Misc */
-error_reporting(E_ALL);
-set_time_limit(0); //Allow the script to hang
-ob_implicit_flush(); //See what we're getting as it comes in
-
-/* Init Connections */
-$ipaddress = '127.0.0.1';
-$port = 8080;
-$socket = socket_create(AF_INET, SOCK_STREAM, SOL_TCP);
-
-/* Try to connect to server */
-$result = socket_connect($socket, $ipaddress, $port);
 
 /* Get Data */
 $request = 'request' . chr(10); //chr(10) == '\n'
