@@ -1,4 +1,6 @@
 <?php
+//Require
+require('../../index_files/session.php');
 require('../../index_files/connect.php');
 
 function getData($stringToReplace, $printAll) {
