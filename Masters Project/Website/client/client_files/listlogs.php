@@ -1,5 +1,5 @@
 <?php
-require('../../connect.php');
+require('../../index_files/connect.php');
 
 function getData($stringToReplace, $printAll) {
     //Remove extra characters and place data into array
@@ -39,11 +39,11 @@ if ($_SESSION['user'] !== 1) {
     exit();
 }
 
-/* Get Data */
+/* Send Request */
 $request = 'request' . chr(10); //chr(10) == '\n'
 socket_write($socket, $request, strlen($request));
 
-//Buffers
+/* Receive Data */
 $bufferCurrent = '';
 $bufferStatus = $bufferLog = array();
 $bufferStatusBool = $bufferLogBool = false;
@@ -73,8 +73,6 @@ while (($bufferCurrent = socket_read($socket, 1024)) !== false) {
     if ($bufferStatusBool === true && $bufferLogBool === true) {
         break;
     }
-
-    sleep(5);
 }
 
 /* End Connection */

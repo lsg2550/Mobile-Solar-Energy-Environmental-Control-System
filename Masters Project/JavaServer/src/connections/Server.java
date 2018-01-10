@@ -222,7 +222,10 @@ public final class Server extends Thread {
                                     LogSingleton.getInstance().updateLog("Receiving Credentials...");
                                     String[] userpass = new String[2];
                                     for (int i = 0; i < userpass.length; i++) {
-                                        userpass[i] = serverReader.readLine(); //TODO: PHP will send $_POST username and password in different lines
+                                        userpass[i] = serverReader.readLine();
+
+                                        //Debug
+                                        LogSingleton.getInstance().updateLog(userpass[i]);
                                     }
 
                                     ResultSet resultSIGNIN = MySQL.getStatement().executeQuery("SELECT username, password FROM users;");
@@ -230,16 +233,23 @@ public final class Server extends Thread {
                                     while (resultSIGNIN.next()) {
                                         if (userpass[0].equals(resultSIGNIN.getString("username")) && userpass[1].equals(resultSIGNIN.getString("password"))) {
                                             isCredentialsCorrect = true;
-                                            serverWriter.write("ACCEPT\n");
+                                            serverWriter.write("ACCEPT");
+
+                                            //Debug
+                                            LogSingleton.getInstance().updateLog("ACCEPT");
                                             break;
                                         }
                                     }
 
                                     if (!isCredentialsCorrect) {
-                                        serverWriter.write("REJECT\n");
+                                        serverWriter.write("REJECT");
+
+                                        //Debug
+                                        LogSingleton.getInstance().updateLog("REJECT");
                                     }
 
                                     //Debug
+                                    serverWriter.flush();
                                     LogSingleton.getInstance().updateLog("Done Verifying Credentials...");
                                     break;
                                 case "QUIT": //Quit
