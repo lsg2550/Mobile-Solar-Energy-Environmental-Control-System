@@ -39,7 +39,12 @@ credentialsVerified = False
 
 #Client/Server Communication
 try:
+<<<<<<< HEAD
     client.connect((servername, port)) #Connect
+=======
+	client.connect((servername, port)) #Connect
+	client.sendall(bytes(,'utf-8'))
+>>>>>>> 14093b082b80a76e187b61a6a19ca66045cee440
 	
     while True:
         #Sign In - signin\username\password
