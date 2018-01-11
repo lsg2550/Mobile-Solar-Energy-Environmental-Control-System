@@ -39,6 +39,7 @@ client = socket.socket()
 #Client/Server Communication
 try:
 	client.connect((servername, port)) #Connect
+	client.sendall(bytes(,'utf-8'))
 	
 	while True:
 		#End Program or Continue Requesting Data

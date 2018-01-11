@@ -44,7 +44,7 @@ public final class Server extends Thread {
     public void run() {
         try {
             //Start Server
-            serverSocket = new ServerSocket(8080, 5, InetAddress.getByName("127.0.0.1"));
+            serverSocket = new ServerSocket(8080, 5, InetAddress.getByName("192.168.2.9"));
 
             //Debug
             LogSingleton.getInstance().updateLog("Server socket [" + serverSocket.getLocalSocketAddress() + "] is open...");
@@ -78,7 +78,7 @@ public final class Server extends Thread {
                     serverWriter = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8));
 
                     //Debug
-                    LogSingleton.getInstance().updateLog(socket.getLocalAddress() + " has connected...");
+                    LogSingleton.getInstance().updateLog(socket.getInetAddress() + " has connected...");
                 } catch (IOException e) {
                     LogSingleton.getInstance().updateLog("Failed to Create Server Socket: " + e.toString());
                     e.printStackTrace();
@@ -144,16 +144,16 @@ public final class Server extends Thread {
                                         //TODO: Create Prepared Statements in MySQL class
                                         for (int i = 0; i < xmlNodeList.size(); i++) {
                                             String currentVital = xmlNodeList.get(i);
-                                            String updateQuery = "UPDATE status SET VV = '" + currentVital + "', TS = '" + xmlLogTimeStamp + "' WHERE VID = " + (i + 1) + ";";
-                                            String insertQuery = "INSERT INTO log (VID, TYP, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');";
+                                            String updateXML = "UPDATE status SET VV = '" + currentVital + "', TS = '" + xmlLogTimeStamp + "' WHERE VID = " + (i + 1) + ";";
+                                            String insertXML = "INSERT INTO log (VID, TYP, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');";
 
                                             //Execute Queries
-                                            MySQL.getStatement().executeUpdate(updateQuery);
-                                            MySQL.getStatement().executeUpdate(insertQuery);
+                                            MySQL.getStatement().executeUpdate(updateXML);
+                                            MySQL.getStatement().executeUpdate(insertXML);
 
                                             //Debug
-                                            LogSingleton.getInstance().updateLog(updateQuery);
-                                            LogSingleton.getInstance().updateLog(insertQuery);
+                                            LogSingleton.getInstance().updateLog(updateXML);
+                                            LogSingleton.getInstance().updateLog(insertXML);
                                         }
                                     } catch (ParserConfigurationException | SAXException e) {
                                         e.printStackTrace();
@@ -164,8 +164,7 @@ public final class Server extends Thread {
                                     serverOutputStream = new BufferedOutputStream(socket.getOutputStream());
 
                                     //Retreive from MySQL DB
-                                    ResultSet resultREQUEST = MySQL.getStatement().executeQuery("SELECT v.VN ,s.VV, s.TS "
-                                            + "FROM status s JOIN vitals v ON s.VID = v.VID ORDER BY s.VID;");
+                                    ResultSet resultREQUEST = MySQL.getStatement().executeQuery("SELECT v.VN ,s.VV, s.TS " + "FROM status s JOIN vitals v ON s.VID = v.VID ORDER BY s.VID;");
                                     String resultDebug = "",
                                      resultData = "";
 
@@ -232,18 +231,24 @@ public final class Server extends Thread {
                                     boolean isCredentialsCorrect = false;
                                     while (resultSIGNIN.next()) {
                                         if (userpass[0].equals(resultSIGNIN.getString("username")) && userpass[1].equals(resultSIGNIN.getString("password"))) {
-                                            isCredentialsCorrect = true;
+                                            //Notify Client
                                             serverWriter.write("ACCEPT");
+
+                                            //Update Database
+                                            String insertSIGNIN = "";
 
                                             //Debug
                                             LogSingleton.getInstance().updateLog("ACCEPT");
+                                            isCredentialsCorrect = true;
                                             break;
                                         }
                                     }
 
                                     if (!isCredentialsCorrect) {
+                                        //Notify Client
                                         serverWriter.write("REJECT");
 
+                                        //Update Database
                                         //Debug
                                         LogSingleton.getInstance().updateLog("REJECT");
                                     }
