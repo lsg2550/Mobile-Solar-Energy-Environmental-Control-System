@@ -39,12 +39,8 @@ credentialsVerified = False
 
 #Client/Server Communication
 try:
-<<<<<<< HEAD
-    client.connect((servername, port)) #Connect
-=======
 	client.connect((servername, port)) #Connect
 	client.sendall(bytes(,'utf-8'))
->>>>>>> 14093b082b80a76e187b61a6a19ca66045cee440
 	
     while True:
         #Sign In - signin\username\password
@@ -59,7 +55,7 @@ try:
                 request = input('What would you like to request from the server? - "Quit" closes the connection.\n')
                 client.sendall(bytes(request + '\n', 'utf-8'))
 		
-		#Process Received Data
+								#Process Received Data
                 if request.upper() == 'QUIT':
                     break
                 elif request.upper() == 'XML':
@@ -73,7 +69,7 @@ try:
                     xmlFile.close()
                     print('Done Sending')
 
-		#Print Received Data
+								#Print Received Data
                 received = str(client.recv(1024), 'utf-8')
                 print('{}'.format(received))
 finally:
