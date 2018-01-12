@@ -94,10 +94,13 @@ public final class Server extends Thread {
                 /* Start Server/Client Communication */
                 while (isClientConnected) {
                     try {
-                        String clientInput = null;
+                        //Client Variables
+                        String clientName = null; //Client that Connected
+                        String clientInput = null; //Client Input
+                        String clientOwnerName = null; //Client Owner (Used by Raspberry Pi)
                         while (((clientInput = serverReader.readLine()) != null)) {
                             switch (clientInput.toUpperCase()) {
-                                case "XML": //Receive XML
+                                case "XML": //Receive XML - Only used by raspberry pi
                                     LogSingleton.getInstance().updateLog("Preparing for XML input...");
 
                                     //Check if XML File Exists
@@ -151,7 +154,7 @@ public final class Server extends Thread {
                                         for (int i = 0; i < xmlNodeList.size(); i++) {
                                             String currentVital = xmlNodeList.get(i);
                                             String updateXML = "UPDATE status SET VV = '" + currentVital + "', TS = '" + xmlLogTimeStamp + "' WHERE VID = " + (i + 1) + ";";
-                                            String insertXML = "INSERT INTO log (VID, TYP, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');";
+                                            String insertXML = "INSERT INTO log (VID, TYP, USR, V1, V2, TS) VALUES (" + (i + 1) + ", 'ST', '" + clientOwnerName + "', '" + currentVital + "', '', '" + xmlLogTimeStamp + "');";
 
                                             //Execute Queries
                                             MySQL.getStatement().executeUpdate(updateXML);
@@ -170,7 +173,7 @@ public final class Server extends Thread {
                                     serverOutputStream = new BufferedOutputStream(socket.getOutputStream());
 
                                     //Retreive from MySQL DB
-                                    ResultSet resultREQUEST = MySQL.getStatement().executeQuery("SELECT v.VN ,s.VV, s.TS " + "FROM status s JOIN vitals v ON s.VID = v.VID ORDER BY s.VID;");
+                                    ResultSet resultREQUEST = MySQL.getStatement().executeQuery("SELECT v.VN ,s.VV, s.TS FROM status s JOIN vitals v ON s.VID = v.VID ORDER BY s.VID;");
                                     String resultDebug = "",
                                      resultData = "";
 
@@ -180,9 +183,13 @@ public final class Server extends Thread {
                                     Thread.sleep(2500); //
                                     while (resultREQUEST.next()) {
                                         //For server output
-                                        resultDebug += "[" + resultREQUEST.getString("VN") + "," + resultREQUEST.getString("VV") + "," + resultREQUEST.getString("TS") + "]\n";
+                                        resultDebug += "[" + resultREQUEST.getString("VN") + ","
+                                                + resultREQUEST.getString("VV") + ","
+                                                + resultREQUEST.getString("TS") + "]\n";
                                         //For client output
-                                        resultData = "[" + resultREQUEST.getString("VN") + "," + resultREQUEST.getString("VV") + "," + resultREQUEST.getString("TS") + "]";
+                                        resultData = "[" + resultREQUEST.getString("VN") + ","
+                                                + resultREQUEST.getString("VV") + ","
+                                                + resultREQUEST.getString("TS") + "]";
 
                                         //Send Data
                                         serverOutputStream.write(resultData.getBytes());
@@ -194,18 +201,26 @@ public final class Server extends Thread {
                                     Thread.sleep(2500);
 
                                     //Select from Log
-                                    resultREQUEST = MySQL.getStatement().executeQuery("SELECT l.NUM, v.VN, l.TYP, l.V1, l.V2, l.TS "
-                                            + "FROM log l JOIN vitals v ON l.VID = v.VID ORDER BY l.NUM;"); //l.VID = v.VID is preventing log to show login attempts
+                                    resultREQUEST = MySQL.getStatement().executeQuery("SELECT l.NUM, v.VN, l.TYP, l.V1, l.V2, l.TS FROM log l JOIN vitals v ON l.VID = v.VID ORDER BY l.NUM;"); //l.VID = v.VID is preventing log to show login attempts
                                     serverOutputStream.write("LOG".getBytes());
                                     serverOutputStream.flush();
                                     Thread.sleep(2500); // 
                                     while (resultREQUEST.next()) {
                                         //For server output
-                                        resultDebug += "[" + resultREQUEST.getString("NUM") + "," + resultREQUEST.getString("VN") + "," + resultREQUEST.getString("TYP") + ","
-                                                + resultREQUEST.getString("V1") + "," + resultREQUEST.getString("V2") + "," + resultREQUEST.getString("TS") + "]\n";
+                                        resultDebug += "[" + resultREQUEST.getString("NUM") + ","
+                                                + resultREQUEST.getString("VN") + ","
+                                                + resultREQUEST.getString("TYP") + ","
+                                                + resultREQUEST.getString("V1") + ","
+                                                + resultREQUEST.getString("V2") + ","
+                                                + resultREQUEST.getString("TS") + "]\n";
+
                                         //For client output
-                                        resultData = "[" + resultREQUEST.getString("NUM") + "," + resultREQUEST.getString("VN") + "," + resultREQUEST.getString("TYP") + ","
-                                                + resultREQUEST.getString("V1") + "," + resultREQUEST.getString("V2") + "," + resultREQUEST.getString("TS") + "]";
+                                        resultData = "[" + resultREQUEST.getString("NUM") + ","
+                                                + resultREQUEST.getString("VN") + ","
+                                                + resultREQUEST.getString("TYP") + ","
+                                                + resultREQUEST.getString("V1") + ","
+                                                + resultREQUEST.getString("V2") + ","
+                                                + resultREQUEST.getString("TS") + "]";
 
                                         //Send Data
                                         serverOutputStream.write(resultData.getBytes());
@@ -214,43 +229,45 @@ public final class Server extends Thread {
                                     }
                                     serverOutputStream.write("LOGEND".getBytes());
                                     serverOutputStream.flush();
-                                    Thread.sleep(2500);
+                                    serverOutputStream.close();
 
                                     //Debug & Close Stream
                                     LogSingleton.getInstance().updateLog(resultDebug.getBytes().length + " bytes of data sent...");
-                                    serverOutputStream.close();
                                     break;
                                 case "SIGNIN":
                                     LogSingleton.getInstance().updateLog("Preparing for Sign-In Credentials...");
 
                                     //Receive Credentials
                                     LogSingleton.getInstance().updateLog("Receiving Credentials...");
-                                    String[] userpass = new String[2];
+                                    String[] userpass = new String[2]; //[0] = username; [1] = password;
                                     for (int i = 0; i < userpass.length; i++) {
                                         userpass[i] = serverReader.readLine();
-
-                                        //Debug
-                                        LogSingleton.getInstance().updateLog(userpass[i]);
+                                        LogSingleton.getInstance().updateLog(userpass[i]); //Debug
                                     }
 
                                     ResultSet resultSIGNIN = MySQL.getStatement().executeQuery("SELECT username, password FROM users;");
-                                    String insertSIGNIN;
                                     boolean isCredentialsCorrect = false;
+                                    String insertSIGNIN = null;
                                     while (resultSIGNIN.next()) {
                                         if (userpass[0].equals(resultSIGNIN.getString("username")) && userpass[1].equals(resultSIGNIN.getString("password"))) {
                                             //Notify Client
                                             serverWriter.write("ACCEPT");
 
                                             //Update Database
-                                            insertSIGNIN = "INSERT INTO log VALUES (NULL, NULL, 'LA', "
-                                                    + "'" + resultSIGNIN.getString("username") + "', "
-                                                    + "'accept', '"
+                                            insertSIGNIN = "INSERT INTO log (VID, TYP, USR, V1, V2, TS) "
+                                                    + "VALUES (NULL, 'LA', '"
+                                                    + userpass[0] + "', "
+                                                    + "'ACC', NULL, '"
                                                     + SIMPLE_DATE_FORMAT.format(new Date()) + "');";
                                             MySQL.getStatement().executeUpdate(insertSIGNIN);
 
                                             //Debug
                                             LogSingleton.getInstance().updateLog("ACCEPT");
                                             isCredentialsCorrect = true;
+                                            clientName = userpass[0];
+                                            ResultSet resultOwner = MySQL.getStatement().executeQuery("SELECT owner FROM users WHERE username='" + clientName + "'");
+                                            resultOwner.next();
+                                            clientOwnerName = resultOwner.getString(1);
                                             break;
                                         }
                                     }
@@ -260,9 +277,10 @@ public final class Server extends Thread {
                                         serverWriter.write("REJECT");
 
                                         //Update Database
-                                        insertSIGNIN = "INSERT INTO log VALUES (NULL, NULL, 'LA', "
-                                                + "'" + resultSIGNIN.getString("username") + "', '"
-                                                + "'reject', "
+                                        insertSIGNIN = "INSERT INTO log (VID, TYP, USR, V1, V2, TS) "
+                                                + "VALUES (NULL, 'LA', '"
+                                                + userpass[0] + "', "
+                                                + "'REJ', '', '"
                                                 + SIMPLE_DATE_FORMAT.format(new Date()) + "');";
                                         MySQL.getStatement().executeUpdate(insertSIGNIN);
 
