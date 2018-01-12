@@ -20,15 +20,6 @@ xmlLogElement = xmlRoot.find('log')
 xmlLogElement.text = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 xmlParsed.write('status.xml')
 
-'''
-#Create String to Send to Server
-xml = []
-for line in xmlFile:
-	xml.append(line)
-xmlString = ''.join(xml)
-print(xmlString)
-'''
-
 #--------------------------------------------------------------------------------------------------------------#
 
 #Socket Connection Init
@@ -39,8 +30,7 @@ credentialsVerified = False
 
 #Client/Server Communication
 try:
-	client.connect((servername, port)) #Connect
-	client.sendall(bytes(,'utf-8'))
+    client.connect((servername, port)) #Connect
 	
     while True:
         #Sign In - signin\username\password
@@ -72,6 +62,8 @@ try:
 								#Print Received Data
                 received = str(client.recv(1024), 'utf-8')
                 print('{}'.format(received))
+        else:
+            break;
 finally:
     print('Closing Connection...')
     client.close()
