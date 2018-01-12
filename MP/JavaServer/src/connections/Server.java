@@ -257,7 +257,7 @@ public final class Server extends Thread {
                                             insertSIGNIN = "INSERT INTO log (VID, TYP, USR, V1, V2, TS) "
                                                     + "VALUES (NULL, 'LA', '"
                                                     + userpass[0] + "', "
-                                                    + "'ACC', NULL, '"
+                                                    + "'ACC', '', '"
                                                     + SIMPLE_DATE_FORMAT.format(new Date()) + "');";
                                             MySQL.getStatement().executeUpdate(insertSIGNIN);
 
