@@ -16,7 +16,9 @@ import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -40,11 +42,15 @@ public final class Server extends Thread {
     private String xmlFileName = "log";
     private File xmlFile = new File("docs/" + xmlFileName + xmlFileCount + ".xml");
 
+    //Date for MySQL Datetime
+    private final static SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     @Override
+
     public void run() {
         try {
             //Start Server
-            serverSocket = new ServerSocket(8080, 5, InetAddress.getByName("192.168.2.9"));
+            serverSocket = new ServerSocket(8080, 5, InetAddress.getByName("192.168.2.29"));
 
             //Debug
             LogSingleton.getInstance().updateLog("Server socket [" + serverSocket.getLocalSocketAddress() + "] is open...");
@@ -189,7 +195,7 @@ public final class Server extends Thread {
 
                                     //Select from Log
                                     resultREQUEST = MySQL.getStatement().executeQuery("SELECT l.NUM, v.VN, l.TYP, l.V1, l.V2, l.TS "
-                                            + "FROM log l JOIN vitals v ON l.VID = v.VID ORDER BY l.NUM;");
+                                            + "FROM log l JOIN vitals v ON l.VID = v.VID ORDER BY l.NUM;"); //l.VID = v.VID is preventing log to show login attempts
                                     serverOutputStream.write("LOG".getBytes());
                                     serverOutputStream.flush();
                                     Thread.sleep(2500); // 
@@ -228,6 +234,7 @@ public final class Server extends Thread {
                                     }
 
                                     ResultSet resultSIGNIN = MySQL.getStatement().executeQuery("SELECT username, password FROM users;");
+                                    String insertSIGNIN;
                                     boolean isCredentialsCorrect = false;
                                     while (resultSIGNIN.next()) {
                                         if (userpass[0].equals(resultSIGNIN.getString("username")) && userpass[1].equals(resultSIGNIN.getString("password"))) {
@@ -235,7 +242,11 @@ public final class Server extends Thread {
                                             serverWriter.write("ACCEPT");
 
                                             //Update Database
-                                            String insertSIGNIN = "";
+                                            insertSIGNIN = "INSERT INTO log VALUES (NULL, NULL, 'LA', "
+                                                    + "'" + resultSIGNIN.getString("username") + "', "
+                                                    + "'accept', '"
+                                                    + SIMPLE_DATE_FORMAT.format(new Date()) + "');";
+                                            MySQL.getStatement().executeUpdate(insertSIGNIN);
 
                                             //Debug
                                             LogSingleton.getInstance().updateLog("ACCEPT");
@@ -249,6 +260,12 @@ public final class Server extends Thread {
                                         serverWriter.write("REJECT");
 
                                         //Update Database
+                                        insertSIGNIN = "INSERT INTO log VALUES (NULL, NULL, 'LA', "
+                                                + "'" + resultSIGNIN.getString("username") + "', '"
+                                                + "'reject', "
+                                                + SIMPLE_DATE_FORMAT.format(new Date()) + "');";
+                                        MySQL.getStatement().executeUpdate(insertSIGNIN);
+
                                         //Debug
                                         LogSingleton.getInstance().updateLog("REJECT");
                                     }
