@@ -131,8 +131,8 @@ public final class Server extends Thread {
 
                                     //Close Streams
                                     LogSingleton.getInstance().updateLog("File Received.");
-                                    //serverFileOutputStream.close();
-                                    //serverOutputStream.close();
+                                    serverFileOutputStream.close();
+                                    serverOutputStream.close();
 
                                     //Read from XML and Process into MySQL Query
                                     try {
@@ -227,7 +227,7 @@ public final class Server extends Thread {
                                     }
                                     serverOutputStream.write("LOGEND".getBytes());
                                     serverOutputStream.flush();
-                                    //serverOutputStream.close();
+                                    serverOutputStream.close();
 
                                     //Debug & Close Stream
                                     LogSingleton.getInstance().updateLog(resultDebug.getBytes().length + " bytes of data sent...");
