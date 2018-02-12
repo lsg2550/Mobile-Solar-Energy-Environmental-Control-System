@@ -46,12 +46,10 @@ public final class Server extends Thread {
     private final static SimpleDateFormat SIMPLE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Override
-
-    public void run() {
+    public synchronized void run() {
         try {
             //Start Server
             serverSocket = new ServerSocket(8080, 5, InetAddress.getByName("192.168.2.29"));
-
             //Debug
             LogSingleton.getInstance().updateLog("Server socket [" + serverSocket.getLocalSocketAddress() + "] is open...");
         } catch (IOException e) {
@@ -133,8 +131,8 @@ public final class Server extends Thread {
 
                                     //Close Streams
                                     LogSingleton.getInstance().updateLog("File Received.");
-                                    serverFileOutputStream.close();
-                                    serverOutputStream.close();
+                                    //serverFileOutputStream.close();
+                                    //serverOutputStream.close();
 
                                     //Read from XML and Process into MySQL Query
                                     try {
@@ -229,7 +227,7 @@ public final class Server extends Thread {
                                     }
                                     serverOutputStream.write("LOGEND".getBytes());
                                     serverOutputStream.flush();
-                                    serverOutputStream.close();
+                                    //serverOutputStream.close();
 
                                     //Debug & Close Stream
                                     LogSingleton.getInstance().updateLog(resultDebug.getBytes().length + " bytes of data sent...");
@@ -296,9 +294,6 @@ public final class Server extends Thread {
                                     isClientConnected = false;
                                     break;
                                 default:
-                                    LogSingleton.getInstance().updateLog(clientInput);
-                                    serverWriter.write("Message Received!\n");
-                                    serverWriter.flush();
                                     break;
                             }
                         }

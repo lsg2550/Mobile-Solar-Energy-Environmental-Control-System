@@ -25,45 +25,52 @@ xmlParsed.write('status.xml')
 #Socket Connection Init
 servername = '192.168.2.29'
 port = 8080
-client = socket.socket()
+clientSocket = socket.socket()
 credentialsVerified = False
 
 #Client/Server Communication
 try:
-    client.connect((servername, port)) #Connect
+    clientSocket.connect((servername, port)) #Connect
 	
     while True:
         #Sign In - signin\username\password
-        client.sendall(bytes('signin\n' + '\n' + '\n', 'utf-8'))
-        
-        if str(client.recv(1024), 'utf-8').upper() == 'ACCEPT':
+        clientSocket.sendall(bytes('signin\n' + 'rp1\n' + 'pie!\n', 'utf-8'))
+        clientReceived = str(clientSocket.recv(1024), 'utf-8').upper()
+
+        if clientReceived == 'ACCEPT':
             print('{}'.format('Login Successful!'))
-            credentialsVerified = True
-            
-            if credentialsVerified:
-                #End Program or Continue Requesting Data
-                request = input('What would you like to request from the server? - "Quit" closes the connection.\n')
-                client.sendall(bytes(request + '\n', 'utf-8'))
-		
-								#Process Received Data
-                if request.upper() == 'QUIT':
-                    break
-                elif request.upper() == 'XML':
+
+            timeUpdate = time.time()
+            timeRequest = timeUpdate
+            while True:
+                timeCurrent = time.time()
+
+                if float(timeCurrent - timeUpdate) > 30:
+                    timeUpdate = timeCurrent #Update timeUpdate
+                    clientSocket.sendall(bytes('xml' + '\n', 'utf-8'))
                     print('Preparing to send XML to Server')
                     xmlFile = open(filePath, 'rb')
                     xmlBytes = xmlFile.read(1024)
-                    time.sleep(5)
                     while(xmlBytes):
-                        client.send(xmlBytes)
+                        clientSocket.send(xmlBytes)
                         xmlBytes = xmlFile.read(1024)
                     xmlFile.close()
                     print('Done Sending')
-
-								#Print Received Data
-                received = str(client.recv(1024), 'utf-8')
-                print('{}'.format(received))
-        else:
-            break;
+                
+                if float(timeCurrent - timeRequest) > 60:
+                    timeRequest = timeCurrent #Update timeRequest
+                    clientSocket.sendall(bytes('request' + '\n', 'utf-8'))
+                    print('Preparing to receive vital information from Server')
+                    while True:
+                        clientReceived = str(clientSocket.recv(1024), 'utf-8')
+                        print('{}'.format(clientReceived))
+                        if clientReceived == 'LOGEND':
+                            print('Vital Information Received')
+                            break
+        #This will be reached if main code breaks or if login is incorrect
+        break
+except Exception as e:
+    print('Exception Occurred' + str(e))
 finally:
     print('Closing Connection...')
-    client.close()
+    clientSocket.close()
