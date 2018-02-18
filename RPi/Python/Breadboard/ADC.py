@@ -16,7 +16,7 @@ def ConvertVolts(data,place):
 	return volts
  
 battery = 0 
-delay = 5
+delay = 1
  
 while True:
 	batteryValue = ReadChannel(battery)
