@@ -32,7 +32,7 @@ function getTimeStamp($stringToReplace) {
     $charToReplace = array('[', ']');
     $stringReplaced = str_replace($charToReplace, '', $stringToReplace);
     $stringSplit = preg_split("/[,]+/", $stringReplaced);
-    return $stringSplit[count($stringSplit) - 2];
+    return end($stringSplit);
 }
 
 //Session
@@ -61,13 +61,17 @@ $arrayLog = array();
 
 if(mysqli_num_rows($resultCurrentStatus) > 0){
     while($row = mysqli_fetch_assoc($resultCurrentStatus)){
-        $tempRow = '[' . $row['VN'] . ',' . $row['VV']. ',' . $row['TS'] . ',' . $row['RPID'] . ']';
+        $tempRow = '[' . $row['VN'] . ',' . $row['VV'] . ',' . $row['RPID'] . ',' . $row['TS'] . ']';
         $arrayCurrentStatus[] = $tempRow;
     }
 }
 
 if(mysqli_num_rows($resultLog) > 0){
     while($row = mysqli_fetch_assoc($resultLog)){
+        if($row['V2'] == NULL || $row['V2'] == ''){
+            $row['V2'] = "N/A";
+        }
+
         $tempRow = '[' . $row['VID'] . ',' . $row['TYP']. ',' . $row['RPID'] . ',' . $row['V1'] . ',' . $row['V2'] . ',' . $row['TS'] . ']';
         $arrayLog[] = $tempRow;
     }
@@ -85,6 +89,9 @@ ob_end_flush();
         <?php
         echo '<table>';
 
+        echo '<tr>';
+        echo '<th>Vital Name</th>' . '<th>Status</th>' . '<th>RPiID</th>';
+        echo '</tr>';
         foreach ($arrayCurrentStatus as $aCS) {
             echo getData($aCS, false);
         }
@@ -96,6 +103,9 @@ ob_end_flush();
         <?php
         echo '<table>';
 
+        echo '<tr>';
+        echo '<th>VID</th>' . '<th>TYP</th>' . '<th>RPiID</th>' . '<th>Vital 1</th>' . '<th>Vital 2</th>' . '<th>Timestamp</th>';
+        echo '</tr>';
         foreach ($arrayLog as $aL) {
             echo getData($aL, true);
         }

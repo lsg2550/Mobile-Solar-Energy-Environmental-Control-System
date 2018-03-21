@@ -21,12 +21,16 @@ if ($_SESSION['user'] !== 1) {
                 <input type="hidden" name="currentuser" value=<?php $_SESSION['username'];?>>
                 <input type="submit" value="List Logs">
             </form>
+            <form action="vitals.php" method="post">
+                <input type="hidden" name="currentuser" value=<?php $_SESSION['username'];?>>
+                <input type="submit" value="To Vitals Control Panel">
+            </form>
             <form action="client_files/logout.php" method="post">
                 <input type="submit" value="Log Out">
             </form>
         </div>
-        <div>
-            <iframe name="status" style="min-height:98vh;" width="100%"></iframe>
+        <div id="status-div">
+            <iframe id="status" name="status" style="min-height:100vh;" width="100%;" border="0;"></iframe>
         </div>
     </body>
 </html>
