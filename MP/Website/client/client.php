@@ -18,7 +18,7 @@ if ($_SESSION['user'] !== 1) {
         <div><h1>Remote Site - Mobile Solar Energy & Environmental Control System</h1></div>
         <div>
             <form action="client_files/listlogs.php" method="post" target="status">
-                <input type="hidden" value=<?php $_SESSION['username'];?>>
+                <input type="hidden" name="currentuser" value=<?php $_SESSION['username'];?>>
                 <input type="submit" value="List Logs">
             </form>
             <form action="client_files/logout.php" method="post">
