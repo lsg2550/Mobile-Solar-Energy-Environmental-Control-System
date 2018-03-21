@@ -1,6 +1,7 @@
 <?php
 
 //Require
+ob_start();
 require('session.php');
 require('connect.php');
 
@@ -8,26 +9,20 @@ require('connect.php');
 $user = $_POST['username'];
 $pass = $_POST['password'];
 
-/* Send SignIn Verification Request */
-$buffer = 'signin' . chr(10); //chr(10) == '\n'
-socket_write($socket, $buffer, strlen($buffer));
-$buffer = $user . chr(10); //chr(10) == '\n'
-socket_write($socket, $buffer, strlen($buffer));
-$buffer = $pass . chr(10); //chr(10) == '\n'
-socket_write($socket, $buffer, strlen($buffer));
+$sqlValidate = "SELECT username, passwd FROM users WHERE username = '" . $user . "' AND passwd = '" . $pass . "';";
+$sqlResult = mysqli_query($conn, $sqlValidate);
 
-echo 'Data Sent...' . chr(10);
-/* Receive Data */
-$bufferCurrent = socket_read($socket, 1024);
-echo 'Data Received: ' . $bufferCurrent . chr(10);
-
-if (strcmp($bufferCurrent, "ACCEPT") === 0) { //Credentials Match
-    $_SESSION['user'] = 1;
+if(mysqli_num_rows($sqlResult) > 0) {
     header('Location: ../client/client.php');
-} else {
-    $_SESSION['user'] = 0;
+    $_SESSION['user'] = 1;
+    $_SESSION['username'] = $user;
+    exit();
+} else{
     header('Location: ../index.html');
+    $_SESSION['user'] = 0;
+    $_SESSION['username'] = '';
 }
 
+ob_end_start();
 exit();
 ?>

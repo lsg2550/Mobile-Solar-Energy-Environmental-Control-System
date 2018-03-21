@@ -1,8 +1,11 @@
 <?php
+
+ob_start();
+
 //Require
-require('../../index_files/session.php');
 require('../../index_files/connect.php');
 
+//Functions
 function getData($stringToReplace, $printAll) {
     //Remove extra characters and place data into array
     $charToReplace = array('[', ']');
@@ -32,54 +35,41 @@ function getTimeStamp($stringToReplace) {
     return end($stringSplit);
 }
 
+//Session
 if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE) || !session_id()) {
     session_start();
 }
 
 if ($_SESSION['user'] !== 1) {
     header('Location: ../../index.html');
+    ob_end_flush();
     exit();
 }
 
-/* Send Request */
-$request = 'request' . chr(10); //chr(10) == '\n'
-socket_write($socket, $request, strlen($request));
+//Code
+$currentUser = $_POST['currentuser'];
+$sqlCurrentStatus = 'SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR="'. $currentUser .'"'; //Select all current status
+$sqlLog = 'SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR="'. $currentUser .'"'; //Select all log
 
-/* Receive Data */
-$bufferCurrent = '';
-$bufferStatus = $bufferLog = array();
-$bufferStatusBool = $bufferLogBool = false;
-while (($bufferCurrent = socket_read($socket, 1024)) !== false) {
+$resultCurrentStatus = mysqli_query($conn, $sqlCurrentStatus);
+$resultLog = mysqli_query($conn, $sqlLog);
 
-    //echo 'Checking if Current or Log: ' . $bufferCurrent . chr(10);
-    if (strcmp($bufferCurrent, "CURRENT") === 0) { //Server is sending CurrentStatus data
-        $bufferCurrent = socket_read($socket, 1024);
+$arrayCurrentStatus = array();
+$arrayLog = array();
 
-        while (strcmp($bufferCurrent, "CURRENTEND") !== 0) {
-            $bufferStatus[] = $bufferCurrent;
-            $bufferCurrent = socket_read($socket, 1024);
-        }
-
-        $bufferStatusBool = true;
-    } elseif (strcmp($bufferCurrent, "LOG") === 0) {
-        $bufferCurrent = socket_read($socket, 1024);
-
-        while (strcmp($bufferCurrent, "LOGEND") !== 0) {
-            $bufferLog[] = $bufferCurrent;
-            $bufferCurrent = socket_read($socket, 1024);
-        }
-
-        $bufferLogBool = true;
-    }
-
-    if ($bufferStatusBool === true && $bufferLogBool === true) {
-        break;
+if(mysqli_num_rows($resultCurrentStatus) > 0){
+    while($row = mysqli_fetch_assoc($resultCurrentStatus)){
+        $arrayCurrentStatus[] = $row;
     }
 }
 
-/* End Connection */
-socket_write($socket, 'QUIT');
-socket_close($socket);
+if(mysqli_num_rows($resultLog) > 0){
+    while($row = mysqli_fetch_assoc($resultLog)){
+        $arrayLog[] = $row;
+    }
+}
+
+ob_end_flush();
 ?>
 
 <!DOCTYPE html>
