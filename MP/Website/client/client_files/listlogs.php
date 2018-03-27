@@ -47,7 +47,7 @@ if ($_SESSION['user'] !== 1) {
 }
 
 //Code
-$currentUser = $_POST['currentuser'];
+$currentUser = $_SESSION['username'];
 //$sqlCurrentStatus = 'SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR="'. $currentUser .'"'; //Select all current status
 //$sqlLog = 'SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR="'. $currentUser .'"'; //Select all log
 $sqlCurrentStatus = 'SELECT VN, VV, RPID, TS FROM status NATURAL JOIN vitals'; //Select all current status

@@ -4,6 +4,7 @@ import time
 import socket
 from datetime import datetime
 from xml.etree import ElementTree
+from ftplib import FTP
 
 #------------------------------TODO: Read from sensors and put data into XML-----------------------------------#
 
@@ -74,3 +75,11 @@ except Exception as e:
 finally:
     print('Closing Connection...')
     clientSocket.close()
+
+'''
+ftp = FTP('files.000webhost.com')
+ftp.login('user', 'pass')
+xml_file = open("filename", "rb")
+ftp.storbinary("STOR public_html/filename", xml_file)
+xml_file.close()
+'''
