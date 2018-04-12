@@ -1,11 +1,7 @@
 <?php
 //Require
-require('../index_files/session.php');
-
-if ($_SESSION['user'] !== 1) {
-    header('Location: ../index.html');
-    exit();
-}
+require('../index_files/sessionstart.php');
+require('../index_files/sessioncheck.php');
 ?>
 
 <!DOCTYPE html>

@@ -1,20 +1,17 @@
 <?php
 //Require
+require('../index_files/sessionstart.php');
+require('../index_files/sessioncheck.php');
 require('../index_files/connect.php');
-//require('../index_files/session.php');
 
-//Grab Data from Database
-$currentUser = $_SESSION['username'];
-$sqlVitalsCurrentStatus = 'SELECT VN, VV, RPID FROM status NATURAL JOIN vitals WHERE USR="' . $currentUser . '";';
-$sqlVitalsCurrentThresholds = 'SELECT VN, VL, VU, RPID FROM vitals WHERE USR="' . $currentUser . '";';
+/* Database Queries */
+$currentUser = $_SESSION['username']; //Get Current User Name
+$sqlVitalsCurrentStatus = 'SELECT VN, VV, RPID FROM status NATURAL JOIN vitals WHERE USR="' . $currentUser . '";'; //Select current status of 
+$sqlVitalsCurrentThresholds = 'SELECT VN, VL, VU, RPID FROM vitals WHERE USR="' . $currentUser . '";'; //Select vital settings (lower & upper limits) to display and allow user to change those vital settings
 
+//Execute Queries
 $resultCurrentStatus = mysqli_query($conn, $sqlVitalsCurrentStatus);
 $resultCurrentThresholds = mysqli_query($conn, $sqlVitalsCurrentThresholds);
-
-if ($_SESSION['user'] !== 1) {
-    header('Location: ../index.html');
-    exit();
-}
 ?>
 
 <html>

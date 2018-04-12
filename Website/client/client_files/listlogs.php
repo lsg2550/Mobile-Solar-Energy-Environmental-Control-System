@@ -1,12 +1,12 @@
 <?php
-
-ob_start();
-
 //Require
+require('../../index_files/sessionstart.php');
+require('../../index_files/sessioncheck.php');
 require('../../index_files/connect.php');
 
-//Functions
-function getData($stringToReplace, $printAll) {
+/* Functions */
+//getData - Generate and format HTML tables to display CurrentStatus and Log results, respectively
+function getData($stringToReplace, $printAll) { 
     //Remove extra characters and place data into array
     $charToReplace = array('[', ']');
     $stringReplaced = str_replace($charToReplace, '', $stringToReplace);
@@ -27,7 +27,8 @@ function getData($stringToReplace, $printAll) {
     return $stringHTML;
 }
 
-function getTimeStamp($stringToReplace) {
+//getTimeStamp - Gets the timestamp of the current status to display it on the HTML page
+function getTimeStamp($stringToReplace) { 
     //Remove extra characters and place data into array
     $charToReplace = array('[', ']');
     $stringReplaced = str_replace($charToReplace, '', $stringToReplace);
@@ -35,30 +36,17 @@ function getTimeStamp($stringToReplace) {
     return end($stringSplit);
 }
 
-//Session
-if ((function_exists('session_status') && session_status() === PHP_SESSION_NONE) || !session_id()) {
-    session_start();
-}
+/* Database Queries */
+$currentUser = $_SESSION['username']; //Current User
+$sqlCurrentStatus = 'SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR="'. $currentUser .'"'; //Select all current status related to the current user
+$sqlLog = 'SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR="'. $currentUser .'"'; //Select all logs related to the current user
 
-if ($_SESSION['user'] !== 1) {
-    header('Location: ../../index.html');
-    ob_end_flush();
-    exit();
-}
-
-//Code
-$currentUser = $_SESSION['username'];
-//$sqlCurrentStatus = 'SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR="'. $currentUser .'"'; //Select all current status
-//$sqlLog = 'SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR="'. $currentUser .'"'; //Select all log
-$sqlCurrentStatus = 'SELECT VN, VV, RPID, TS FROM status NATURAL JOIN vitals'; //Select all current status
-$sqlLog = 'SELECT VID, TYP, RPID, V1, V2, TS FROM log'; //Select all log
-
+//Execute Queries
 $resultCurrentStatus = mysqli_query($conn, $sqlCurrentStatus);
 $resultLog = mysqli_query($conn, $sqlLog);
 
-$arrayCurrentStatus = array();
-$arrayLog = array();
-
+//Store CurrentStatus Query Results into $arrayCurrentStatus
+$arrayCurrentStatus = array(); 
 if(mysqli_num_rows($resultCurrentStatus) > 0){
     while($row = mysqli_fetch_assoc($resultCurrentStatus)){
         $tempRow = '[' . $row['VN'] . ',' . $row['VV'] . ',' . $row['RPID'] . ',' . $row['TS'] . ']';
@@ -66,6 +54,8 @@ if(mysqli_num_rows($resultCurrentStatus) > 0){
     }
 }
 
+//Store Log Query Results into $arrayLog
+$arrayLog = array(); 
 if(mysqli_num_rows($resultLog) > 0){
     while($row = mysqli_fetch_assoc($resultLog)){
         if($row['V2'] == NULL || $row['V2'] == ''){
