@@ -1,9 +1,9 @@
 <?php
 
 //Require
+ob_start();
 require('sessionstart.php');
 require('connect.php');
-ob_start();
 
 //TODO: Filter User & Pass
 //Take User and Pass from POST
