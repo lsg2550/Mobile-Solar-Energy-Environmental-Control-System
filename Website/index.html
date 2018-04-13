@@ -1,26 +1,30 @@
 <!--TODO: Add a register form to register users into database-->
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Remote Site - Login</title>
-    </head>
 
-    <body>
-        <div>
-            <h1>Remote Site - Mobile Solar Energy & Environmental Control System</h1>
-        </div>
+<head>
+    <title>Remote Site - Login</title>
+    <script src="index_files/valform.js"></script>
+</head>
 
-        <div>
-            <form action="index_files/index.php" method="post">
-                <fieldset>
-                    <legend>Login:</legend>
-                    Username:
-                    <input type="text" name="username"><br>
-                    Password:
-                    <input type="password" name="password"><br>
-                    <input type="submit" value="Submit">
-                </fieldset>
-            </form>
-        </div>
-    </body>
+<body>
+    <div>
+        <h1>Remote Site - Mobile Solar Energy & Environmental Control System</h1>
+    </div>
+
+    <div>
+        <form action="index_files/index.php" onsubmit="validateform()" method="post">
+            <fieldset>
+                <legend>Login:</legend>
+                Username:
+                <input type="text" id="username" name="username">
+                <br> Password:
+                <input type="password" id="password" name="password">
+                <br>
+                <input type="submit" value="Submit">
+            </fieldset>
+        </form>
+    </div>
+</body>
+
 </html>

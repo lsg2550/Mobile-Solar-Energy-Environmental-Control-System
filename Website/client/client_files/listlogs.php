@@ -6,22 +6,35 @@ require('../../index_files/connect.php');
 require('../../operations/operations.php');
 
 /* Functions */
-//getData - Generate and format HTML tables to display CurrentStatus and Log results, respectively
-function getData($stringToReplace, $printAll) { 
-    $stringSplit = splitDataIntoArray($stringToReplace); //Remove extra characters and place data into array
+$currentRaspberryPi = '-1'; 
+$initalRaspberryPi = true;
 
-    $print = -1; //$print = -1, in the generation of the table, do not iterate through the last item, which will always be the timestamp (used for current status table)
+//getData - Generate and format HTML tables to display CurrentStatus and Log results, respectively
+function getData($stringToReplace, $tableHeader, $printAll) { 
+    $stringSplit = splitDataIntoArray($stringToReplace); //Remove extra characters and place data into array
+    $displayHTML = ''; //Initialize Display HTML
+
+    $print = -2; //$print = -2, in the generation of the table, do not iterate through the last 2 items, which will always be the timestamp (used for current status table) and RaspberryPi ID
     if ($printAll === true) { $print = 0; } //$print = 0, iterate through all items (used for log table) 
 
-    //Generate HTML currentstatus/log tables
-    $stringHTML = '<tr>';
-    for ($i = 0; $i < count($stringSplit) + $print; $i++) {
-        $stringHTML .= '<th>' . $stringSplit [$i] . '</th>';
+    if ($stringSplit[2] !== $GLOBALS['currentRaspberryPi']) { //$stringSplit[2] will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
+        $GLOBALS['currentRaspberryPi'] = $stringSplit[2];
+
+        if($GLOBALS['initalRaspberryPi'] === false){ $displayHTML .= '</table>'; } //Closes the table from the previous RaspberryPi
+        else { $GLOBALS['initalRaspberryPi'] == false; } //Initial table will change this to false after it creates the first table header
+
+        $displayHTML .= '<table><caption>Raspberry Pi - ' . $GLOBALS['currentRaspberryPi'] . '</caption>' . $tableHeader;
     }
-    $stringHTML .= '</tr>';
+
+    //Generate HTML currentstatus/log tables
+    $displayHTML .= '<tr>';
+    for ($i = 0; $i < count($stringSplit) + $print; $i++) {
+        $displayHTML .= '<th>' . $stringSplit[$i] . '</th>';
+    }
+    $displayHTML .= '</tr>';
 
     //Return table(s)
-    return $stringHTML;
+    return $displayHTML;
 }
 
 //getTimeStamp - Gets the timestamp of the current status to display it on the HTML page
@@ -66,22 +79,18 @@ if(mysqli_num_rows($resultLog) > 0) {
     </head>
     <fieldset><legend>Current Status - <?php echo getTimeStamp($arrayCurrentStatus[0]); ?></legend>
         <?php
-            echo '<table>';
-            echo '<tr>';
-            echo '<th>Vital Name</th>' . '<th>Status</th>' . '<th>RPiID</th>';
-            echo '</tr>';
-            foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, false); }
+            foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, '<tr><th>Vital Name</th><th>Status</th></tr>', false); }
             echo '</table>';
+            $GLOBALS['currentRaspberryPi'] = '-1'; //Reset currentRaspberryPi 'Counter'
+            $GLOBALS['initalRaspberryPi'] = true; //Reset currentRaspberryPi 'Counter'
         ?>
     </fieldset>
     <fieldset><legend>Log</legend>
         <?php
-            echo '<table>';
-            echo '<tr>';
-            echo '<th>VID</th>' . '<th>TYP</th>' . '<th>RPiID</th>' . '<th>Vital 1</th>' . '<th>Vital 2</th>' . '<th>Timestamp</th>';
-            echo '</tr>';
-            foreach ($arrayLog as $aL) { echo getData($aL, true); }
+            foreach ($arrayLog as $aL) { echo getData($aL, '<tr><th>VID</th><th>TYP</th><th>RPiID</th><th>Vital 1</th><th>Vital 2</th><th>Timestamp</th></tr>', true); }
             echo '</table>';
+            $GLOBALS['currentRaspberryPi'] = '-1'; //Reset currentRaspberryPi 'Counter'
+            $GLOBALS['initalRaspberryPi'] = true; //Reset currentRaspberryPi 'Counter'
         ?>
     </fieldset>
 </html>

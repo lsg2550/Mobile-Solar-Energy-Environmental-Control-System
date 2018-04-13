@@ -6,8 +6,8 @@ require('../index_files/connect.php');
 require('../operations/operations.php');
 
 /* Functions */
-global $currentRaspberryPi = '-1';
-global $initalRaspberryPi = true;
+$currentRaspberryPi = '-1'; 
+$initalRaspberryPi = true;
 
 //generateVitalsControlPanel - Generates an HTML vitals control panel where the user will overwrite current vitals status (e.g if exhaust is on, the user can force it off)
 function generateVitalStatusControlPanel($vitalControlData) {
@@ -17,15 +17,16 @@ function generateVitalStatusControlPanel($vitalControlData) {
     //If the vital name is Temperature, Battery, or Photo (vitals that can't be overwritten outside from the thresholds panel) then return nothing
     if($vitalControlDataFormatted[0] === 'Temperature' || $vitalControlDataFormatted[0] === 'Battery' || $vitalControlDataFormatted[0] === 'Photo') { return ''; }
 
-    if (end($vitalControlDataFormatted) !== $currentRaspberryPi) { //end($vitalControlDataFormatted) will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
-        $currentRaspberryPi = end($vitalControlDataFormatted);
+    if (end($vitalControlDataFormatted) !== $GLOBALS['currentRaspberryPi']) { //end($vitalControlDataFormatted) will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
+        $GLOBALS['currentRaspberryPi'] = end($vitalControlDataFormatted);
 
-        if($initalRaspberryPi === false){ $vitalStatusControlPanel .= '</table>'; } //Closes the table from the previous RaspberryPi
-        else { $initalRaspberryPi == false; } //Initial table will change this to false after it creates the first table header
+        if($GLOBALS['initalRaspberryPi'] === false){ $vitalStatusControlPanel .= '</table>'; } //Closes the table from the previous RaspberryPi
+        else { $GLOBALS['initalRaspberryPi'] == false; } //Initial table will change this to false after it creates the first table header
 
-        $vitalStatusControlPanel .= '<table><caption>' . $currentRaspberryPi . '</caption><tr><th>Vital Name</th><th>Status</th>';
+        $vitalStatusControlPanel .= '<table><caption>Raspberry Pi - ' . $GLOBALS['currentRaspberryPi'] . '</caption><tr><th>Vital Name</th><th>Status</th></tr>';
     }
 
+    //Generate Panel
     $vitalStatusControlPanel .= '<tr>';
     for ($i = 0; $i < count($vitalControlDataFormatted) - 1; $i++) {
         $vitalStatusControlPanel .= '<th>' . $vitalControlDataFormatted[$i] . '</th>';
@@ -41,17 +42,18 @@ function generateVitalThresholdControlPanel($vitalThresholdData) {
     $vitalThresholdDataFormatted = splitDataIntoArray($vitalThresholdData);
     $vitalThresholdControlPanel = ''; //Initialize Vital Threshold Control Panel HTML
 
-    if (end($vitalThresholdDataFormatted) !== $currentRaspberryPi) { //end($vitalThresholdDataFormatted) will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
-        $currentRaspberryPi = end($vitalThresholdDataFormatted);
+    if (end($vitalThresholdDataFormatted) !== $GLOBALS['currentRaspberryPi']) { //end($vitalThresholdDataFormatted) will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
+        $GLOBALS['currentRaspberryPi'] = end($vitalThresholdDataFormatted);
         
-        if($initalRaspberryPi === false){ $vitalThresholdControlPanel .= '</table>'; } //Closes the table from the previous RaspberryPi
-        else { $vitalThresholdControlPanel == false; } //Initial table will change this to false after it creates the first table header
+        if($GLOBALS['initalRaspberryPi'] === false){ $vitalThresholdControlPanel .= '</table>'; } //Closes the table from the previous RaspberryPi
+        else { $GLOBALS['initalRaspberryPi'] == false; } //Initial table will change this to false after it creates the first table header
 
-        $vitalThresholdControlPanel .= '<table><caption>' . $currentRaspberryPi . '</caption><tr><th>Vital Name</th><th>Vital Lower</th><th>Vital Upper</th>';
+        $vitalThresholdControlPanel .= '<table><caption>Raspberry Pi - ' . $GLOBALS['currentRaspberryPi'] . '</caption><tr><th>Vital Name</th><th>Vital Lower</th><th>Vital Upper</th></tr>';
     }
 
+    //Generate Panel
     $vitalThresholdControlPanel .= '<tr>';
-    for ($i = 0; $i < count($vitalThresholdDataFormatted); $i++) {
+    for ($i = 0; $i < count($vitalThresholdDataFormatted) - 1; $i++) {
         $vitalThresholdControlPanel .= '<th>' . $vitalThresholdDataFormatted[$i] . '</th>';
     }
     $vitalThresholdControlPanel .= '</tr>';
@@ -98,9 +100,10 @@ if(mysqli_num_rows($resultCurrentThresholds) > 0) {
             <form action="vitals_files/vitalscontrol.php" method="post">
                 <fieldset><legend>Vital Status Control Panel:</legend>
                     <?php 
-                        foreach ($arrayCurrentStatus as $aCS) { echo generateVitalStatusControlPanel($aCS) }; //Generate Status Control Panel
-                        $currentRaspberryPi = '-1'; //Reset currentRaspberryPi 'Counter'
-                        $initalRaspberryPi = true; //Reset currentRaspberryPi 'Counter'
+                        foreach ($arrayCurrentStatus as $aCS) { echo generateVitalStatusControlPanel($aCS); } //Generate Status Control Panel
+                        echo '</table>';
+                        $GLOBALS['currentRaspberryPi'] = '-1'; //Reset currentRaspberryPi 'Counter'
+                        $GLOBALS['initalRaspberryPi'] = true; //Reset currentRaspberryPi 'Counter'
                     ?>
                 </fieldset>
             </form>
@@ -110,9 +113,10 @@ if(mysqli_num_rows($resultCurrentThresholds) > 0) {
             <form action="vitals_files/vitalsthreshold.php" method="post">
                 <fieldset><legend>Vital Threshold Control Panel:</legend>
                     <?php
-                        foreach ($arrayCurrentThreshold as $aCT) { echo generateVitalThresholdControlPanel($aCT) }; //Generate Treshold Control Panel
-                        $currentRaspberryPi = '-1'; //Reset currentRaspberryPi 'Counter'
-                        $initalRaspberryPi = true; //Reset currentRaspberryPi 'Counter'
+                        foreach ($arrayCurrentThreshold as $aCT) { echo generateVitalThresholdControlPanel($aCT); } //Generate Treshold Control Panel
+                        echo '</table>';
+                        $GLOBALS['currentRaspberryPi'] = '-1'; //Reset currentRaspberryPi 'Counter'
+                        $GLOBALS['initalRaspberryPi'] = true; //Reset currentRaspberryPi 'Counter'
                     ?>
                 </fieldset>
             </form>
