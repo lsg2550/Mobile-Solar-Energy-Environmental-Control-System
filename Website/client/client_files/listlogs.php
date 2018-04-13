@@ -28,9 +28,7 @@ function getData($stringToReplace, $tableHeader, $printAll) {
 
     //Generate HTML currentstatus/log tables
     $displayHTML .= '<tr>';
-    for ($i = 0; $i < count($stringSplit) + $print; $i++) {
-        $displayHTML .= '<th>' . $stringSplit[$i] . '</th>';
-    }
+    for ($i = 0; $i < count($stringSplit) + $print; $i++) { $displayHTML .= '<th>' . $stringSplit[$i] . '</th>'; }
     $displayHTML .= '</tr>';
 
     //Return table(s)
