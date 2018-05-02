@@ -1,5 +1,6 @@
 <?php
 
+//Buffer Start
 ob_start();
 
 if ($_SESSION['user'] !== 1) {
@@ -8,6 +9,7 @@ if ($_SESSION['user'] !== 1) {
     exit();
 } 
 
+//Buffer End
 ob_end_flush();
 
 ?>

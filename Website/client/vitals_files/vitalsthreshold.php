@@ -14,7 +14,7 @@
             $tempVU = $_POST['vitalupper'][$amtOfVitals];
             echo 'LOWER:' . tempVL;
             echo 'UPPER:' . tempVU;
-            $sqlUpdate[] = 'UPDATE vitals SET VL="' . $tempVL . '", VU="' . $tempVU . '" WHERE RPID= "' . $tempRPI . '" AND USR="' . $currentUser . '"'; //TODO: ADD VITALNAME
+            $sqlUpdate[] = 'UPDATE vitals SET VL="{$tempVL}", VU="{$tempVU}" WHERE RPID="{$tempRPI}" AND USR="{$currentUser}";'; //TODO: ADD VITALNAME
         }
     }
 ?>
