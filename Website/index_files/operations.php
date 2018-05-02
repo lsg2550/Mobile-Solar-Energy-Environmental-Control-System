@@ -1,6 +1,6 @@
 <?php
 //Require
-reqiure('sessionstart.php');
+require('sessionstart.php');
 require('sessioncheck.php');
 
 //Remove extra characters and place data into an array, all data carried out in this website will follow the same data format
