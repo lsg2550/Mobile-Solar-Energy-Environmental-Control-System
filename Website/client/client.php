@@ -23,7 +23,7 @@ require('../index_files/sessioncheck.php');
             <form action="vitals.php" method="post">
                 <input type="submit" value="To Vitals Control Panel">
             </form>
-            <form action="client_files/logout.php" method="post">
+            <form action="../index_files/logout.php" method="post">
                 <input type="submit" value="Log Out">
             </form>
         </div>
