@@ -1,14 +1,14 @@
 <?php
 //Require
-require('../../index_files/sessionstart.php');
-require('../../index_files/sessioncheck.php');
-require('../../index_files/connect.php');
-require('../../index_files/operations.php');
+require("../../index_files/sessionstart.php");
+require("../../index_files/sessioncheck.php");
+require("../../index_files/connect.php");
+require("../../index_files/operations.php");
 
 //Database Queries
-$currentUser = $_SESSION['username']; //Current User
-$sqlCurrentStatus = "SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR='{$currentUser}'"; //Select all current status related to the current user
-$sqlLog = "SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR='{$currentUser}'"; //Select all logs related to the current user
+$currentUser = $_SESSION["username"]; //Current User
+$sqlCurrentStatus = "SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR='{$currentUser}';"; //Select all current status related to the current user
+$sqlLog = "SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR='{$currentUser}';"; //Select all logs related to the current user
 
 //Execute Queries
 $resultCurrentStatus = mysqli_query($conn, $sqlCurrentStatus);
@@ -27,7 +27,10 @@ if(mysqli_num_rows($resultCurrentStatus) > 0) {
 $arrayLog = array();
 if(mysqli_num_rows($resultLog) > 0) { 
     while($row = mysqli_fetch_assoc($resultLog)) {
-        if($row['V2'] == NULL || $row['V2'] == '') { $row['V2'] = "N/A"; } //If V2 is blank, replace it with 'N/A'
+        if($row['V2'] == NULL || $row['V2'] == "") { //If V2 is blank, replace it with 'N/A'
+            $row['V2'] = "N/A"; 
+        }
+
         $tempRow = "[ {$row['VID']}, {$row['TYP']}, {$row['RPID']}, {$row['V1']}, {$row['V2']}, {$row['TS']} ]";
         $arrayLog[] = $tempRow;
     }
@@ -35,13 +38,13 @@ if(mysqli_num_rows($resultLog) > 0) {
 
 //Functions
 $initalRaspberryPi = true; //Initialize
-$currentRaspberryPi = '-1'; //Initialize
+$currentRaspberryPi = "-1"; //Initialize
 
 //getData - Generate and format HTML tables to display CurrentStatus and Log results, respectively
 function getData($stringToReplace, $tableHeader, $printAll) { 
     //Initialize
     $stringSplit = splitDataIntoArray($stringToReplace); //Remove extra characters and place data into array
-    $displayHTML = ''; //Initialize Display HTML
+    $displayHTML = ""; //Initialize Display HTML
     global $initalRaspberryPi;
     global $currentRaspberryPi;
     $print = -2; //$print = -2, in the generation of the table, do not iterate through the last 2 items, which will always be the timestamp (used for current status table) and RaspberryPi ID
@@ -50,7 +53,7 @@ function getData($stringToReplace, $tableHeader, $printAll) {
     if ($stringSplit[2] !== $currentRaspberryPi) { //$stringSplit[2] will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
         $currentRaspberryPi = $stringSplit[2];
 
-        if($initalRaspberryPi === false){ $displayHTML .= '</table>'; } //Closes the table from the previous RaspberryPi
+        if($initalRaspberryPi === false){ $displayHTML .= "</table>"; } //Closes the table from the previous RaspberryPi
         else { $initalRaspberryPi = false; } //Initial table will change this to false after it creates the first table header
 
         $displayHTML .= "<table><caption>Raspberry Pi - {$currentRaspberryPi}</caption>{$tableHeader}";
@@ -77,7 +80,7 @@ function resetGlobals() {
     global $currentRaspberryPi;
 
     $initalRaspberryPi = true; //Reset currentRaspberryPi 'Counter'
-    $currentRaspberryPi = '-1'; //Reset currentRaspberryPi 'Counter'
+    $currentRaspberryPi = "-1"; //Reset currentRaspberryPi 'Counter'
 }
 ?>
 
@@ -92,8 +95,8 @@ function resetGlobals() {
             <div>
                 <fieldset><legend>Current Status - <?php echo getTimeStamp($arrayCurrentStatus[0]); ?></legend>
                     <?php
-                        foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, '<tr><th>Vital Name</th><th>Status</th></tr>', false); }
-                        echo '</table>';
+                        foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, "<tr><th>Vital Name</th><th>Status</th></tr>", false); }
+                        echo "</table>";
                         resetGlobals();
                     ?>
                 </fieldset>
@@ -101,8 +104,8 @@ function resetGlobals() {
             <div>
                 <fieldset><legend>Log</legend>
                     <?php
-                        foreach ($arrayLog as $aL) { echo getData($aL, '<tr><th>VID</th><th>TYP</th><th>RPiID</th><th>Vital 1</th><th>Vital 2</th><th>Timestamp</th></tr>', true); }
-                        echo '</table>';
+                        foreach ($arrayLog as $aL) { echo getData($aL, "<tr><th>VID</th><th>TYP</th><th>RPiID</th><th>Vital 1</th><th>Vital 2</th><th>Timestamp</th></tr>", true); }
+                        echo "</table>";
                         resetGlobals();
                     ?>
                 </fieldset>

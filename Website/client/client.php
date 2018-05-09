@@ -1,7 +1,7 @@
 <?php
 //Require
-require('../index_files/sessionstart.php');
-require('../index_files/sessioncheck.php');
+require("../index_files/sessionstart.php");
+require("../index_files/sessioncheck.php");
 
 //TODO: Before Page is loading, check for xmls in temp folder (delete them after) and update database
 ?>

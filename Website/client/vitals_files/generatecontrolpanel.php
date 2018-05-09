@@ -2,7 +2,7 @@
 
 //Initialize
 $initalRaspberryPi = true;
-$currentRaspberryPi = '-1'; 
+$currentRaspberryPi = "-1"; 
 
 //generateVitalsThresholdControlPanel - Generates an HTML threshold panel where the user will define thresholds for the vitals to follow (e.g default battery VL is 12.6v, the user can change this to 12.0v)
 function generateVitalThresholdControlPanel($vitalThresholdData) {
@@ -12,7 +12,7 @@ function generateVitalThresholdControlPanel($vitalThresholdData) {
     global $initalRaspberryPi;
 
     //If the vital name is Solar Panel, Exhaust (vitals that can't be overwritten outside from the status panel) then return nothing
-    if(trim($vitalThresholdDataFormatted[0]) === 'Solar Panel' || trim($vitalThresholdDataFormatted[0]) === 'Exhaust') { return ''; } 
+    if(trim($vitalThresholdDataFormatted[0]) === "Solar Panel" || trim($vitalThresholdDataFormatted[0]) === "Exhaust") { return ""; } 
     if (end($vitalThresholdDataFormatted) !== $currentRaspberryPi) { //end($vitalThresholdDataFormatted) will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
         $currentRaspberryPi = end($vitalThresholdDataFormatted);
         
@@ -32,7 +32,7 @@ function generateVitalThresholdControlPanel($vitalThresholdData) {
 //This will only be called for the vitals that are not controllable (overwritable), but whose thresholds are - e.g Battery, Temperature, Photo
 function generateThresholdOptions($vitalname, $vitallower, $vitalupper, $rpid) {
     //Initialize
-    $selectHTML = '';
+    $selectHTML = "";
     
     //Populate threshold row START
     $selectHTML .= "<td>{$vitalname}</td>";
@@ -54,7 +54,7 @@ function generateVitalStatusControlPanel($vitalControlData) {
     global $currentRaspberryPi;
 
     //If the vital name is Temperature, Battery, or Photo (vitals that can't be overwritten outside from the thresholds panel) then return nothing
-    if(trim($vitalControlDataFormatted[0]) === 'Temperature' || trim($vitalControlDataFormatted[0]) === 'Battery' || trim($vitalControlDataFormatted[0]) === 'Photo') { return ''; }
+    if(trim($vitalControlDataFormatted[0]) === "Temperature" || trim($vitalControlDataFormatted[0]) === "Battery" || trim($vitalControlDataFormatted[0]) === "Photo") { return ""; }
     if (end($vitalControlDataFormatted) !== $currentRaspberryPi) { //end($vitalControlDataFormatted) will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
         $currentRaspberryPi = end($vitalControlDataFormatted);
 
@@ -74,19 +74,19 @@ function generateVitalStatusControlPanel($vitalControlData) {
 //This will only be called for the vitals that are controllable (overwritable) - e.g Solar Panel, Exhaust
 function generateSelectOptions($vitalname, $currentstatus, $rpid) {
     //Initialize
-    $selectHTML = '';
-    $secondOption = '';
+    $selectHTML = "";
+    $secondOption = "";
 
     //Generate Select Options
     $selectHTML .= "<td>{$vitalname}</td>";
     switch($vitalname) {
         case "Solar Panel":
-            if($currentstatus === 'charging'){ $secondOption = 'not charging'; } 
-            else { $secondOption = 'charging'; }
+            if($currentstatus === "charging"){ $secondOption = "not charging"; } 
+            else { $secondOption = "charging"; }
             break;
         case "Exhaust":
-            if($currentstatus === 'on'){ $secondOption = 'off'; } 
-            else { $secondOption = 'on'; }
+            if($currentstatus === "on"){ $secondOption = "off"; } 
+            else { $secondOption = "on"; }
             break;
         default:
             break; 
@@ -108,7 +108,7 @@ function resetGlobals() {
     global $currentRaspberryPi;
 
     $initalRaspberryPi = true; //Reset currentRaspberryPi 'Counter'
-    $currentRaspberryPi = '-1'; //Reset currentRaspberryPi 'Counter'
+    $currentRaspberryPi = "-1"; //Reset currentRaspberryPi 'Counter'
 }
 
 ?>

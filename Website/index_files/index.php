@@ -12,7 +12,7 @@ $user = $_POST['username'];
 $pass = $_POST['password'];
 
 //Database Queries
-$sqlValidate = "SELECT username, passwd FROM users WHERE username = '" . $user . "' AND passwd = '" . $pass . "';"; //Select username and password from the user given username and password
+$sqlValidate = "SELECT username, passwd FROM users WHERE username='{$user}' AND passwd='{$pass}';"; //Select username and password from the user given username and password
 $sqlResult = mysqli_query($conn, $sqlValidate); //Execute Query
 
 //If user is correct, sign them in, otherwise send them back to the log in page

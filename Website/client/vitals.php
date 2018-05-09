@@ -1,10 +1,10 @@
 <?php
 //Require
-require('../index_files/sessionstart.php');
-require('../index_files/sessioncheck.php');
-require('../index_files/connect.php');
-require('../index_files/operations.php');
-require('vitals_files/generatecontrolpanel.php');
+require("../index_files/sessionstart.php");
+require("../index_files/sessioncheck.php");
+require("../index_files/connect.php");
+require("../index_files/operations.php");
+require("vitals_files/generatecontrolpanel.php");
 
 //Database Queries
 $currentUser = $_SESSION['username']; //Get Current User Name
@@ -53,9 +53,9 @@ if(mysqli_num_rows($resultCurrentThresholds) > 0) {
                 <form action="vitals_files/vitalscontrol.php" method="post">
                     <fieldset><legend>Vital Status Control Panel:</legend>
                         <?php 
-                            echo '<fieldset>';
+                            echo "<fieldset>";
                             foreach ($arrayCurrentStatus as $aCS) { echo generateVitalStatusControlPanel($aCS); } //Generate Status Control Panel
-                            echo '</table></fieldset>';
+                            echo "</table></fieldset>";
                             resetGlobals();
                         ?>
                         <input type="submit" value="Commit Any Changes">
@@ -66,9 +66,9 @@ if(mysqli_num_rows($resultCurrentThresholds) > 0) {
                 <form action="vitals_files/vitalsthreshold.php" method="post">
                     <fieldset><legend>Vital Threshold Control Panel:</legend>
                         <?php
-                            echo '<fieldset>';
+                            echo "<fieldset>";
                             foreach ($arrayCurrentThreshold as $aCT) { echo generateVitalThresholdControlPanel($aCT); } //Generate Threshold Control Panel
-                            echo '</table></fieldset>';
+                            echo "</table></fieldset>";
                             resetGlobals();
                         ?>
                         <input type="submit" value="Commit Any Changes">
