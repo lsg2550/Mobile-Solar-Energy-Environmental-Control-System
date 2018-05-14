@@ -4,8 +4,8 @@
 ob_start();
 
 //Require
-require('sessionstart.php');
-require('connect.php');
+require("sessionstart.php");
+require("connect.php");
 
 //TODO: Filter User & Pass; Take User and Pass from POST
 $user = $_POST['username'];
@@ -17,15 +17,14 @@ $sqlResult = mysqli_query($conn, $sqlValidate); //Execute Query
 
 //If user is correct, sign them in, otherwise send them back to the log in page
 if(mysqli_num_rows($sqlResult) > 0) {
-    header('Location: ../client/client.php');
+    header("Location: ../client/client.php");
     $_SESSION['user'] = 1;
     $_SESSION['username'] = $user;
 } else{
-    header('Location: ../index.html');
+    header("Location: ../index.html");
 }
 
 //Buffer End & Exit
 ob_end_start();
-exit();
 
 ?>
