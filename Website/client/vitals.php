@@ -19,7 +19,7 @@ $resultCurrentThresholds = mysqli_query($conn, $sqlVitalsCurrentThresholds);
 $arrayCurrentStatus = array(); 
 if(mysqli_num_rows($resultCurrentStatus) > 0) {
     while($row = mysqli_fetch_assoc($resultCurrentStatus)) {
-        $tempRow = "[ {$row['VN']}, {$row['VV']}, {$row['RPID']} ]";
+        $tempRow = "[{$row['VN']},{$row['VV']},{$row['RPID']}]";
         $arrayCurrentStatus[] = $tempRow;
     }
 }
@@ -28,7 +28,7 @@ if(mysqli_num_rows($resultCurrentStatus) > 0) {
 $arrayCurrentThreshold = array(); 
 if(mysqli_num_rows($resultCurrentThresholds) > 0) {
     while($row = mysqli_fetch_assoc($resultCurrentThresholds)) {
-        $tempRow = "[ {$row['VN']}, {$row['VL']}, {$row['VU']}, {$row['RPID']} ]";
+        $tempRow = "[{$row['VN']},{$row['VL']},{$row['VU']},{$row['RPID']}]";
         $arrayCurrentThreshold[] = $tempRow;
     }
 }

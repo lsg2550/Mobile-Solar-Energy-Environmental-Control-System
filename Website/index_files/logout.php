@@ -14,6 +14,5 @@ header("Location: ../index.html");
 
 //Buffer End
 ob_end_flush();
-exit();
 
 ?>
