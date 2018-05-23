@@ -76,9 +76,10 @@ function generateSelectOptions($vitalname, $currentstatus, $rpid) {
     //Initialize
     $selectHTML = "";
     $secondOption = "";
+    $currentstatus = trim($currentstatus);
 
     //Generate Select Options
-    switch($vitalname) {
+    switch(trim($vitalname)) {
         case "Solar Panel":
             if($currentstatus === "charging"){ $secondOption = "not charging"; } 
             else { $secondOption = "charging"; }
@@ -92,7 +93,7 @@ function generateSelectOptions($vitalname, $currentstatus, $rpid) {
     }
 
     $selectHTML .= "<td>{$vitalname}</td>";
-    $selectHTML .= "<td><select>"; //Second Column - Status Column
+    $selectHTML .= "<td><select name='selectedOption'>"; //Second Column - Status Column
     $selectHTML .= "<option name='currentstatus[]' value='{$currentstatus}'>{$currentstatus}</option>";
     $selectHTML .= "<option name='secondOption[]' value='{$secondOption}'>{$secondOption}</option>";
     $selectHTML .= "</select></td>";
