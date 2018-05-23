@@ -8,7 +8,7 @@ require("../../index_files/operations.php");
 //Database Queries
 $currentUser = $_SESSION["username"]; //Current User
 $sqlCurrentStatus = "SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR='{$currentUser}';"; //Select all current status related to the current user
-$sqlLog = "SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR='{$currentUser}';"; //Select all logs related to the current user
+$sqlLog = "SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR='{$currentUser}' ORDER BY RPID, TS;"; //Select all logs related to the current user
 
 //Execute Queries
 $resultCurrentStatus = mysqli_query($conn, $sqlCurrentStatus);
