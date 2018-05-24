@@ -1,37 +1,39 @@
-'''
-gensend_xml.py (Generate and Send XML)
-
-Generates the XML by reading from sensors and storing the variables in an XML file,
-then sends the XML file to the website using an FTP connection
-'''
+#########################################################################################
+# gensend_xml.py (Generate and Send XML)                                                #
+# Generates the XML by reading from sensors and storing the variables in an XML file,   #
+# then sends the XML file to the website using an FTP connection                        #
+#########################################################################################
 
 #import
 import os
 import time
-import socket
-from datetime import datetime
 from xml.etree import ElementTree
-from ftplib import FTP
+from connecttoftp import sendXML
+from datetime import datetime
+
+tempXML = "<currentstatus><log></log><temperature>20</temperature><battery>12.6</battery><solarpanel>not charging</solarpanel><exhaust>off</exhaust><photo>0.5</photo><rpid></rpid></currentstatus>"
 
 #------------------------------TODO: Read from sensors and put data into XML-----------------------------------#
+#Timestamps
+currentTimeStampForLog = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+currentTimeStampForFileName = currentTimeStampForLog.replace(":", "-")
 
-#Get File
-fileName = 'status.xml'
-filePath = os.path.abspath(fileName)
+#Create File
+fileName = "status(" + currentTimeStampForFileName + ").xml"
+fileXML = open(fileName, "w+")
+fileXML.write(tempXML)
+fileXML.close()
 
-#Parse XML
-xmlParsed = ElementTree.parse(filePath)
+#Parse XML & Update XML's log to current timestamp
+fileXML = open(fileName, "r+")
+xmlParsed = ElementTree.parse(fileXML)
 xmlRoot = xmlParsed.getroot()
+xmlLogElement = xmlRoot.find("log")
+xmlLogElement.text = currentTimeStampForLog
+xmlRpidElement = xmlRoot.find("rpid")
+xmlRpidElement.text = 0 #This will be the raspberry pi's identification number
+xmlParsed.write(fileXML)
+fileXML.close()
 
-#Update XML's log to current timestamp
-xmlLogElement = xmlRoot.find('log')
-xmlLogElement.text = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-xmlParsed.write('status.xml')
-
-#------------------------------ Connect to 000webhost and send XML -----------------------------------#
-
-ftp = FTP('files.000webhost.com')
-ftp.login('user', 'pass')
-xml_file = open("filename", "rb")
-ftp.storbinary("STOR public_html/filename", xml_file)
-xml_file.close()
+#Send XML to Server
+sendXML(fileName)
