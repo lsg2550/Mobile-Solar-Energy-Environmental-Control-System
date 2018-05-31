@@ -8,7 +8,7 @@
 import os
 import time
 from xml.etree import ElementTree
-from connecttoftp import sendXML
+from connect_to_ftp import sendXML
 from datetime import datetime
 from pytz import timezone
 
@@ -19,6 +19,7 @@ dateFormat = "%Y-%m-%d %H:%M:%S"
 
 while True:
     #Read from sensors and put data into XML
+    
 
     #Timestamps
     currentTimeStampForLog = datetime.now(timezone("UTC")).strftime(dateFormat)
@@ -52,10 +53,11 @@ while True:
         sendXML(fileName)
     except:
         #Code to store XML into a 'temporary folder', and continue on with the program
-        print("")
-
-    #Wait for 60 seconds
-    timer = (time.time() - startTime) % 60
-    print("Standby for (60.0 - " + str(timer) + ") = " + str((60.0 - timer)) + " seconds")
-    time.sleep(60.0 - timer)
+        print("Could not connect to server...")
+        print("Storing XML into temporary folder...")
+    finally:
+        #Wait for 60 seconds
+        timer = (time.time() - startTime) % 60
+        print("Standby for (60.0 - {}) = {} seconds".format(str(timer), str((60.0 - timer))))
+        time.sleep(60.0 - timer)
 #while end
