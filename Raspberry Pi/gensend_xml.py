@@ -10,30 +10,52 @@ import time
 from xml.etree import ElementTree
 from connecttoftp import sendXML
 from datetime import datetime
+from pytz import timezone
 
+#Init
 tempXML = "<currentstatus><log></log><temperature>20</temperature><battery>12.6</battery><solarpanel>not charging</solarpanel><exhaust>off</exhaust><photo>0.5</photo><rpid></rpid></currentstatus>"
+startTime = time.time()
+dateFormat = "%Y-%m-%d %H:%M:%S"
 
-#------------------------------TODO: Read from sensors and put data into XML-----------------------------------#
-#Timestamps
-currentTimeStampForLog = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-currentTimeStampForFileName = currentTimeStampForLog.replace(":", "-")
+while True:
+    #Read from sensors and put data into XML
 
-#Create File
-fileName = "status(" + currentTimeStampForFileName + ").xml"
-fileXML = open(fileName, "w+")
-fileXML.write(tempXML)
-fileXML.close()
+    #Timestamps
+    currentTimeStampForLog = datetime.now(timezone("UTC")).strftime(dateFormat)
+    currentTimeStampForFileName = currentTimeStampForLog.replace(":", "-")
 
-#Parse XML & Update XML's log to current timestamp
-fileXML = open(fileName, "r+")
-xmlParsed = ElementTree.parse(fileXML)
-xmlRoot = xmlParsed.getroot()
-xmlLogElement = xmlRoot.find("log")
-xmlLogElement.text = currentTimeStampForLog
-xmlRpidElement = xmlRoot.find("rpid")
-xmlRpidElement.text = 0 #This will be the raspberry pi's identification number
-xmlParsed.write(fileXML)
-fileXML.close()
+    #Create File
+    fileName = "status(" + currentTimeStampForFileName + ").xml"
+    fileXML = open(fileName, "w+")
+    fileXML.write(tempXML) #TODO: Replace this with looped code to fill XML with data from sensors
+    fileXML.close()
 
-#Send XML to Server
-sendXML(fileName)
+    #Parse XML & Update XML's log to current timestamp
+    fileXML = open(fileName, "r+")
+    xmlParsed = ElementTree.parse(fileXML)
+    fileXML.close()
+    fileXML = open(fileName, "w").close()
+
+    xmlRoot = xmlParsed.getroot()
+    xmlLogElement = xmlRoot.find("log")
+    xmlLogElement.text = str(currentTimeStampForLog)
+    xmlRpidElement = xmlRoot.find("rpid")
+    xmlRpidElement.text = str(0) #This will be the raspberry pi's identification number
+
+    fileXML = open(fileName, "r+")
+    xmlParsed.write(fileXML)
+    fileXML.close()
+
+    #Send XML to Server
+    try:
+        #Check 'temporary folder' for any unsent XML files, then send them and delete them, then continue on sending the most recent file (update)
+        sendXML(fileName)
+    except:
+        #Code to store XML into a 'temporary folder', and continue on with the program
+        print("")
+
+    #Wait for 60 seconds
+    timer = (time.time() - startTime) % 60
+    print("Standby for (60.0 - " + str(timer) + ") = " + str((60.0 - timer)) + " seconds")
+    time.sleep(60.0 - timer)
+#while end
