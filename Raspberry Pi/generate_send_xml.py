@@ -9,16 +9,18 @@ import os
 import time
 from xml.etree import ElementTree
 from connect_to_ftp import SendXML
+from connect_to_ftp import FilterFileName
 from read_analog_from_adc import ReadFromSensors
 from datetime import datetime
 from pytz import timezone
 
-#Init
+#Initialize
 xmlStorageDirectory = "xmlstorage"
-try:
+xmlSentDirectory = "xmlsent"
+if not os.path.isdir(xmlStorageDirectory):
     os.mkdir(xmlStorageDirectory)
-except:
-    pass
+if not os.path.isdir(xmlSentDirectory):
+    os.mkdir(xmlSentDirectory)
 tempXML = "<currentstatus><log></log><temperature>20</temperature><battery></battery><solarpanel></solarpanel><solarpanelvalue></solarpanelvalue><exhaust>off</exhaust><photo>0.5</photo><rpid></rpid></currentstatus>"
 startTime = time.time()
 dateFormat = "%Y-%m-%d %H:%M:%S"
@@ -46,33 +48,30 @@ while True:
     for key, value in sensorDictionary.items():
         xmlElement = xmlRoot.find(key)
         xmlElement.text = str(value)
-    #foreach end 
+    #foreach end
     xmlLogElement = xmlRoot.find("log")
     xmlLogElement.text = str(currentTimeStampForLog)
     xmlRpidElement = xmlRoot.find("rpid")
     xmlRpidElement.text = str(0) #This will be the raspberry pi's identification number
-    xmlParsed.write(fileXML)
+    xmlParsed.write(fileName)
     fileXML.close()
 
     #Send XML to Server
     try:
-        #Check 'temporary folder' for any unsent XML files, then send them and delete them, then continue on sending the most recent file (update)
-        #storedXMLFiles = []
+        #Check xmlstorage for any unsent XML files, then send them and delete them after, then send the most recent file
         files = os.listdir(xmlStorageDirectory)
         for storedFile in files:
             tempFile = str(storedFile)
             if tempFile.endswith(".xml"):
-                #storedXMLFiles.append(tempFile)
-                print(tempFile)
                 SendXML(xmlStorageDirectory + "/" + tempFile)
+                os.rename(xmlStorageDirectory + "/" + tempFile, xmlSentDirectory + "/" + tempFile)
         SendXML(fileName)
+        os.rename(fileName, xmlSentDirectory + "/" + fileName)
     except Exception as e:
-        #print(e)
+        print(e)
         os.rename(fileName, xmlStorageDirectory + "/" + fileName) #Move File to Temporary Storage Folder
-        print("Could not connect to server...")
-        print("Storing XML into temporary folder...")
-    finally:
-        #Wait for 60 seconds
+        print("Could not connect to server...\nStoring XML into {}...".format(xmlStorageDirectory))
+    finally: #Wait for 60 seconds
         timer = (time.time() - startTime) % 60
         print("Standby for {0:.2} seconds".format(str((60.0 - timer))))
         time.sleep(60.0 - timer)

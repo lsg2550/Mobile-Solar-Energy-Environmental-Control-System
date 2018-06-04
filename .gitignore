@@ -887,3 +887,5 @@ manifest.mf
 **/connect.php
 connecttoftp.py
 connect_to_ftp.py
+xmlstorage
+xmlsent
