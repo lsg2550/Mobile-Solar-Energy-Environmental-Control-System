@@ -27,9 +27,8 @@ if(mysqli_num_rows($resultCurrentStatus) > 0) {
 $arrayLog = array();
 if(mysqli_num_rows($resultLog) > 0) { 
     while($row = mysqli_fetch_assoc($resultLog)) {
-        if($row['V2'] == NULL || $row['V2'] == "") { //If V2 is blank, replace it with 'N/A'
-            $row['V2'] = "N/A"; 
-        }
+        //If V2 is blank, replace it with 'N/A'
+        if($row['V2'] == NULL || $row['V2'] == "") { $row['V2'] = "N/A"; }
 
         $tempRow = "[ {$row['VID']}, {$row['TYP']}, {$row['RPID']}, {$row['V1']}, {$row['V2']}, {$row['TS']} ]";
         $arrayLog[] = $tempRow;
@@ -47,9 +46,7 @@ function getData($stringToReplace, $tableHeader, $printAll) {
     $displayHTML = ""; //Initialize Display HTML
     global $initalRaspberryPi;
     global $currentRaspberryPi;
-    $print = -2; //$print = -2, in the generation of the table, do not iterate through the last 2 items, which will always be the timestamp (used for current status table) and RaspberryPi ID
     
-    if ($printAll === true) { $print = 0; } //$print = 0, iterate through all items (used for log table) 
     if ($stringSplit[2] !== $currentRaspberryPi) { //$stringSplit[2] will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
         $currentRaspberryPi = $stringSplit[2];
 
@@ -61,7 +58,10 @@ function getData($stringToReplace, $tableHeader, $printAll) {
 
     //Generate HTML currentstatus/log tables
     $displayHTML .= "<tr>";
-    for ($i = 0; $i < count($stringSplit) + $print; $i++) { $displayHTML .= "<td>{$stringSplit[$i]}</td>"; }
+    for ($i = 0; $i < count($stringSplit); $i++) { 
+        if($i === 2 && !$printAll) { continue; }
+        $displayHTML .= "<td>{$stringSplit[$i]}</td>"; 
+    }
     $displayHTML .= "</tr>";
 
     //Return table(s)
@@ -93,9 +93,9 @@ function resetGlobals() {
     <body>
         <div>
             <div>
-                <fieldset><legend>Current Status - <?php echo getTimeStamp($arrayCurrentStatus[0]); ?></legend>
+                <fieldset><legend>Current Status</legend>
                     <?php
-                        foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, "<tr><th>Vital Name</th><th>Status</th></tr>", false); }
+                        foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, "<tr><th>Vital Name</th><th>Status</th><th>Timestamp</th></tr>", false); }
                         echo "</table>";
                         resetGlobals();
                     ?>

@@ -1,9 +1,9 @@
 <?php
+    ob_start();
     //Require
     require("../../index_files/sessionstart.php");
     require("../../index_files/sessioncheck.php");
     require("../../index_files/connect.php");
-    ob_start();
 
     //TODO: Filter $_POST 
     //This php code will update the 'vitals' table for the respective raspberry pi and its user
@@ -24,23 +24,20 @@
 
     for($counter_i = 0; $counter_i < $amtOfRPis; $counter_i++) {
         $tempRPi = $listOfRPis[$counter_i];
-        // echo "RPID: " . $tempRPi . "<br>";
+        
         for($counter_j = 0; $counter_j < 3; $counter_j++) {
             $tempVL = $listOfLowerVitals[$counter_j];
             $tempVU = $listOfUpperVitals[$counter_j];
             $tempVN = $listOfVitalNames[$counter_j];
 
+            //Get VID
             $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$tempVN}' AND RPID='{$tempRPi}' AND USR='{$currentUser}';";
             $resultSqlGetVID = mysqli_query($conn, $sqlGetVID);
             $tempVID = mysqli_fetch_assoc($resultSqlGetVID)['VID'];
-            // echo "VID: " . $tempVID . "<br>";
 
+            //Update Database
             $sqlUpdate = "UPDATE vitals SET VL='{$tempVL}', VU='{$tempVU}' WHERE VN='{$tempVN}' AND RPID='{$tempRPi}' AND USR='{$currentUser}';";
             $sqlLog = "INSERT INTO `log`(`VID`, `TYP`, `USR`, `RPID`, `V1`, `V2`, `TS`) VALUES ('{$tempVID}', 'UP', '{$currentUser}', '{$tempRPi}', '{$tempVL}', '{$tempVU}', '{$currentTimestamp}');";
-
-            // echo "{$sqlGetVID}" . "<br>";
-            // echo "{$sqlUpdate}" . "<br>";
-            // echo "{$sqlLog}" . "<br><br>";
             $resultSqlUpdate = mysqli_query($conn, $sqlUpdate);
             $resultSqlLog = mysqli_query($conn, $sqlLog);
         }
