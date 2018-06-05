@@ -56,6 +56,9 @@ def GetAndSendXML(fileName): #Send XML to Server
         #print(e)
         os.rename(fileName, xmlStorageDirectory + fileName) #Move File to Temporary Storage Folder
         print("Could not connect to server...\nStoring XML into {}...".format(xmlStorageDirectory))
+    
+    #Debug Output
+    print("Background thread done!")
 
 def Main():
     #Program Start Time
@@ -90,7 +93,7 @@ def Main():
         sendXMLThread = Thread(target=GetAndSendXML, args=(fileName,))
         sendXMLThread.start()
         timer = (time.time() - startTime) % 60
-        print("Standby for {0:.2} seconds".format(str((60.0 - timer))))
+        print("XML transfer moved to a background thread...\nMain thread is now on standby for {0:.2} seconds...".format(str((60.0 - timer))))
         time.sleep(60.0 - timer)
     #while end
 
