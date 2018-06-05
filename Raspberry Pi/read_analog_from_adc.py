@@ -19,7 +19,7 @@ def ReadChannel(channel): #Reads from given channel
     data = ((adc[1] & 3) << 8) + adc[2]
     return data
 
-def ConvertVolts(data, place): #Converts from read voltage to actual voltage (due to resisters
+def ConvertVolts(data, place):
     volts = (data * 3.3) / float(1023) #TODO: Change this
     volts = round(volts, place)
     return volts
@@ -31,6 +31,9 @@ def FahrenheitToCelcius(temperatureFahrenheit):
     return ((temperatureFahrenheit - 32) * 5/9)
 
 def ReadFromSensors():
+    #Debug Output
+    print("Reading from sensors...")
+    
     #Dictionary to hold {Sensor => Value}
     tempDictionary = {}
     
@@ -43,10 +46,8 @@ def ReadFromSensors():
     solarPanelReducedVoltage = ReadChannel(solar_panel)
     solarPanelActualVoltage = ConvertVolts(solarPanelReducedVoltage, 2)
     tempDictionary["solarpanelvalue"] = solarPanelActualVoltage
-    if solarPanelActualVoltage >= 1:
-        tempDictionary["solarpanel"] = "charging"
-    else:
-        tempDictionary["solarpanel"] = "not charging"
+    if solarPanelActualVoltage >= 1: tempDictionary["solarpanel"] = "charging"
+    else: tempDictionary["solarpanel"] = "not charging"
     
     #Channel 2
     #temperatureValue = ReadChannel(temperature)
@@ -59,5 +60,5 @@ def ReadFromSensors():
     #print("Solar Panel Voltage: {} ({}V)".format(solarPanelReducedVoltage, solarPanelActualVoltage))
     #print("---------------------------------------------------------")
     #print("Temperature: {}C ({}F)".format(temperatureValue, CelciusToFahrenheit(temperatureValue)))
-    #print("")
+    print("Done reading from sensors...")
     return tempDictionary;
