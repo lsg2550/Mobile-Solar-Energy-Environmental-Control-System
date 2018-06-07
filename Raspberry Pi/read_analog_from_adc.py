@@ -1,18 +1,24 @@
 #import
+import RPi.GPIO as GPIO
 import spidev
 import time
 import os
 
-#Init
+#Initialize
 delay = 1.0
-spi = spidev.SpiDev()
+#GPIO.setmode(GPIO.BCM) #GPIO Init
+#GPIO.setwarnings(False)
+spi = spidev.SpiDev() #ADC Init
 spi.open(0, 0)
 
 #Analog Devices -- Analog Device = Channel
 battery = 0 #car battery
 solar_panel = 1 #solar panel
 temperature = 2 #temperature sensor
-exhaust = 3 #Note: might delete this - as the exhaust might be handled by the cobbler
+
+#GPIO Devices
+exhaust = 22
+#GPIO.setup(exhaust. GPIO.OUT)
 
 def ReadChannel(channel): #Reads from given channel
     adc = spi.xfer2([1, (8 + channel) << 4,0])
@@ -30,7 +36,7 @@ def CelciusToFahrenheit(temperatureCelcius):
 def FahrenheitToCelcius(temperatureFahrenheit):
     return ((temperatureFahrenheit - 32) * 5/9)
 
-def ReadFromSensors():
+def ReadFromSensors(thresholdvoltagelower=None, thresholdvoltageupper=None, thresholdtemperaturelower=None, thresholdtemperatureupper=None):
     #Debug Output
     print("Reading from sensors...")
     
@@ -46,13 +52,31 @@ def ReadFromSensors():
     solarPanelReducedVoltage = ReadChannel(solar_panel)
     solarPanelActualVoltage = ConvertVolts(solarPanelReducedVoltage, 2)
     tempDictionary["solarpanelvalue"] = solarPanelActualVoltage
-    if solarPanelActualVoltage >= 1: tempDictionary["solarpanel"] = "charging"
-    else: tempDictionary["solarpanel"] = "not charging"
+    '''
+    if batteryActualVoltage >= thresholdvoltageupper:
+        #Disable Solar Panel?
+        pass
+    '''
+    if solarPanelActualVoltage >= 1:
+        tempDictionary["solarpanel"] = "charging"
+    else:
+        tempDictionary["solarpanel"] = "not charging"
     
     #Channel 2
-    #temperatureValue = ReadChannel(temperature)
-    #tempDictionary["temperature"] = temperatureValue
-    
+    temperatureValue = ReadChannel(temperature) #Celcius
+    tempDictionary["temperature"] = 30 #temperatureValue
+    '''
+    if temperatureValue >= thresholdTemperatureUpper:
+        if batteryActualVoltage >= thresholdvoltagelower:
+            #Turn on exhaust
+            pass
+        else:
+            #Don't turn on exhaust
+            pass
+    else:
+        #Do Nothing
+        pass
+    '''
     #Debug Output
     #print("---------------------------------------------------------")
     #print("Battery Voltage: {} ({}V)".format(batteryReducedVoltage, batteryActualVoltage))
