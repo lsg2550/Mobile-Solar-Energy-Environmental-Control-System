@@ -66,7 +66,10 @@ def Main():
     
     while True:
         #Retrieve XML Files of Thresholds set by Users
-        CTF.RetrieveXML(rpid)
+        try:
+            CTF.RetrieveXML(rpid)
+        except:
+            pass #There is a default.xml which the pi will initially resort to if it can't connect to the internt on the first try. Otherwise, it will reuse the rpid.xml it already retrieved previously
         thresholdFileName = str(rpid) + ".xml"
         thresholdFile = open(thresholdFileName, "r")
         thresholdParsed = ElementTree.parse(thresholdFile)
