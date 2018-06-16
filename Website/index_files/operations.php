@@ -15,26 +15,32 @@ function splitDataIntoArray($stringToReplace) {
     return $stringSplit;
 }
 
-function processXML() {
+function processXML($xmlFileName = null) {
     //Include
     include("connect.php");
 
     //Init
     $xmldir = "../../xmls/";
     $processedxmldir = "../../processedxmls/";
-    $directoryFiles = scandir($xmldir);
     $listOfXMLFiles = [];
-
-    //Store XML Files into $listOfXMLFiles
-    foreach($directoryFiles as $directoryFile) {
-        if(is_file($xmldir . $directoryFile)) { 
-            $listOfXMLFiles[] = $directoryFile; 
-        }
-    }
-
-    //SQL Queries
     $USR = $_SESSION['username']; //Get Current User Name
     $TYP = "ST";
+
+    if($xmlFileName == null) {
+        //No Specific File Name Init
+        $directoryFiles = scandir($xmldir);
+
+        //Store XML Files into $listOfXMLFiles
+        foreach($directoryFiles as $directoryFile) {
+            if(is_file($xmldir . $directoryFile)) { 
+                $listOfXMLFiles[] = $directoryFile; 
+            }
+        }
+    } else {
+        //Because we already confirmed in piconfirm.php that the file is a file and exists, we can safely place it into $listOfXMLFiles
+        //$xmlFilePath = $xmldir . $xmlFileName;
+        $listOfXMLFiles[] = $xmlFileName;
+    }
 
     //Load xml files from $listOfXMLFiles & process them - grab data and update database
     sort($listOfXMLFiles);
@@ -53,11 +59,8 @@ function processXML() {
                 default:
                     //VitalName
                     $VN = "";
-                    if($key === "solarpanel") {
-                        $VN = "solar panel";
-                    } else {
-                        $VN = $key;
-                    }
+                    if($key === "solarpanel") { $VN = "solar panel"; } 
+                    else { $VN = $key; }
 
                     //Get VID
                     $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$VN}' AND RPID='{$RPID}' AND USR='{$USR}';";
@@ -79,7 +82,7 @@ function processXML() {
 
         //Move out of the waiting xml folder
         rename($xmldir . $xmlFile, $processedxmldir . $xmlFile);
-    }
+}
 
 function generateThresholdFile() {
     //Include

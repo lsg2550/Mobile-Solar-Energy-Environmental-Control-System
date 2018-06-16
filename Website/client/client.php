@@ -5,7 +5,6 @@ require("../index_files/sessioncheck.php");
 require("../index_files/operations.php");
 
 //Before Page is loading, check for xmls in temp folder (delete them after) and update database
-processXML();
 generateThresholdFile();
 ?>
 
