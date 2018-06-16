@@ -7,6 +7,7 @@
 #import
 import os
 import time
+import requests
 import connect_to_ftp as CTF
 import read_analog_from_adc as RAFA
 from threading import Thread
@@ -37,8 +38,9 @@ tempXML = '''
 </currentstatus>
 '''
 
-#RaspberryPi ID (rpid) - In an actual environment, there will be a file or some other form of idenfication which this program will read from - however in case I will hard code 0
+#RaspberryPi ID (rpid) & Payload for Server Confirmation
 rpid = 0
+pipayload = {"rpid": rpid}
 
 def GetAndSendXML(xmlFileName): #Send XML to Server
     try:
@@ -49,13 +51,14 @@ def GetAndSendXML(xmlFileName): #Send XML to Server
             tempFile = str(storedFile)
             if tempFile.endswith(".xml"):
                 CTF.SendXML(xmlStorageDirectory + tempFile)
+                pipayload["xmlfile"] = tempFile
+                serverResponse = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
+                pipayload.pop("xmlfile")
+                if serverResponse.text == "OK": print("XML file confirmed received!")
+                else: continue
                 os.rename(xmlStorageDirectory + tempFile, xmlSentDirectory + tempFile)
-        #Send recent XML
-        CTF.SendXML(xmlFileName)
-        os.rename(xmlFileName, xmlSentDirectory + xmlFileName)
     except Exception as e:
         #print(e)
-        os.rename(xmlFileName, xmlStorageDirectory + xmlFileName) #Move File to Temporary Storage Folder
         print("Could not connect to server...\nStoring XML into {}...".format(xmlStorageDirectory))
     #Debug Output
     print("Background thread done!")
@@ -74,10 +77,10 @@ def Main():
         thresholdFile = open(thresholdFileName, "r")
         thresholdParsed = ElementTree.parse(thresholdFile)
         thresholdRoot = thresholdParsed.getroot()
-        thresholdVoltageLower = thresholdRoot.find("voltagelower").text
-        thresholdVoltageUpper = thresholdRoot.find("voltageupper").text
-        thresholdTemperatureLower = thresholdRoot.find("temperaturelower").text
-        thresholdTemperatureUpper = thresholdRoot.find("temperatureupper").text
+        thresholdVoltageLower = thresholdRoot.find(".//Battery/voltagelower").text
+        thresholdVoltageUpper = thresholdRoot.find(".//Battery/voltageupper").text
+        thresholdTemperatureLower = thresholdRoot.find(".//Temperature/temperaturelower").text
+        thresholdTemperatureUpper = thresholdRoot.find(".//Temperature/temperatureupper").text
         #print("Voltage Lower Threshold: {}\nVoltage Upper Threshold: {}\nTemperature Lower Threshold: {}\nTemperature Upper Threshold: {}".format(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper))
         
         #Generate Timestamps
@@ -85,7 +88,7 @@ def Main():
         timeStampForFileName = timeStampForLog.replace(":", "-")
         
         #Create File & Create XML Element Tree Object
-        xmlFileName = "status(" + timeStampForFileName + ").xml"
+        xmlFileName = xmlStorageDirectory + "status" + str(rpid) + "(" + timeStampForFileName + ").xml"
         xmlFile = open(xmlFileName, "w+")
         xmlParsed = ElementTree.ElementTree(ElementTree.fromstring(tempXML))
         xmlRoot = xmlParsed.getroot()
