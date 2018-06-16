@@ -54,7 +54,8 @@ def GetAndSendXML(xmlFileName): #Send XML to Server
                 pipayload["xmlfile"] = tempFile
                 serverResponse = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
                 pipayload.pop("xmlfile")
-                if serverResponse.text == "OK": print("XML file confirmed received!")
+                #print(serverResponse.text.strip())
+                if serverResponse.text.strip() == "OK": print("XML file confirmed received!")
                 else: continue
                 os.rename(xmlStorageDirectory + tempFile, xmlSentDirectory + tempFile)
     except Exception as e:
