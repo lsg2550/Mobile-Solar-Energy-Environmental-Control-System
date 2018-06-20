@@ -52,6 +52,8 @@ function generateThresholdFile() {
         fwrite($rpiFile, $thresholdXML->asXML());
         fclose($rpiFile);
     }
+
+    echo "OK";
 }
 
 generateThresholdFile();
