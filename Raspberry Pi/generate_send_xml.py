@@ -52,7 +52,7 @@ def GetAndSendXML(xmlFileName): #Send XML to Server
 
                 pipayload["xmlfile"] = tempFile
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
-                print(serverConfirmation.text.strip())
+                #print(serverConfirmation.text.strip())
                 pipayload.pop("xmlfile")
 
                 if serverConfirmation.text.strip() == "OK": 
