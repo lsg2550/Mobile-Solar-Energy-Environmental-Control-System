@@ -24,57 +24,70 @@ if not os.path.isdir(xmlSentDirectory): os.mkdir(xmlSentDirectory)
 #Date & Time Format for XML
 dateAndTimeFormat = "%Y-%m-%d %H:%M:%S"
 
-#TemporaryXML Format
-tempXML = '''
+#XML Format
+xmlFormat = '''
 <currentstatus>
     <log></log>
     <temperature></temperature>
     <battery></battery>
     <solarpanel></solarpanel>
     <solarpanelvalue></solarpanelvalue>
-    <exhaust>off</exhaust>
+    <exhaust></exhaust>
     <photo>0.5</photo>
     <rpid></rpid>
 </currentstatus>
 '''
 
-#RaspberryPi ID (rpid) & Payload for Server Confirmation
+#RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
 rpid = 0
 pipayload = {"rpid": rpid}
 
 def GetAndSendXML(xmlFileName): #Send XML to Server
     try:
-        #Check xmlStorageDirectory for any unsent XML files
-        files = os.listdir(xmlStorageDirectory)
-        #Send unsent XML, if any
-        for storedFile in files:
+        for storedFile in os.listdir(xmlStorageDirectory):
             tempFile = str(storedFile)
+
             if tempFile.endswith(".xml"):
                 CTF.SendXML(xmlStorageDirectory + tempFile)
+
                 pipayload["xmlfile"] = tempFile
-                serverResponse = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
+                #print(serverConfirmation.text.strip())
                 pipayload.pop("xmlfile")
-                #print(serverResponse.text.strip())
-                if serverResponse.text.strip() == "OK": print("XML file confirmed received!")
-                else: continue
-                os.rename(xmlStorageDirectory + tempFile, xmlSentDirectory + tempFile)
+
+                if serverConfirmation.text.strip() == "OK": 
+                    print("XML file confirmed received!")
+                    os.rename(xmlStorageDirectory + tempFile, xmlSentDirectory + tempFile)
+                else: break #If server did not receive or process the XML correctly, break out of the loop
     except Exception as e:
-        #print(e)
         print("Could not connect to server...\nStoring XML into {}...".format(xmlStorageDirectory))
+        #print(e)
+
     #Debug Output
     print("Background thread done!")
+#GetAndSendXML() end
 
 def Main():
     #Program Start Time
     startTime = time.time()
     
     while True:
+        #Init - Threshold File Name
+        thresholdFileName = ""
+
         #Retrieve XML Files of Thresholds set by Users
         try:
-            CTF.RetrieveXML(rpid)
-        except:
-            pass #There is a default.xml which the pi will initially resort to if it can't connect to the internt on the first try. Otherwise, it will reuse the rpid.xml it already retrieved previously
-        thresholdFileName = str(rpid) + ".xml"
+            serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
+
+            if serverThresholdConfirm.text.strip() == "OK":
+                CTF.RetrieveXML(rpid)
+                thresholdFileName = str(rpid) + ".xml"
+            else: thresholdFileName = "default.xml"
+        except Exception as e: #Assuming connection error
+            if os.path.exists(str(rpid) + ".xml"): thresholdFileName = str(rpid) + ".xml"
+            else: thresholdFileName = "default.xml"
+            #print(e)
+
         thresholdFile = open(thresholdFileName, "r")
         thresholdParsed = ElementTree.parse(thresholdFile)
         thresholdRoot = thresholdParsed.getroot()
@@ -91,7 +104,7 @@ def Main():
         #Create File & Create XML Element Tree Object
         xmlFileName = xmlStorageDirectory + "status" + str(rpid) + "(" + timeStampForFileName + ").xml"
         xmlFile = open(xmlFileName, "w+")
-        xmlParsed = ElementTree.ElementTree(ElementTree.fromstring(tempXML))
+        xmlParsed = ElementTree.ElementTree(ElementTree.fromstring(xmlFormat))
         xmlRoot = xmlParsed.getroot()
 
         #Read from Sensors
@@ -99,22 +112,28 @@ def Main():
         xmlLogElement = xmlRoot.find("log")
         xmlRpidElement = xmlRoot.find("rpid")
         xmlLogElement.text = str(timeStampForLog)
-        xmlRpidElement.text = str(rpid) #This will be the raspberry pi's identification number - since we will only be using 1 RPi, we can hardcode 0
+        xmlRpidElement.text = str(rpid)
         for key, value in sensorDictionary.items():
             xmlElement = xmlRoot.find(key)
             xmlElement.text = str(value)
+
         #Write and Close File
         xmlParsed.write(xmlFileName)
         xmlFile.close()
 
-        #Send XML and wait for 60 seconds for the next interval
+        #Send XML in New Thread
         sendXMLThread = Thread(target=GetAndSendXML, args=(xmlFileName,))
         sendXMLThread.start()
+
+        #Wait for 60 seconds for the next read interval
         timer = (time.time() - startTime) % 60
         print("XML transfer moved to a background thread...\nMain thread is now on standby for {0:.2} seconds...".format(str((60.0 - timer))))
         time.sleep(60.0 - timer)
     #while end
+#Main() end
 
 if __name__ == "__main__":
     print("Program Start")
     Main()
+else:
+    print("Cannot Start from Outside Script")

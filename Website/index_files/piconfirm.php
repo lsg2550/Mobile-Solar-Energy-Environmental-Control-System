@@ -25,8 +25,7 @@ function processXML($xmlFileName = null) {
             }
         }
     } else {
-        //Because we already confirmed in piconfirm.php that the file is a file and exists, we can safely place it into $listOfXMLFiles
-        //$xmlFilePath = $xmldir . $xmlFileName;
+        //Because we already confirmed that the file is a file and exists, we can safely place it into $listOfXMLFiles
         $listOfXMLFiles[] = $xmlFileName;
     }
 
