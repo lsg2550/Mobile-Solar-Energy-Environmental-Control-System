@@ -52,7 +52,7 @@ def GetAndSendXML(xmlFileName): #Send XML to Server
 
                 pipayload["xmlfile"] = tempFile
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
-                #print(serverConfirmation.text.strip())
+                print(serverConfirmation.text.strip())
                 pipayload.pop("xmlfile")
 
                 if serverConfirmation.text.strip() == "OK": 
@@ -77,15 +77,28 @@ def Main():
 
         #Retrieve XML Files of Thresholds set by Users
         try:
+            print("Requesting threshold update from server...")
             serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
 
             if serverThresholdConfirm.text.strip() == "OK":
                 CTF.RetrieveXML(rpid)
                 thresholdFileName = str(rpid) + ".xml"
-            else: thresholdFileName = "default.xml"
+            else:
+                print("Issue with server request...")
+                if os.path.exists(str(rpid) + ".xml"):
+                    thresholdFileName = str(rpid) + ".xml"
+                    print("Using previous thresholds...")
+                else:
+                    thresholdFileName = "default.xml"
+                    print("Using system default thresholds...")
         except Exception as e: #Assuming connection error
-            if os.path.exists(str(rpid) + ".xml"): thresholdFileName = str(rpid) + ".xml"
-            else: thresholdFileName = "default.xml"
+            print("Could not connect to server...")
+            if os.path.exists(str(rpid) + ".xml"):
+                thresholdFileName = str(rpid) + ".xml"
+                print("Using previous thresholds...")
+            else:
+                thresholdFileName = "default.xml"
+                print("Using system default thresholds...")
             #print(e)
 
         thresholdFile = open(thresholdFileName, "r")
