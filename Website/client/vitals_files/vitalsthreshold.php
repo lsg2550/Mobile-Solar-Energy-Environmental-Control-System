@@ -4,7 +4,6 @@
     require("../../index_files/sessionstart.php");
     require("../../index_files/sessioncheck.php");
     require("../../index_files/connect.php");
-    require("../../index_files/pithresholdconfirm.php");
 
     //TODO: Filter $_POST 
     //This php code will update the 'vitals' table for the respective raspberry pi and its user
@@ -44,7 +43,6 @@
         }
     }
 
-    generateThresholdFile($currentUser);
     header("Refresh:0; url=../vitals.php");
     ob_end_flush();
 ?>

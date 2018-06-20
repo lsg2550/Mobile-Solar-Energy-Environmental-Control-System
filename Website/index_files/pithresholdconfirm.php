@@ -1,17 +1,15 @@
 <?php
-function generateThresholdFile($USRArg = null) {
+function generateThresholdFile() {
     //Include
     include("connect.php");
 
     //Init
     $thresholddir = "../../rpis/";
-    $USR = $USRArg;
-
-    if($USRArg == null) {
-        $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
-        $resultsGetUser = mysqli_query($conn, $sqlGetUser);
-        $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
-    }
+    
+    //Init - Get User
+    $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
+    $resultsGetUser = mysqli_query($conn, $sqlGetUser);
+    $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
     //Get RPIDs belonging to $currentUser
     $RPID = [];
@@ -56,5 +54,5 @@ function generateThresholdFile($USRArg = null) {
     }
 }
 
-if($_GET["rpid"] != null) { generateThresholdFile(); }
+generateThresholdFile();
 ?>
