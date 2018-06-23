@@ -69,29 +69,33 @@ def ReadFromSensors(thresholdVoltagelower=None, thresholdVoltageUpper=None, thre
     #Take a snapshot
     
     #Do something with read/given values
-    if thresholdSolarPanelToggle == None OR thresholdSolarPanelToggle == "ON":
+    if thresholdSolarPanelToggle == None:
         if batteryActualVoltage >= thresholdVoltageUpper:
             tempDictionary["solarpanel"] = "not charging"
             #Code to power off/cut off solarpanel
-        else:
+        elif batteryActualVoltage <= thresholdVoltageUpper:
             tempDictionary["solarpanel"] = "charging"
             #Code to power on/connect to solarpanel
-    else:
+    elif thresholdSolarPanelToggle == "ON":
+        tempDictionary["solarpanel"] = "charging"
+        #Code to power on/connect to solarpanel
+    elif thresholdSolarPanelToggle == "OFF":
         tempDictionary["solarpanel"] = "not charging"
         #Code to power off/cut off solarpanel
 
-    if thresholdExhaustToggle == None OR thresholdSolarPanelToggle == "ON":       
+    if thresholdExhaustToggle == None:       
         if temperatureValue >= thresholdTemperatureUpper:
             if batteryActualVoltage >= thresholdVoltagelower:
                 tempDictionary["exhaust"] = "on" #Turn on exhaust
                 #Code to power on exhaust
             else:
-                tempDictionary["exhaust"] = "off" #Don't turn on exhaust
+                tempDictionary["exhaust"] = "off" #Turn off exhaust
                 #Code to power off exhaust
-        else:
-            #Do Nothing (for now) - Would require turning on the exhaust and changing AC to provide warmer air
-            pass
-    else:
+        elif temperatureValue <= thresholdTemperatureUpper: pass #Do Nothing (for now) - Would require turning on the exhaust and changing AC to provide warmer air
+    elif thresholdSolarPanelToggle == "ON":
+        tempDictionary["exhaust"] = "on" #Turn on exhaust
+        #Code to power on exhaust
+    elif thresholdSolarPanelToggle == "OFF":
         tempDictionary["exhaust"] = "off" #Turn off exhaust
         #Code to power off exhaust
 
