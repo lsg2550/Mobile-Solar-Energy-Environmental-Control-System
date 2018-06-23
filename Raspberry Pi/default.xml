@@ -13,9 +13,9 @@
 		<photoupper>2</photoupper>
 	</Photo>
 	<SolarPanel>
-		<toggle>not charging</toggle>
+		<toggle></toggle>
 	</SolarPanel>
 	<Exhaust>
-		<toggle>OFF</toggle>
+		<toggle></toggle>
 	</Exhaust>
 </thresholds>
