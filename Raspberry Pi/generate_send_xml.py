@@ -108,6 +108,10 @@ def Main():
         thresholdVoltageUpper = thresholdRoot.find(".//Battery/voltageupper").text
         thresholdTemperatureLower = thresholdRoot.find(".//Temperature/temperaturelower").text
         thresholdTemperatureUpper = thresholdRoot.find(".//Temperature/temperatureupper").text
+        #thresholdPhotoLower = thresholdRoot.find(".//Photo/photolower").text
+        #thresholdPhotoUpper = thresholdRoot.find(".//Photo/photoupper").text
+        thresholdSolarPanelToggle = thresholdRoot.find(".//SolarPanel/toggle").text
+        thresholdExhaustToggle = thresholdRoot.find(".//Exhaust/toggle").text
         #print("Voltage Lower Threshold: {}\nVoltage Upper Threshold: {}\nTemperature Lower Threshold: {}\nTemperature Upper Threshold: {}".format(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper))
         
         #Generate Timestamps

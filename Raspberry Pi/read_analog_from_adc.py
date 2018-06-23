@@ -17,7 +17,9 @@ solar_panel = 1 #solar panel
 temperature = 2 #temperature sensor
 
 #GPIO Devices
-exhaust = 22
+#exhaust = 22
+#solar_panel = 
+#camera = 
 #GPIO.setup(exhaust. GPIO.OUT)
 
 def ReadChannel(channel): #Reads from given channel
@@ -36,47 +38,63 @@ def CelciusToFahrenheit(temperatureCelcius):
 def FahrenheitToCelcius(temperatureFahrenheit):
     return ((temperatureFahrenheit - 32) * 5/9)
 
-def ReadFromSensors(thresholdvoltagelower=None, thresholdvoltageupper=None, thresholdtemperaturelower=None, thresholdtemperatureupper=None):
+def ReadFromSensors(thresholdVoltagelower=None, thresholdVoltageUpper=None, thresholdTemperatureLower=None, thresholdTemperatureUpper=None, thresholdPhotoLower=None, thresholdPhotoUpper=None, thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
     #Debug Output
     print("Reading from sensors...")
     
     #Dictionary to hold {Sensor => Value}
     tempDictionary = {}
     
-    #Channel 0
+    #Read sensors
+    #Channel 0 - Battery
     batteryReducedVoltage = ReadChannel(battery)
     batteryActualVoltage = ConvertVolts(batteryReducedVoltage, 2)
     tempDictionary["battery"] = batteryActualVoltage
     
-    #Channel 1
+    #Channel 1 - Solar Panel
     solarPanelReducedVoltage = ReadChannel(solar_panel)
     solarPanelActualVoltage = ConvertVolts(solarPanelReducedVoltage, 2)
     tempDictionary["solarpanelvalue"] = solarPanelActualVoltage
-    '''
-    if batteryActualVoltage >= thresholdvoltageupper:
-        #Disable Solar Panel?
-        pass
-    '''
-    if solarPanelActualVoltage >= 1:
-        tempDictionary["solarpanel"] = "charging"
-    else:
-        tempDictionary["solarpanel"] = "not charging"
+    #if solarPanelActualVoltage >= 1: tempDictionary["solarpanel"] = "charging"
+    #else: tempDictionary["solarpanel"] = "not charging"
     
-    #Channel 2
+    #Channel 2 - Temperature
     temperatureValue = ReadChannel(temperature) #Celcius
     tempDictionary["temperature"] = 30 #temperatureValue
-    '''
-    if temperatureValue >= thresholdTemperatureUpper:
-        if batteryActualVoltage >= thresholdvoltagelower:
-            #Turn on exhaust
-            pass
+
+    #Channel 3 - Exhaust
+    #Read status of exhaust
+
+    #Channel 4 - Camera/Photo
+    #Take a snapshot
+    
+    #Do something with read/given values
+    if thresholdSolarPanelToggle == None OR thresholdSolarPanelToggle == "ON":
+        if batteryActualVoltage >= thresholdVoltageUpper:
+            tempDictionary["solarpanel"] = "not charging"
+            #Code to power off/cut off solarpanel
         else:
-            #Don't turn on exhaust
+            tempDictionary["solarpanel"] = "charging"
+            #Code to power on/connect to solarpanel
+    else:
+        tempDictionary["solarpanel"] = "not charging"
+        #Code to power off/cut off solarpanel
+
+    if thresholdExhaustToggle == None OR thresholdSolarPanelToggle == "ON":       
+        if temperatureValue >= thresholdTemperatureUpper:
+            if batteryActualVoltage >= thresholdVoltagelower:
+                tempDictionary["exhaust"] = "on" #Turn on exhaust
+                #Code to power on exhaust
+            else:
+                tempDictionary["exhaust"] = "off" #Don't turn on exhaust
+                #Code to power off exhaust
+        else:
+            #Do Nothing (for now) - Would require turning on the exhaust and changing AC to provide warmer air
             pass
     else:
-        #Do Nothing
-        pass
-    '''
+        tempDictionary["exhaust"] = "off" #Turn off exhaust
+        #Code to power off exhaust
+
     #Debug Output
     #print("---------------------------------------------------------")
     #print("Battery Voltage: {} ({}V)".format(batteryReducedVoltage, batteryActualVoltage))

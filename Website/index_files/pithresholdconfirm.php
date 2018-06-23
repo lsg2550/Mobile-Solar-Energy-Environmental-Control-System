@@ -1,13 +1,13 @@
 <?php
-function generateThresholdFile() {
+function generateThresholdAndVitalsFile() {
     //Include
     include("connect.php");
 
     //Init
-    $thresholddir = "../../rpis/";
+    $fileDirectory = "../../rpis/";
     
     //Init - Get User
-    $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
+    $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID={$_GET["rpid"]}";
     $resultsGetUser = mysqli_query($conn, $sqlGetUser);
     $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
@@ -21,14 +21,18 @@ function generateThresholdFile() {
 
     //Generate Threshold XML
     foreach($RPID as $rpi) {
+        //Create XML Document
         $thresholdXML = new SimpleXMLElement("<thresholds/>");
+        
+        //Get Thresholds
+        //Variables with Lower and Upper Thresholds
         $BATT = $thresholdXML->addChild("Battery");
         $TEMP = $thresholdXML->addChild("Temperature");
         $CAM = $thresholdXML->addChild("Photo");
 
+        //Get Threshold Values
         $sqlGetRPIThresholds = "SELECT VN, VL, VU FROM vitals WHERE RPID='{$rpi}';";
         $resultGetRPIThresholds = mysqli_query($conn, $sqlGetRPIThresholds);
-
         while($vital = mysqli_fetch_assoc($resultGetRPIThresholds)) {
             switch($vital["VN"]) {
                 case "Battery":
@@ -48,7 +52,26 @@ function generateThresholdFile() {
             }
         }
 
-        $rpiFile = fopen("{$thresholddir}{$rpi}.xml", "w");
+        //Get Vitals 
+        //Variables with On/Off
+        $SOLARP = $thresholdXML->addChild("SolarPanel");
+        $EXHAUST = $thresholdXML->addChild("Exhaust");
+        $sqlGetRPIThresholds = "SELECT VN, VV FROM status INNER JOIN vitals ON VID WHERE RPID='{$rpi}';";
+        $resultGetRPIThresholds = mysqli_query($conn, $sqlGetRPIThresholds);
+        while($vital = mysqli_fetch_assoc($resultGetRPIThresholds)) {
+            switch($vital["VN"]) {
+                case "SolarPanel":
+                    $SOLARP->addChild("toggle", $vital["VV"]);
+                    break;
+                case "Exhaust":
+                    $EXHAUST->addChild("toggle", $vital["VV"]);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        $rpiFile = fopen("{$fileDirectory}{$rpi}.xml", "w");
         fwrite($rpiFile, $thresholdXML->asXML());
         fclose($rpiFile);
     }
@@ -56,5 +79,5 @@ function generateThresholdFile() {
     echo "OK";
 }
 
-generateThresholdFile();
+generateThresholdAndVitalsFile();
 ?>
