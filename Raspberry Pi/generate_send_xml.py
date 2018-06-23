@@ -112,7 +112,7 @@ def Main():
         #thresholdPhotoUpper = thresholdRoot.find(".//Photo/photoupper").text
         thresholdSolarPanelToggle = thresholdRoot.find(".//SolarPanel/toggle").text
         thresholdExhaustToggle = thresholdRoot.find(".//Exhaust/toggle").text
-        print("This is the Solar Panel Toggle: {}\nThis is the Exhaust Toggle: {}".format(thresholdSolarPanelToggle, thresholdExhaustToggle))    
+        #print("This is the Solar Panel Toggle: {}\nThis is the Exhaust Toggle: {}".format(thresholdSolarPanelToggle, thresholdExhaustToggle))    
         #print("Voltage Lower Threshold: {}\nVoltage Upper Threshold: {}\nTemperature Lower Threshold: {}\nTemperature Upper Threshold: {}".format(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper))
         
         #Generate Timestamps
