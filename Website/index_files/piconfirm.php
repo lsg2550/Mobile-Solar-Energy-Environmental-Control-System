@@ -70,6 +70,8 @@ function processXML($xmlFileName = null) {
         //Move out of the waiting xml folder
         rename($xmldir . $xmlFile, $processedxmldir . $xmlFile);
     }
+    
+    echo "OK";
 }
 
 //TODO: Filter $_GET
@@ -78,7 +80,6 @@ $xmlFilename = $_GET["xmlfile"];
 $xmlFullFilePath = $xmlDirectory . $xmlFilename;
 
 if(is_file($xmlFullFilePath)) {
-    echo "OK";
     processXML($xmlFilename);
 } else {
     echo "NO";
