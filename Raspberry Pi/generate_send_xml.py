@@ -6,6 +6,7 @@
 
 #import
 import os
+import sys
 import time
 import requests
 import connect_to_ftp as CTF
@@ -55,9 +56,12 @@ def GetAndSendXML(xmlFileName): #Send XML to Server
                 #print(serverConfirmation.text.strip())
                 pipayload.pop("xmlfile")
 
-                if serverConfirmation.text.strip() == "OK": 
+                if serverConfirmation.text.strip() == "OK":
                     print("XML file confirmed received!")
                     os.rename(xmlStorageDirectory + tempFile, xmlSentDirectory + tempFile)
+                elif serverConfirmation.text.strip() == "ERROR":
+                    os.remove(tempFile)
+                    sys.exit("Error in server processing XML file...\nDeleting file and exiting program...\nContact an administrator immediately!")
                 else: break #If server did not receive or process the XML correctly, break out of the loop
     except Exception as e:
         print("Could not connect to server...\nStoring XML into {}...".format(xmlStorageDirectory))
