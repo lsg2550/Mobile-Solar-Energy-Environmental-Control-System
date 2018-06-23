@@ -1,15 +1,21 @@
 <?xml version="1.0"?>
 <thresholds>
-    <Battery>
-        <voltagelower>12</voltagelower>
-        <voltageupper>14</voltageupper>
-    </Battery>
-    <Temperature>
-        <temperaturelower>20</temperaturelower>
-        <temperatureupper>40</temperatureupper>
-    </Temperature>
-    <Photo>
-        <photolower>0.5</photolower>
-        <photoupper>2</photoupper>
-    </Photo>
+	<Battery>
+		<voltagelower>12</voltagelower>
+		<voltageupper>14</voltageupper>
+	</Battery>
+	<Temperature>
+		<temperaturelower>20</temperaturelower>
+		<temperatureupper>40</temperatureupper>
+	</Temperature>
+	<Photo>
+		<photolower>0.5</photolower>
+		<photoupper>2</photoupper>
+	</Photo>
+	<SolarPanel>
+		<toggle>not charging</toggle>
+	</SolarPanel>
+	<Exhaust>
+		<toggle>OFF</toggle>
+	</Exhaust>
 </thresholds>

@@ -38,7 +38,7 @@ def CelciusToFahrenheit(temperatureCelcius):
 def FahrenheitToCelcius(temperatureFahrenheit):
     return ((temperatureFahrenheit - 32) * 5/9)
 
-def ReadFromSensors(thresholdVoltagelower=None, thresholdVoltageUpper=None, thresholdTemperatureLower=None, thresholdTemperatureUpper=None, thresholdPhotoLower=None, thresholdPhotoUpper=None, thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
+def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thresholdTemperatureLower=None, thresholdTemperatureUpper=None, thresholdPhotoLower=None, thresholdPhotoUpper=None, thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
     #Debug Output
     print("Reading from sensors...")
     
@@ -69,11 +69,16 @@ def ReadFromSensors(thresholdVoltagelower=None, thresholdVoltageUpper=None, thre
     #Take a snapshot
     
     #Do something with read/given values
+    thresholdVL = float(thresholdVoltageLower)
+    thresholdVU = float(thresholdVoltageUpper)
+    thresholdTL = float(thresholdTemperatureLower)
+    thresholdTU = float(thresholdTemperatureUpper)
+    
     if thresholdSolarPanelToggle == None:
-        if batteryActualVoltage >= thresholdVoltageUpper:
+        if batteryActualVoltage >= thresholdVU:
             tempDictionary["solarpanel"] = "not charging"
             #Code to power off/cut off solarpanel
-        elif batteryActualVoltage <= thresholdVoltageUpper:
+        elif batteryActualVoltage <= thresholdVU:
             tempDictionary["solarpanel"] = "charging"
             #Code to power on/connect to solarpanel
     elif thresholdSolarPanelToggle == "ON":
@@ -84,14 +89,14 @@ def ReadFromSensors(thresholdVoltagelower=None, thresholdVoltageUpper=None, thre
         #Code to power off/cut off solarpanel
 
     if thresholdExhaustToggle == None:       
-        if temperatureValue >= thresholdTemperatureUpper:
-            if batteryActualVoltage >= thresholdVoltagelower:
+        if temperatureValue >= thresholdTU:
+            if batteryActualVoltage >= thresholdVL:
                 tempDictionary["exhaust"] = "on" #Turn on exhaust
                 #Code to power on exhaust
             else:
                 tempDictionary["exhaust"] = "off" #Turn off exhaust
                 #Code to power off exhaust
-        elif temperatureValue <= thresholdTemperatureUpper: pass #Do Nothing (for now) - Would require turning on the exhaust and changing AC to provide warmer air
+        elif temperatureValue <= thresholdTU: pass #Do Nothing (for now) - Would require turning on the exhaust and changing AC to provide warmer air
     elif thresholdSolarPanelToggle == "ON":
         tempDictionary["exhaust"] = "on" #Turn on exhaust
         #Code to power on exhaust
