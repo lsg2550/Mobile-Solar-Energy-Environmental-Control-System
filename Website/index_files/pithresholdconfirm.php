@@ -54,13 +54,13 @@ function generateThresholdAndVitalsFile() {
 
         //Get Vitals 
         //Variables with On/Off
-        $SOLARP = $thresholdXML->addChild("SolarPanel");
+        $SOLARP = $thresholdXML->addChild("Solar Panel");
         $EXHAUST = $thresholdXML->addChild("Exhaust");
-        $sqlGetRPIThresholds = "SELECT VN, VV FROM status INNER JOIN vitals ON VID WHERE RPID='{$rpi}';";
+        $sqlGetRPIThresholds = "SELECT VN, VV FROM status NATURAL JOIN vitals WHERE status.RPID='{$rpi}';";
         $resultGetRPIThresholds = mysqli_query($conn, $sqlGetRPIThresholds);
         while($vital = mysqli_fetch_assoc($resultGetRPIThresholds)) {
             switch($vital["VN"]) {
-                case "SolarPanel":
+                case "Solar Panel":
                     $SOLARP->addChild("toggle", $vital["VV"]);
                     break;
                 case "Exhaust":
