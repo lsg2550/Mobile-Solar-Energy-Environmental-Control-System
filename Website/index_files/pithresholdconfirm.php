@@ -54,7 +54,7 @@ function generateThresholdAndVitalsFile() {
 
         //Get Vitals 
         //Variables with On/Off
-        $SOLARP = $thresholdXML->addChild("Solar Panel");
+        $SOLARP = $thresholdXML->addChild("SolarPanel");
         $EXHAUST = $thresholdXML->addChild("Exhaust");
         $sqlGetRPIThresholds = "SELECT VN, VV FROM status NATURAL JOIN vitals WHERE status.RPID='{$rpi}';";
         $resultGetRPIThresholds = mysqli_query($conn, $sqlGetRPIThresholds);
