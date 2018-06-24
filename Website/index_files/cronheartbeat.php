@@ -27,18 +27,22 @@
         $dateDifference = $lastUpdateByRPi_DateObject->diff($currentTimestamp);
         $dateDifferenceFormatted = $dateDifference->format($diffFormat);
 
+        //Get RPi Owners Email
+        $sqlGetRPiOwnerEmail = "SELECT email FROM users CROSS JOIN rpi WHERE rpiID='{$result['rpiID']}' AND rpi.owner=users.username;";
+        $resultGetRPiOwnerEmail = mysqli_query($conn, $sqlGetRPiOwnerEmail);
+        $currentRPiOwnerEmail = mysqli_fetch_assoc($resultGetRPiOwnerEmail)['email'];
+
         //If it has been more than a week since the RPi has contacted the server, send an email to the user!
         if($dateDifference->days > 7) { 
             $emailMessage = "It has been 7 days since RPi '{$result['rpiID']}' has made contact with the server!";
-            //$emailMessage = wordwrap($emailMessage, 70);
+            $emailMessage = wordwrap($emailMessage, 70);
             echo $emailMessage; 
-            //mail("email", "Raspberry Pi Last Contact", $emailMessage);    
-        } 
-        else { 
+            mail($currentRPiOwnerEmail, "Raspberry Pi Last Contact", $emailMessage);    
+        } else { 
             $emailMessage = "It has been less than 7 days since RPi '{$result['rpiID']}' has made contact with the server!"; 
-            //$emailMessage = wordwrap($emailMessage, 70);
+            $emailMessage = wordwrap($emailMessage, 70);
             echo $emailMessage; 
-            //mail("email", "Raspberry Pi Last Contact", $emailMessage);    
+            mail($currentRPiOwnerEmail, "Raspberry Pi Last Contact", $emailMessage);    
         }
     }
 ?>
