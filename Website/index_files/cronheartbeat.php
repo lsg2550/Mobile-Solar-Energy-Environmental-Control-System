@@ -28,7 +28,17 @@
         $dateDifferenceFormatted = $dateDifference->format($diffFormat);
 
         //If it has been more than a week since the RPi has contacted the server, send an email to the user!
-        if($dateDifference->days > 7) { echo "It has been 7 days since RPi '{$result['rpiID']}' has made contact with the server!"; } 
-        else { echo "It has been less than 7 days since RPi '{$result['rpiID']}' has made contact with the server!"; }
+        if($dateDifference->days > 7) { 
+            $emailMessage = "It has been 7 days since RPi '{$result['rpiID']}' has made contact with the server!";
+            //$emailMessage = wordwrap($emailMessage, 70);
+            echo $emailMessage; 
+            //mail("email", "Raspberry Pi Last Contact", $emailMessage);    
+        } 
+        else { 
+            $emailMessage = "It has been less than 7 days since RPi '{$result['rpiID']}' has made contact with the server!"; 
+            //$emailMessage = wordwrap($emailMessage, 70);
+            echo $emailMessage; 
+            //mail("email", "Raspberry Pi Last Contact", $emailMessage);    
+        }
     }
 ?>
