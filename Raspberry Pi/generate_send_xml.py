@@ -60,8 +60,9 @@ def GetAndSendXML(xmlFileName): #Send XML to Server
                     print("XML file confirmed received!")
                     os.rename(xmlStorageDirectory + tempFile, xmlSentDirectory + tempFile)
                 elif serverConfirmation.text.strip() == "ERROR":
-                    os.remove(tempFile)
-                    sys.exit("Error in server processing XML file...\nDeleting file and exiting program...\nContact an administrator immediately!")
+                    #os.remove(tempFile)
+                    #sys.exit("Error in server processing XML file...\nDeleting file and exiting program...\nContact an administrator immediately!")
+                    break
                 else: break #If server did not receive or process the XML correctly, break out of the loop
     except Exception as e:
         print("Could not connect to server...\nStoring XML into {}...".format(xmlStorageDirectory))
