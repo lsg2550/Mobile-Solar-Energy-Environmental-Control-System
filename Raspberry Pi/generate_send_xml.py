@@ -72,6 +72,19 @@ def GetAndSendXML(xmlFileName): #Send XML to Server
     print("Background thread done!")
 #GetAndSendXML() end
 
+def RequestServer(extraPayload = None): #Might have to add more arguments and merge pi request php files
+    serverConfirmation = ""
+
+    if extraPayload == None: 
+        serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
+    else:
+        pipayload["result"] = extraPayload
+        serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
+        pipayload.pop("result")
+
+    return serverConfirmation
+#RequestServer() end
+
 def Main():
     #Program Start Time
     startTime = time.time()
@@ -86,9 +99,20 @@ def Main():
             serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
 
             if serverThresholdConfirm.text.strip() == "OK":
+                #Retrieve the XML after getting the OK from the server
                 CTF.RetrieveXML(rpid)
                 thresholdFileName = str(rpid) + ".xml"
+
+                #Tell the server that we retrieved the file
+                pipayload["result"] = "OK"
+                requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
+                pipayload.pop("result")
             else:
+                #Tell the server that we DID NOT retrieve the file
+                pipayload["result"] = "NO"
+                requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
+                pipayload.pop("result")
+
                 print("Issue with server request...")
                 if os.path.exists(str(rpid) + ".xml"):
                     thresholdFileName = str(rpid) + ".xml"
