@@ -27,20 +27,23 @@ if not os.path.isdir(sentDirectory): os.mkdir(sentDirectory)
 dateAndTimeFormat = "%Y-%m-%d %H:%M:%S"
 
 #JSON Format
-jsonFormat = {"log": "", "temperature":0, "battery":0, "solarpanel":"", "solarpanelvalue":0, "exhaust":"", "photo":"0.5", "rpid":0}
+jsonFormat = {"photo":"0.5"}
 
 #RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
 rpid = 0
 pipayload = {"rpid": rpid}
 
-def GetAndSendStatus(statusFileName): #Send XML to Server
+def GetAndSendStatus(): #Send XML to Server
     try:
-        for storedFile in os.listdir(storageDirectory):
+        
+        for storedFile in sorted(os.listdir(storageDirectory)):
             tempFile = str(storedFile)
 
             if tempFile.endswith(".json"):
+                fullStoragePath = os.path.join(storageDirectory, tempFile)
+                fullSentPath = os.path.join(sentDirectory, tempFile)
                 CTF.SendStatus(storageDirectory + tempFile)
-
+                
                 pipayload["xmlfile"] = tempFile
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
                 print(serverConfirmation.text.strip())
@@ -48,7 +51,7 @@ def GetAndSendStatus(statusFileName): #Send XML to Server
 
                 if serverConfirmation.text.strip() == "OK":
                     print("File confirmed received!")
-                    os.rename(storageDirectory + tempFile, sentDirectory + tempFile)
+                    os.rename(fullStoragePath, fullSentPath)
                 elif serverConfirmation.text.strip() == "ERROR":
                     #os.remove(tempFile)
                     #sys.exit("Error in server processing XML file...\nDeleting file and exiting program...\nContact an administrator immediately!")
@@ -56,7 +59,7 @@ def GetAndSendStatus(statusFileName): #Send XML to Server
                 else: break #If server did not receive or process the XML correctly, break out of the loop
     except Exception as e:
         print("Could not connect to server...\nStoring status file into {}...".format(storageDirectory))
-        #print(e)
+        print(e)
 
     #Debug Output
     print("Background thread done!")
@@ -130,7 +133,7 @@ def Main():
             json.dump(jsonFormat, status, indent = 4)
             
         #Send XML in New Thread
-        sendThread = Thread(target=GetAndSendStatus, args=(statusFileName,))
+        sendThread = Thread(target=GetAndSendStatus, args=())
         sendThread.start()
 
         #Wait for 60 seconds for the next read interval
