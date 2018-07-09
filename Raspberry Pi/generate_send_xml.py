@@ -8,6 +8,7 @@
 import os
 import sys
 import time
+import json
 import requests
 import connect_to_ftp as CTF
 import read_analog_from_adc as RAFA
@@ -17,39 +18,28 @@ from datetime import datetime
 from pytz import timezone
 
 #Create Storage Directories
-xmlStorageDirectory = "XMLTempStorage/"
-xmlSentDirectory = "XMLSentStorage/"
-if not os.path.isdir(xmlStorageDirectory): os.mkdir(xmlStorageDirectory)
-if not os.path.isdir(xmlSentDirectory): os.mkdir(xmlSentDirectory)
+storageDirectory = "TempStorage/"
+sentDirectory = "SentStorage/"
+if not os.path.isdir(storageDirectory): os.mkdir(storageDirectory)
+if not os.path.isdir(sentDirectory): os.mkdir(sentDirectory)
 
 #Date & Time Format for XML
 dateAndTimeFormat = "%Y-%m-%d %H:%M:%S"
 
-#XML Format
-xmlFormat = '''
-<currentstatus>
-    <log></log>
-    <temperature></temperature>
-    <battery></battery>
-    <solarpanel></solarpanel>
-    <solarpanelvalue></solarpanelvalue>
-    <exhaust>on</exhaust>
-    <photo>0.5</photo>
-    <rpid></rpid>
-</currentstatus>
-'''
+#JSON Format
+jsonFormat = {"log": "", "temperature":0, "battery":0, "solarpanel":"", "solarpanelvalue":0, "exhaust":"", "photo":"0.5", "rpid":0}
 
 #RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
 rpid = 0
 pipayload = {"rpid": rpid}
 
-def GetAndSendXML(xmlFileName): #Send XML to Server
+def GetAndSendStatus(statusFileName): #Send XML to Server
     try:
-        for storedFile in os.listdir(xmlStorageDirectory):
+        for storedFile in os.listdir(storageDirectory):
             tempFile = str(storedFile)
 
-            if tempFile.endswith(".xml"):
-                CTF.SendXML(xmlStorageDirectory + tempFile)
+            if tempFile.endswith(".json"):
+                CTF.SendStatus(storageDirectory + tempFile)
 
                 pipayload["xmlfile"] = tempFile
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
@@ -57,29 +47,26 @@ def GetAndSendXML(xmlFileName): #Send XML to Server
                 pipayload.pop("xmlfile")
 
                 if serverConfirmation.text.strip() == "OK":
-                    print("XML file confirmed received!")
-                    os.rename(xmlStorageDirectory + tempFile, xmlSentDirectory + tempFile)
+                    print("File confirmed received!")
+                    os.rename(storageDirectory + tempFile, sentDirectory + tempFile)
                 elif serverConfirmation.text.strip() == "ERROR":
                     #os.remove(tempFile)
                     #sys.exit("Error in server processing XML file...\nDeleting file and exiting program...\nContact an administrator immediately!")
                     break
                 else: break #If server did not receive or process the XML correctly, break out of the loop
     except Exception as e:
-        print("Could not connect to server...\nStoring XML into {}...".format(xmlStorageDirectory))
+        print("Could not connect to server...\nStoring status file into {}...".format(storageDirectory))
         #print(e)
 
     #Debug Output
     print("Background thread done!")
-#GetAndSendXML() end
+#GetAndSendStatus() end
 
 def Main():
     #Program Start Time
     startTime = time.time()
     
     while True:
-        #Init - Threshold File Name
-        thresholdFileName = ""
-
         #Retrieve XML Files of Thresholds set by Users
         try:
             print("Requesting threshold update from server...")
@@ -87,8 +74,8 @@ def Main():
 
             if serverThresholdConfirm.text.strip() == "OK":
                 #Retrieve the XML after getting the OK from the server
-                CTF.RetrieveXML(rpid)
-                thresholdFileName = str(rpid) + ".xml"
+                CTF.RetrieveThreshold(rpid)
+                thresholdFileName = str(rpid) + ".json"
 
                 #Tell the server that we retrieved the file
                 pipayload["result"] = "OK"
@@ -99,69 +86,56 @@ def Main():
                 pipayload["result"] = "NO"
                 requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
                 pipayload.pop("result")
-
-                print("Issue with server request...")
-                if os.path.exists(str(rpid) + ".xml"):
-                    thresholdFileName = str(rpid) + ".xml"
-                    print("Using previous thresholds...")
-                else:
-                    thresholdFileName = "default.xml"
-                    print("Using system default thresholds...")
+                
+                raise FileNotFoundError
         except Exception as e: #Assuming connection error
-            print("Could not connect to server...")
-            if os.path.exists(str(rpid) + ".xml"):
-                thresholdFileName = str(rpid) + ".xml"
+            print("Could not connect to server/Issue with server...")
+            if os.path.exists(str(rpid) + ".json"):
+                thresholdFileName = str(rpid) + ".json"
                 print("Using previous thresholds...")
             else:
-                thresholdFileName = "default.xml"
+                thresholdFileName = "default.json"
                 print("Using system default thresholds...")
-            #print(e)
 
-        thresholdFile = open(thresholdFileName, "r")
-        thresholdParsed = ElementTree.parse(thresholdFile)
-        thresholdRoot = thresholdParsed.getroot()
-        thresholdVoltageLower = thresholdRoot.find(".//Battery/voltagelower").text
-        thresholdVoltageUpper = thresholdRoot.find(".//Battery/voltageupper").text
-        thresholdTemperatureLower = thresholdRoot.find(".//Temperature/temperaturelower").text
-        thresholdTemperatureUpper = thresholdRoot.find(".//Temperature/temperatureupper").text
-        #thresholdPhotoLower = thresholdRoot.find(".//Photo/photolower").text
-        #thresholdPhotoUpper = thresholdRoot.find(".//Photo/photoupper").text
-        thresholdSolarPanelToggle = thresholdRoot.find(".//SolarPanel/toggle").text
-        thresholdExhaustToggle = thresholdRoot.find(".//Exhaust/toggle").text
+        with open(thresholdFileName, "r") as thresholdfile:
+            thresholds = json.loads(thresholdfile.read())
+            
+        thresholdVoltageLower = thresholds["voltagelower"]
+        thresholdVoltageUpper = thresholds["voltageupper"]
+        thresholdTemperatureLower = thresholds["temperaturelower"]
+        thresholdTemperatureUpper = thresholds["temperatureupper"]
+        #thresholdPhotoLower = thresholds["photolower"]
+        #thresholdPhotoUpper = thresholds["photoupper"]
+        thresholdSolarPanelToggle = thresholds["solartoggle"]
+        thresholdExhaustToggle = thresholds["exhausttoggle"]
         #print("This is the Solar Panel Toggle: {}\nThis is the Exhaust Toggle: {}".format(thresholdSolarPanelToggle, thresholdExhaustToggle))    
         #print("Voltage Lower Threshold: {}\nVoltage Upper Threshold: {}\nTemperature Lower Threshold: {}\nTemperature Upper Threshold: {}".format(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper))
         
+        #Read from Sensors
+        sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper)
+
         #Generate Timestamps
         timeStampForLog = datetime.now(timezone("UTC")).strftime(dateAndTimeFormat)
         timeStampForFileName = timeStampForLog.replace(":", "-")
         
-        #Create File & Create XML Element Tree Object
-        xmlFileName = xmlStorageDirectory + "status" + str(rpid) + "(" + timeStampForFileName + ").xml"
-        xmlFile = open(xmlFileName, "w+")
-        xmlParsed = ElementTree.ElementTree(ElementTree.fromstring(xmlFormat))
-        xmlRoot = xmlParsed.getroot()
-
-        #Read from Sensors
-        sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper)
-        xmlLogElement = xmlRoot.find("log")
-        xmlRpidElement = xmlRoot.find("rpid")
-        xmlLogElement.text = str(timeStampForLog)
-        xmlRpidElement.text = str(rpid)
+        #Update jsonFormat
+        jsonFormat["log"] = str(timeStampForLog)
+        jsonFormat["rpid"] = str(rpid)
         for key, value in sensorDictionary.items():
-            xmlElement = xmlRoot.find(key)
-            xmlElement.text = str(value)
-
+            jsonFormat[key] = str(value)
+            
         #Write and Close File
-        xmlParsed.write(xmlFileName)
-        xmlFile.close()
-
+        statusFileName = storageDirectory + "status" + str(rpid) + "(" + timeStampForFileName + ").json"
+        with open(statusFileName, "w+") as status:
+            json.dump(jsonFormat, status, indent = 4)
+            
         #Send XML in New Thread
-        sendXMLThread = Thread(target=GetAndSendXML, args=(xmlFileName,))
-        sendXMLThread.start()
+        sendThread = Thread(target=GetAndSendStatus, args=(statusFileName,))
+        sendThread.start()
 
         #Wait for 60 seconds for the next read interval
         timer = (time.time() - startTime) % 60
-        print("XML transfer moved to a background thread...\nMain thread is now on standby for {0:.2} seconds...".format(str((60.0 - timer))))
+        print("File transfer moved to a background thread...\nMain thread is now on standby for {0:.2} seconds...".format(str((60.0 - timer))))
         time.sleep(60.0 - timer)
     #while end
 #Main() end

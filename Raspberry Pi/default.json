@@ -5,6 +5,6 @@
     "temperatureupper":40,
     "photolower":0.5,
     "photoupper":2,
-    "solarpaneltoggle":"",
+    "solartoggle":"",
     "exhausttoggle":""
 }
