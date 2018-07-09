@@ -72,19 +72,6 @@ def GetAndSendXML(xmlFileName): #Send XML to Server
     print("Background thread done!")
 #GetAndSendXML() end
 
-def RequestServer(extraPayload = None): #Might have to add more arguments and merge pi request php files
-    serverConfirmation = ""
-
-    if extraPayload == None: 
-        serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
-    else:
-        pipayload["result"] = extraPayload
-        serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
-        pipayload.pop("result")
-
-    return serverConfirmation
-#RequestServer() end
-
 def Main():
     #Program Start Time
     startTime = time.time()

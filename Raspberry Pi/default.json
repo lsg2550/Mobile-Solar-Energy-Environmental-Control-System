@@ -1,0 +1,10 @@
+{
+    "voltagelower":12,
+    "voltageupper":14,
+    "temperaturelower":20,
+    "temperatureupper":40,
+    "photolower":0.5,
+    "photoupper":2,
+    "solarpaneltoggle":"",
+    "exhausttoggle":""
+}

@@ -15,65 +15,57 @@ function generateThresholdAndVitalsFile() {
     $RPID = [];
     $sqlGetRPID = "SELECT rpiID FROM rpi WHERE owner='{$USR}';";
     $resultGetRPID = mysqli_query($conn, $sqlGetRPID);
-    while($rpi = mysqli_fetch_assoc($resultGetRPID)) {
-        $RPID[] = $rpi["rpiID"];
-    }
+    while($rpi = mysqli_fetch_assoc($resultGetRPID)) { $RPID[] = $rpi["rpiID"]; } //Gets raspberry pi IDs and stores them into an array
 
-    //Generate Threshold XML
-    foreach($RPID as $rpi) {
-        //Create XML Document
-        $thresholdXML = new SimpleXMLElement("<thresholds/>");
-        
-        //Get Thresholds
-        //Variables with Lower and Upper Thresholds
-        $BATT = $thresholdXML->addChild("Battery");
-        $TEMP = $thresholdXML->addChild("Temperature");
-        $CAM = $thresholdXML->addChild("Photo");
+    //Generate Threshold JSON
+    foreach($RPID as $rpi) {      
+        //Start JSON Build  
+        $thresholdXML = new stdClass();
 
-        //Get Threshold Values
-        $sqlGetRPIThresholds = "SELECT VN, VL, VU FROM vitals WHERE RPID='{$rpi}';";
-        $resultGetRPIThresholds = mysqli_query($conn, $sqlGetRPIThresholds);
-        while($vital = mysqli_fetch_assoc($resultGetRPIThresholds)) {
+        //SQL Queries
+        $sqlGetRPIThresholdsThresh = "SELECT VN, VL, VU FROM vitals WHERE RPID='{$rpi}';";
+        $sqlGetRPIThresholdsToggle = "SELECT VN, VV FROM status NATURAL JOIN vitals WHERE status.RPID='{$rpi}';";
+        $resultGetRPIThresholdsThresh = mysqli_query($conn, $sqlGetRPIThresholdsThresh);
+        $resultGetRPIThresholdsToggle = mysqli_query($conn, $sqlGetRPIThresholdsToggle);
+
+        //Get Vitals - Variables with thresholds
+        while($vital = mysqli_fetch_assoc($resultGetRPIThresholdsThresh)) {
             switch($vital["VN"]) {
                 case "Battery":
-                    $BATT->addChild("voltagelower", $vital["VL"]);
-                    $BATT->addChild("voltageupper", $vital["VU"]);
+                    $thresholdXML->voltagelower = $vital["VL"];
+                    $thresholdXML->voltageupper = $vital["VU"];
                     break;
                 case "Temperature":
-                    $TEMP->addChild("temperaturelower", $vital["VL"]);
-                    $TEMP->addChild("temperatureupper", $vital["VU"]);
+                    $thresholdXML->temperaturelower = $vital["VL"];
+                    $thresholdXML->temperatureupper = $vital["VU"];
                     break;
                 case "Photo":
-                    $CAM->addChild("photolower", $vital["VL"]);
-                    $CAM->addChild("photoupper", $vital["VU"]);
+                    $thresholdXML->photolower = $vital["VL"];
+                    $thresholdXML->photoupper = $vital["VU"];
                     break;
                 default:
                     break;
             }
         }
 
-        //Get Vitals 
-        //Variables with On/Off
-        $SOLARP = $thresholdXML->addChild("SolarPanel");
-        $EXHAUST = $thresholdXML->addChild("Exhaust");
-        $sqlGetRPIThresholds = "SELECT VN, VV FROM status NATURAL JOIN vitals WHERE status.RPID='{$rpi}';";
-        $resultGetRPIThresholds = mysqli_query($conn, $sqlGetRPIThresholds);
-        while($vital = mysqli_fetch_assoc($resultGetRPIThresholds)) {
+        //Get Vitals - Variables with On/Off
+        while($vital = mysqli_fetch_assoc($resultGetRPIThresholdsToggle)) {
             switch($vital["VN"]) {
                 case "Solar Panel":
-                    $SOLARP->addChild("toggle", $vital["VV"]);
+                    $thresholdXML->solartoggle = $vital["VV"];
                     break;
                 case "Exhaust":
-                    $EXHAUST->addChild("toggle", $vital["VV"]);
+                    $thresholdXML->exhausttoggle = $vital["VV"];
                     break;
                 default:
                     break;
             }
         }
 
-        $rpiFile = fopen("{$fileDirectory}{$rpi}.xml", "w");
-        fwrite($rpiFile, $thresholdXML->asXML());
+        $rpiFile = fopen("{$fileDirectory}{$rpi}.json", "w");
+        fwrite($rpiFile, json_encode($thresholdXML));
         fclose($rpiFile);
+        //End JSON Build
     }
 
     echo "OK";
@@ -83,6 +75,7 @@ try { generateThresholdAndVitalsFile(); }
 catch (Exception $e) {
     echo "NO";
 
+    //Update database log of the error
     //Include
     //include("connect.php");
 
