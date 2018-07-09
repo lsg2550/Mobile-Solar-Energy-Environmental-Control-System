@@ -76,16 +76,16 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
     
     if thresholdSolarPanelToggle == None:
         if batteryActualVoltage >= thresholdVU:
-            tempDictionary["solarpanel"] = "not charging"
+            tempDictionary["solar panel"] = "not charging"
             #Code to power off/cut off solarpanel
         elif batteryActualVoltage <= thresholdVU:
-            tempDictionary["solarpanel"] = "charging"
+            tempDictionary["solar panel"] = "charging"
             #Code to power on/connect to solarpanel
     elif thresholdSolarPanelToggle == "ON":
-        tempDictionary["solarpanel"] = "charging"
+        tempDictionary["solar panel"] = "charging"
         #Code to power on/connect to solarpanel
     elif thresholdSolarPanelToggle == "OFF":
-        tempDictionary["solarpanel"] = "not charging"
+        tempDictionary["solar panel"] = "not charging"
         #Code to power off/cut off solarpanel
 
     if thresholdExhaustToggle == None:       

@@ -887,7 +887,7 @@ manifest.mf
 **/connect.php
 connecttoftp.py
 connect_to_ftp.py
-XMLSentStorage
-XMLTempStorage
+SentStorage
+TempStorage
 0.xml
 0.json
