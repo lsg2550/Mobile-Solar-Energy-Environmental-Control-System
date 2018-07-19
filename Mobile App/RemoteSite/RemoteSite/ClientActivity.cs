@@ -1,6 +1,7 @@
 ﻿using Android.App;
 using Android.OS;
 using Android.Widget;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net.Http;
 
@@ -23,6 +24,7 @@ namespace RemoteSite {
         }
 
         public void OnClickLogoutButton() {
+            MyClient.GetInstance().ClearClientInfo();
             Finish();
         }
 
@@ -65,11 +67,13 @@ namespace RemoteSite {
                 return;
             }
 
-            //FindViewById<TextView>(Resource.Id.textViewTitle).Text = responseString;
+            List<RPiCurrentStatus> currentStatus = JsonConvert.DeserializeObject<List<RPiCurrentStatus>>(responseStringJSONCS);
+            List<RPiLog> log = JsonConvert.DeserializeObject<List<RPiLog>>(responseStringJSONL);
+
             //Set List and Adapter
-            //ExpandableListView expandableListViewLog = FindViewById<ExpandableListView>(Resource.Id.expandableListViewLog);
-            //ExpandableListViewAdapter expandableListViewAdapterLog = new ExpandableListViewAdapter(t, tt, this);
-            //expandableListViewLog.SetAdapter(expandableListViewAdapterLog);
+            ExpandableListView expandableListViewLog = FindViewById<ExpandableListView>(Resource.Id.expandableListViewLog);
+            ExpandableListViewAdapter expandableListViewAdapterLog = new ExpandableListViewAdapter(currentStatus, log, this);
+            expandableListViewLog.SetAdapter(expandableListViewAdapterLog);
         }
     }
 }

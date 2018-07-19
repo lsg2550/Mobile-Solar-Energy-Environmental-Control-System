@@ -16,7 +16,7 @@
         $resultLog = mysqli_query($conn, $sqlLog);
 
         //Store CurrentStatus Query Results into $jsonCurrentStatus
-        $jsonCurrentStatus[] = array();
+        $jsonCurrentStatus = array();
         if(mysqli_num_rows($resultCurrentStatus) > 0) {
             while($row = mysqli_fetch_assoc($resultCurrentStatus)) {
                 $tempRow = array( 'VN' => $row['VN'], 'VV' => $row['VV'], 'RPID' => $row['RPID'], 'TS' => $row['TS'] );
@@ -25,7 +25,7 @@
         }
 
         //Store Log Query Results into $jsonLog
-        $jsonLog[] = array();
+        $jsonLog = array();
         if(mysqli_num_rows($resultLog) > 0) { 
             while($row = mysqli_fetch_assoc($resultLog)) {
                 if($row['V2'] == NULL || $row['V2'] == "") { $row['V2'] = "N/A"; } //If V2 is blank, replace it with 'N/A'
