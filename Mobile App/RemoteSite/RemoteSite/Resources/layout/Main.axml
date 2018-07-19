@@ -8,13 +8,21 @@
     android:minWidth="25px"
     android:minHeight="25px"
     android:id="@+id/LinearLayoutRoot"
-    p2:gridSpec="1|8|#0093eeff|K:#ee8700ff:16,l:72,l:16,r|S:#83ee00ff:16,0,l:16,56,l:16,0,r">
+    p2:gridSpec="1|8|#0093eeff|K:#ee8700ff:16,l:72,l:16,r|S:#83ee00ff:16,0,l:16,56,l:16,0,r"
+    android:background="#fff4511e"
+    android:fadingEdge="none"
+    android:fitsSystemWindows="false">
     <TextView
         android:text="Username"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView_Username" />
+        android:id="@+id/textView_Username"
+        android:textColor="#ff000000"
+        android:textColorHighlight="#ff000000"
+        android:shadowColor="#ff000000"
+        android:textSize="26dp"
+        android:textStyle="bold" />
     <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -26,9 +34,13 @@
     <TextView
         android:text="Password"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/textView_Password" />
+        android:id="@+id/textView_Password"
+        android:textColor="#ff000000"
+        android:textColorHighlight="#ff000000"
+        android:textSize="26dp"
+        android:textStyle="bold" />
     <EditText
         android:inputType="textPassword"
         android:layout_width="match_parent"
@@ -41,14 +53,19 @@
     <RelativeLayout
         android:minWidth="25px"
         android:minHeight="25px"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:id="@+id/relativeLayoutButton">
         <Button
             android:text="Sign-In"
             android:id="@+id/buttonSignIn"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_width="240.0dp"
+            android:layout_height="wrap_content"
+            android:textColor="#ff000000"
+            android:textColorHighlight="#ff000000"
+            android:textStyle="bold"
+            android:textSize="16dp"
+            android:background="#ffffffff" />
     </RelativeLayout>
 </LinearLayout>

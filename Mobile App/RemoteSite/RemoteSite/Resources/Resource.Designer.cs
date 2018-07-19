@@ -78,32 +78,44 @@ namespace RemoteSite
 		public partial class Id
 		{
 			
-			// aapt resource value: 0x7f050000
-			public const int LinearLayoutRoot = 2131034112;
-			
-			// aapt resource value: 0x7f050008
-			public const int buttonSignIn = 2131034120;
-			
-			// aapt resource value: 0x7f050007
-			public const int relativeLayoutButton = 2131034119;
-			
-			// aapt resource value: 0x7f050003
-			public const int space_1 = 2131034115;
-			
-			// aapt resource value: 0x7f050006
-			public const int space_2 = 2131034118;
-			
-			// aapt resource value: 0x7f050005
-			public const int textField_Password = 2131034117;
+			// aapt resource value: 0x7f050004
+			public const int LinearLayoutRoot = 2131034116;
 			
 			// aapt resource value: 0x7f050002
-			public const int textField_Username = 2131034114;
+			public const int buttonLogout = 2131034114;
 			
-			// aapt resource value: 0x7f050004
-			public const int textView_Password = 2131034116;
+			// aapt resource value: 0x7f05000c
+			public const int buttonSignIn = 2131034124;
+			
+			// aapt resource value: 0x7f050003
+			public const int expandableListViewLog = 2131034115;
+			
+			// aapt resource value: 0x7f050000
+			public const int relativeLayout1 = 2131034112;
+			
+			// aapt resource value: 0x7f05000b
+			public const int relativeLayoutButton = 2131034123;
+			
+			// aapt resource value: 0x7f050007
+			public const int space_1 = 2131034119;
+			
+			// aapt resource value: 0x7f05000a
+			public const int space_2 = 2131034122;
+			
+			// aapt resource value: 0x7f050009
+			public const int textField_Password = 2131034121;
+			
+			// aapt resource value: 0x7f050006
+			public const int textField_Username = 2131034118;
 			
 			// aapt resource value: 0x7f050001
-			public const int textView_Username = 2131034113;
+			public const int textViewTitle = 2131034113;
+			
+			// aapt resource value: 0x7f050008
+			public const int textView_Password = 2131034120;
+			
+			// aapt resource value: 0x7f050005
+			public const int textView_Username = 2131034117;
 			
 			static Id()
 			{
@@ -119,7 +131,10 @@ namespace RemoteSite
 		{
 			
 			// aapt resource value: 0x7f030000
-			public const int Main = 2130903040;
+			public const int Client = 2130903040;
+			
+			// aapt resource value: 0x7f030001
+			public const int Main = 2130903041;
 			
 			static Layout()
 			{
