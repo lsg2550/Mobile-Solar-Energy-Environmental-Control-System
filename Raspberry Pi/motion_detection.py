@@ -73,10 +73,10 @@ def Main(fps, LowerBound):
             if total <= upperTimebound and total >= lowerTimebound:
                 sendThread = Thread(target=CaptureImage, args=(currentTime, frame))
                 sendThread.start()
-
-            #Quit program if the key 'q' is pressed
-            if cv2.waitKey(1) & 0xFF == ord("esc"):
-                break
+        
+        #Quit program if the key 'q' is pressed
+        if cv2.waitKey(1) & 0xFF == ord(chr(27)):
+            break
 
     #Stop videostream and close all windows
     vs.stop()
