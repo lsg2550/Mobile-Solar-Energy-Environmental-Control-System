@@ -39,7 +39,7 @@ def GetAndSendStatus(): #Send XML to Server
                 
                 pipayload["xmlfile"] = tempFile
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
-                print(serverConfirmation.text.strip())
+                #print(serverConfirmation.text.strip())
                 pipayload.pop("xmlfile")
 
                 if serverConfirmation.text.strip() == "OK":
@@ -65,7 +65,7 @@ def Main():
         try: #Retrieve XML Files of Thresholds set by Users
             print("Requesting threshold update from server...")
             serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
-
+            
             if serverThresholdConfirm.text.strip() == "OK": #Retrieve the XML after getting the OK from the server
                 CTF.RetrieveThreshold(rpid)
                 thresholdFileName = str(rpid) + ".json"
@@ -93,11 +93,9 @@ def Main():
         thresholdVoltageUpper = thresholds["voltageupper"]
         thresholdTemperatureLower = thresholds["temperaturelower"]
         thresholdTemperatureUpper = thresholds["temperatureupper"]
-        #thresholdPhoto = thresholds["photofps"]
-        thresholdSolarPanelToggle = thresholds["solartoggle"]
-        thresholdExhaustToggle = thresholds["exhausttoggle"]
-        #print("This is the Solar Panel Toggle: {}\nThis is the Exhaust Toggle: {}".format(thresholdSolarPanelToggle, thresholdExhaustToggle))    
-        #print("Voltage Lower Threshold: {}\nVoltage Upper Threshold: {}\nTemperature Lower Threshold: {}\nTemperature Upper Threshold: {}".format(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper))
+        thresholdPhoto = thresholds["photofps"]
+        thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
+        thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
         
         #Read from Sensors
         sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper)
