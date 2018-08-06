@@ -1,9 +1,5 @@
 <?php
-    //Buffer Start
-    ob_start();
-
     //Require
-    require("sessionstart.php");
     require("connect.php");
 
     //TODO: Filter User & Pass; Take User and Pass from POST
@@ -16,13 +12,8 @@
 
     //If user is correct, sign them in, otherwise send them back to the log in page
     if(mysqli_num_rows($sqlResult) == 1) {
-        header("Location: ../client/client.php");
-        $_SESSION['user'] = 1;
-        $_SESSION['username'] = $user;
+        echo "OK";
     } else{
-        header("Location: ../index.html");
+        echo "NO";
     }
-
-    //Buffer End & Exit
-    ob_end_start();
 ?>

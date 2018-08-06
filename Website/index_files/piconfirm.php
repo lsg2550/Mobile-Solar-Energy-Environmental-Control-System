@@ -1,26 +1,22 @@
 <?php
-function processXML($xmlFileName = null) {
-    //Include
-    include("connect.php");
+    function processXML($xmlFileName) {
+        //Include
+        include("connect.php");
 
-    //Init
-    $xmldir = "../../xmls/";
-    $processedxmldir = "../../processedxmls/";
-    $listOfXMLFiles = $xmlFileName; //Because we already confirmed that the file is a file and exists, we can safely place it into $listOfXMLFiles;
-    $TYP = "ST";
+        //Init
+        $xmldir = "../../xmls/";
+        $processedxmldir = "../../processedxmls/";
+        $TYP = "ST";
 
-    //Init - Get Username
-    $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
-    $resultsGetUser = mysqli_query($conn, $sqlGetUser);
-    $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
+        //Init - Get Username
+        $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
+        $resultsGetUser = mysqli_query($conn, $sqlGetUser);
+        $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
-    //Load xml files from $listOfXMLFiles & process them - grab data and update database
-    //sort($listOfXMLFiles);
-    foreach($listOfXMLFiles as $xmlFile) {
-        $xml = simplexml_load_file($xmldir . $xmlFile);
-        $RPID = $xml->rpid;
-        $TS = $xml->log;
-        //print_r($xml);
+        //Load xml files from $listOfXMLFiles & process them - grab data and update database
+        $xml = json_decode(file_get_contents($xmldir . $xmlFileName));
+        $RPID = $xml->{"rpid"};
+        $TS = $xml->{"log"};
 
         foreach($xml as $key => $value) {
             switch($key) {
@@ -30,9 +26,7 @@ function processXML($xmlFileName = null) {
                     break;
                 default:
                     //VitalName
-                    $VN = "";
-                    if($key === "solarpanel") { $VN = "solar panel"; } 
-                    else { $VN = $key; }
+                    $VN = $key;
 
                     //Get VID
                     $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$VN}' AND RPID='{$RPID}' AND USR='{$USR}';";
@@ -53,22 +47,22 @@ function processXML($xmlFileName = null) {
         }
 
         //Move out of the waiting xml folder
-        rename($xmldir . $xmlFile, $processedxmldir . $xmlFile);
+        rename($xmldir . $xmlFileName, $processedxmldir . $xmlFileName);
     }
 
-    echo "OK";
-}
+    //TODO: Filter $_GET
+    $xmlDirectory = "../../xmls/";
+    $xmlFilename = $_GET["xmlfile"];
+    $xmlFullFilePath = $xmlDirectory . $xmlFilename;
 
-//TODO: Filter $_GET
-$xmlDirectory = "../../xmls/";
-$xmlFilename = $_GET["xmlfile"];
-$xmlFullFilePath = $xmlDirectory . $xmlFilename;
-
-if(is_file($xmlFullFilePath)) {
-    try { processXML($xmlFilename); } 
-    catch (Exception $e) { echo "ERROR";}
-} else {
-    echo "NO";
-}
-
+    if(is_file($xmlFullFilePath)) {
+        try { 
+            processXML($xmlFilename); 
+            echo "OK";
+        } catch (Exception $e) { 
+            echo "ERROR";
+        }
+    } else {
+        echo "NO";
+    }
 ?>

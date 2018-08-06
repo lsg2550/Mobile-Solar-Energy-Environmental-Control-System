@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:minWidth="25px"
+    android:minHeight="25px"
+    android:background="#fff05023">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/relativeLayout1">
+        <TextView
+            android:text="Client Page"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:id="@+id/textViewTitle"
+            android:textColor="#ff000000"
+            android:textColorHighlight="#ff000000"
+            android:textSize="32dp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true" />
+        <Button
+            android:text="Logout"
+            android:textColor="#ff000000"
+            android:textColorHighlight="#ff000000"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:id="@+id/buttonLogout"
+            android:textStyle="bold"
+            android:textSize="16dp"
+            android:background="#ffffffff" />
+    </RelativeLayout>
+    <ExpandableListView
+        android:minWidth="25px"
+        android:minHeight="25px"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/expandableListViewLog" />
+</LinearLayout>

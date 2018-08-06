@@ -1,37 +1,37 @@
 <?php
-//Require
-require("../index_files/sessionstart.php");
-require("../index_files/sessioncheck.php");
-require("../index_files/connect.php");
-require("../index_files/operations.php");
-require("vitals_files/generatecontrolpanel.php");
+    //Require
+    require("../index_files/sessionstart.php");
+    require("../index_files/sessioncheck.php");
+    require("../index_files/connect.php");
+    require("../index_files/operations.php");
+    require("vitals_files/generatecontrolpanel.php");
 
-//Database Queries
-$currentUser = $_SESSION['username']; //Get Current User Name
-$sqlVitalsCurrentStatus = "SELECT VN, VV, RPID FROM status NATURAL JOIN vitals WHERE USR='{$currentUser}';"; //Select current status of 
-$sqlVitalsCurrentThresholds = "SELECT VN, VL, VU, RPID FROM vitals WHERE USR='{$currentUser}';"; //Select vital settings (lower & upper limits) to display and allow user to change those vital settings
+    //Database Queries
+    $currentUser = $_SESSION['username']; //Get Current User Name
+    $sqlVitalsCurrentStatus = "SELECT VN, VV, RPID FROM status NATURAL JOIN vitals WHERE USR='{$currentUser}';"; //Select current status of 
+    $sqlVitalsCurrentThresholds = "SELECT VN, VL, VU, RPID FROM vitals WHERE USR='{$currentUser}';"; //Select vital settings (lower & upper limits) to display and allow user to change those vital settings
 
-//Execute Queries
-$resultCurrentStatus = mysqli_query($conn, $sqlVitalsCurrentStatus);
-$resultCurrentThresholds = mysqli_query($conn, $sqlVitalsCurrentThresholds);
+    //Execute Queries
+    $resultCurrentStatus = mysqli_query($conn, $sqlVitalsCurrentStatus);
+    $resultCurrentThresholds = mysqli_query($conn, $sqlVitalsCurrentThresholds);
 
-//Store CurrentStatus Query Results into $arrayCurrentStatus
-$arrayCurrentStatus = array(); 
-if(mysqli_num_rows($resultCurrentStatus) > 0) {
-    while($row = mysqli_fetch_assoc($resultCurrentStatus)) {
-        $tempRow = "[{$row['VN']}, {$row['VV']}, {$row['RPID']}]";
-        $arrayCurrentStatus[] = $tempRow;
+    //Store CurrentStatus Query Results into $arrayCurrentStatus
+    $arrayCurrentStatus = array(); 
+    if(mysqli_num_rows($resultCurrentStatus) > 0) {
+        while($row = mysqli_fetch_assoc($resultCurrentStatus)) {
+            $tempRow = "[{$row['VN']}, {$row['VV']}, {$row['RPID']}]";
+            $arrayCurrentStatus[] = $tempRow;
+        }
     }
-}
 
-//Store Current Tresholds Query Results into $arrayCurrentThreshold
-$arrayCurrentThreshold = array(); 
-if(mysqli_num_rows($resultCurrentThresholds) > 0) {
-    while($row = mysqli_fetch_assoc($resultCurrentThresholds)) {
-        $tempRow = "[{$row['VN']}, {$row['VL']}, {$row['VU']}, {$row['RPID']}]";
-        $arrayCurrentThreshold[] = $tempRow;
+    //Store Current Tresholds Query Results into $arrayCurrentThreshold
+    $arrayCurrentThreshold = array(); 
+    if(mysqli_num_rows($resultCurrentThresholds) > 0) {
+        while($row = mysqli_fetch_assoc($resultCurrentThresholds)) {
+            $tempRow = "[{$row['VN']}, {$row['VL']}, {$row['VU']}, {$row['RPID']}]";
+            $arrayCurrentThreshold[] = $tempRow;
+        }
     }
-}
 ?>
 
 <html>

@@ -1,6 +1,6 @@
 <?php
-    ob_start();
     //Require
+    ob_start();
     require("../../index_files/sessionstart.php");
     require("../../index_files/sessioncheck.php");
     require("../../index_files/connect.php");
