@@ -12,14 +12,14 @@ spi = spidev.SpiDev() #ADC Init
 spi.open(0, 0)
 
 #Analog Devices -- Analog Device = Channel
-battery = 0 #car battery
-solar_panel = 1 #solar panel
-temperature = 2 #temperature sensor
+batteryVoltage = 0 #ESU - Voltage
+batteryCurrent = 1 #ESU - Current
+solarPanelVoltage = 2 #Solar panel voltage
+solarPanelCurrent = 3 #Solar panel current
+temperature = 4 #Temperature sensor
 
 #GPIO Devices
 #exhaust = 22
-#solar_panel = 
-#camera = 
 #GPIO.setup(exhaust. GPIO.OUT)
 
 def ReadChannel(channel): #Reads from given channel
@@ -38,7 +38,7 @@ def CelciusToFahrenheit(temperatureCelcius):
 def FahrenheitToCelcius(temperatureFahrenheit):
     return ((temperatureFahrenheit - 32) * 5/9)
 
-def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thresholdTemperatureLower=None, thresholdTemperatureUpper=None, thresholdPhotoLower=None, thresholdPhotoUpper=None, thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
+def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thresholdTemperatureLower=None, thresholdTemperatureUpper=None, thresholdPhoto=None, thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
     #Debug Output
     print("Reading from sensors...")
     
@@ -46,27 +46,28 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
     tempDictionary = {}
     
     #Read sensors
-    #Channel 0 - Battery
-    batteryReducedVoltage = ReadChannel(battery)
-    batteryActualVoltage = ConvertVolts(batteryReducedVoltage, 2)
-    tempDictionary["battery"] = batteryActualVoltage
+    #Channel 0 and 1 - Battery
+    batteryVoltageReducedVoltage = ReadChannel(batteryVoltage)
+    batteryVoltageActualVoltage = ConvertVolts(batteryVoltageReducedVoltage, 2)
+    tempDictionary["batteryVoltage"] = batteryVoltageActualVoltage
     
-    #Channel 1 - Solar Panel
-    solarPanelReducedVoltage = ReadChannel(solar_panel)
+    batteryCurrentRead = ReadChannel(batteryCurrent)
+    tempDictionary["batteryCurrent"] = batteryCurrent
+    
+    #Channel 2 and 3 - Solar Panel
+    solarPanelReducedVoltage = ReadChannel(solarPanelVoltage)
     solarPanelActualVoltage = ConvertVolts(solarPanelReducedVoltage, 2)
-    tempDictionary["solarpanelvalue"] = solarPanelActualVoltage
+    tempDictionary["solarPanelVoltage"] = solarPanelActualVoltage
+    
+    solarPanelCurrentRead = ReadChannel(solarPanelCurrent)
+    tempDictionary["solarPanelCurrent"] = solarPanelCurrentRead
+    
     #if solarPanelActualVoltage >= 1: tempDictionary["solarpanel"] = "charging"
     #else: tempDictionary["solarpanel"] = "not charging"
     
-    #Channel 2 - Temperature
+    #Channel 4 - Temperature
     temperatureValue = ReadChannel(temperature) #Celcius
     tempDictionary["temperature"] = 30 #temperatureValue
-
-    #Channel 3 - Exhaust
-    #Read status of exhaust
-
-    #Channel 4 - Camera/Photo
-    #Take a snapshot
     
     #Do something with read/given values
     thresholdVL = float(thresholdVoltageLower)
@@ -75,10 +76,10 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
     thresholdTU = float(thresholdTemperatureUpper)
     
     if thresholdSolarPanelToggle == None:
-        if batteryActualVoltage >= thresholdVU:
+        if batteryVoltageActualVoltage >= thresholdVU:
             tempDictionary["solar panel"] = "not charging"
             #Code to power off/cut off solarpanel
-        elif batteryActualVoltage <= thresholdVU:
+        elif batteryVoltageActualVoltage <= thresholdVU:
             tempDictionary["solar panel"] = "charging"
             #Code to power on/connect to solarpanel
     elif thresholdSolarPanelToggle == "ON":
@@ -90,7 +91,7 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
 
     if thresholdExhaustToggle == None:       
         if temperatureValue >= thresholdTU:
-            if batteryActualVoltage >= thresholdVL:
+            if batteryVoltageActualVoltage >= thresholdVL:
                 tempDictionary["exhaust"] = "on" #Turn on exhaust
                 #Code to power on exhaust
             else:
@@ -106,9 +107,15 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
 
     #Debug Output
     #print("---------------------------------------------------------")
-    #print("Battery Voltage: {} ({}V)".format(batteryReducedVoltage, batteryActualVoltage))
+    #print("Battery Voltage: {} ({}V)".format(batteryVoltageReducedVoltage, batteryVoltageActualVoltage))
+    #print("---------------------------------------------------------")
+    #print("Battery Current: {}A".format(batteryVoltageCurrentRead))
+        
     #print("---------------------------------------------------------")
     #print("Solar Panel Voltage: {} ({}V)".format(solarPanelReducedVoltage, solarPanelActualVoltage))
+    #print("---------------------------------------------------------")
+    #print("Solar Panel Current: {}A".format(solarPanelCurrentRead))
+        
     #print("---------------------------------------------------------")
     #print("Temperature: {}C ({}F)".format(temperatureValue, CelciusToFahrenheit(temperatureValue)))
     print("Done reading from sensors...")

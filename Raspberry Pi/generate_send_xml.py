@@ -1,9 +1,3 @@
-#########################################################################################
-# gensend_xml.py (Generate and Send XML)                                                #
-# Generates the XML by reading from sensors and storing the variables in an XML file,   #
-# then sends the XML file to the website using an FTP connection                        #
-#########################################################################################
-
 #import
 import os
 import sys
@@ -35,7 +29,6 @@ pipayload = {"rpid": rpid}
 
 def GetAndSendStatus(): #Send XML to Server
     try:
-        
         for storedFile in sorted(os.listdir(storageDirectory)):
             tempFile = str(storedFile)
 
@@ -53,7 +46,6 @@ def GetAndSendStatus(): #Send XML to Server
                     print("File confirmed received!")
                     os.rename(fullStoragePath, fullSentPath)
                 elif serverConfirmation.text.strip() == "ERROR":
-                    #os.remove(tempFile)
                     #sys.exit("Error in server processing XML file...\nDeleting file and exiting program...\nContact an administrator immediately!")
                     break
                 else: break #If server did not receive or process the XML correctly, break out of the loop
@@ -70,13 +62,11 @@ def Main():
     startTime = time.time()
     
     while True:
-        #Retrieve XML Files of Thresholds set by Users
-        try:
+        try: #Retrieve XML Files of Thresholds set by Users
             print("Requesting threshold update from server...")
             serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
 
-            if serverThresholdConfirm.text.strip() == "OK":
-                #Retrieve the XML after getting the OK from the server
+            if serverThresholdConfirm.text.strip() == "OK": #Retrieve the XML after getting the OK from the server
                 CTF.RetrieveThreshold(rpid)
                 thresholdFileName = str(rpid) + ".json"
 
@@ -84,12 +74,10 @@ def Main():
                 pipayload["result"] = "OK"
                 requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
                 pipayload.pop("result")
-            else:
-                #Tell the server that we DID NOT retrieve the file
+            else: #Tell the server that we DID NOT retrieve the file
                 pipayload["result"] = "NO"
                 requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
                 pipayload.pop("result")
-                
                 raise FileNotFoundError
         except Exception as e: #Assuming connection error
             print("Could not connect to server/Issue with server...")
@@ -100,15 +88,12 @@ def Main():
                 thresholdFileName = "default.json"
                 print("Using system default thresholds...")
 
-        with open(thresholdFileName, "r") as thresholdfile:
-            thresholds = json.loads(thresholdfile.read())
-            
+        with open(thresholdFileName, "r") as thresholdfile: thresholds = json.loads(thresholdfile.read())
         thresholdVoltageLower = thresholds["voltagelower"]
         thresholdVoltageUpper = thresholds["voltageupper"]
         thresholdTemperatureLower = thresholds["temperaturelower"]
         thresholdTemperatureUpper = thresholds["temperatureupper"]
-        #thresholdPhotoLower = thresholds["photolower"]
-        #thresholdPhotoUpper = thresholds["photoupper"]
+        #thresholdPhoto = thresholds["photofps"]
         thresholdSolarPanelToggle = thresholds["solartoggle"]
         thresholdExhaustToggle = thresholds["exhausttoggle"]
         #print("This is the Solar Panel Toggle: {}\nThis is the Exhaust Toggle: {}".format(thresholdSolarPanelToggle, thresholdExhaustToggle))    
@@ -124,13 +109,11 @@ def Main():
         #Update jsonFormat
         jsonFormat["log"] = str(timeStampForLog)
         jsonFormat["rpid"] = str(rpid)
-        for key, value in sensorDictionary.items():
-            jsonFormat[key] = str(value)
+        for key, value in sensorDictionary.items(): jsonFormat[key] = str(value)
             
         #Write and Close File
         statusFileName = storageDirectory + "status" + str(rpid) + "(" + timeStampForFileName + ").json"
-        with open(statusFileName, "w+") as status:
-            json.dump(jsonFormat, status, indent = 4)
+        with open(statusFileName, "w+") as status: json.dump(jsonFormat, status, indent = 4)
             
         #Send XML in New Thread
         sendThread = Thread(target=GetAndSendStatus, args=())
