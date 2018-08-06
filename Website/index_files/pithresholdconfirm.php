@@ -40,8 +40,7 @@
                         $thresholdXML->temperatureupper = $vital["VU"];
                         break;
                     case "Photo":
-                        $thresholdXML->photolower = $vital["VL"];
-                        $thresholdXML->photoupper = $vital["VU"];
+                        $thresholdXML->photofps = $vital["VL"];
                         break;
                     default:
                         break;

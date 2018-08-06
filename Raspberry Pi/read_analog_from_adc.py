@@ -49,18 +49,18 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
     #Channel 0 and 1 - Battery
     batteryVoltageReducedVoltage = ReadChannel(batteryVoltage)
     batteryVoltageActualVoltage = ConvertVolts(batteryVoltageReducedVoltage, 2)
-    tempDictionary["batteryVoltage"] = batteryVoltageActualVoltage
+    tempDictionary["BatteryVoltage"] = batteryVoltageActualVoltage
     
     batteryCurrentRead = ReadChannel(batteryCurrent)
-    tempDictionary["batteryCurrent"] = batteryCurrent
+    tempDictionary["BatteryCurrent"] = batteryCurrent
     
     #Channel 2 and 3 - Solar Panel
     solarPanelReducedVoltage = ReadChannel(solarPanelVoltage)
     solarPanelActualVoltage = ConvertVolts(solarPanelReducedVoltage, 2)
-    tempDictionary["solarPanelVoltage"] = solarPanelActualVoltage
+    tempDictionary["SolarPanelVoltage"] = solarPanelActualVoltage
     
     solarPanelCurrentRead = ReadChannel(solarPanelCurrent)
-    tempDictionary["solarPanelCurrent"] = solarPanelCurrentRead
+    tempDictionary["SolarPanelCurrent"] = solarPanelCurrentRead
     
     #if solarPanelActualVoltage >= 1: tempDictionary["solarpanel"] = "charging"
     #else: tempDictionary["solarpanel"] = "not charging"
@@ -77,16 +77,16 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
     
     if thresholdSolarPanelToggle == None:
         if batteryVoltageActualVoltage >= thresholdVU:
-            tempDictionary["solar panel"] = "not charging"
+            tempDictionary["SolarPanel"] = "not charging"
             #Code to power off/cut off solarpanel
         elif batteryVoltageActualVoltage <= thresholdVU:
-            tempDictionary["solar panel"] = "charging"
+            tempDictionary["SolarPanel"] = "charging"
             #Code to power on/connect to solarpanel
     elif thresholdSolarPanelToggle == "ON":
-        tempDictionary["solar panel"] = "charging"
+        tempDictionary["SolarPanel"] = "charging"
         #Code to power on/connect to solarpanel
     elif thresholdSolarPanelToggle == "OFF":
-        tempDictionary["solar panel"] = "not charging"
+        tempDictionary["SolarPanel"] = "not charging"
         #Code to power off/cut off solarpanel
 
     if thresholdExhaustToggle == None:       

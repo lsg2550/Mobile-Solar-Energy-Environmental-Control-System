@@ -1,10 +1,22 @@
 <?php
+    //TODO: Filter $_GET
+    $xmlDirectory = "../../xmls/";
+    $xmlFilename = $_GET["xmlfile"];
+    $xmlFullFilePath = $xmlDirectory . $xmlFilename;
+
+    if(is_file($xmlFullFilePath)) {
+        try { 
+            processXML($xmlFilename); 
+            echo "OK";
+        } catch (Exception $e) { echo "ERROR"; }
+    } else { echo "NO"; }
+
     function processXML($xmlFileName) {
         //Include
         include("connect.php");
 
         //Init
-        $xmldir = "../../xmls/";
+        global $xmlDirectory;
         $processedxmldir = "../../processedxmls/";
         $TYP = "ST";
 
@@ -14,7 +26,7 @@
         $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
         //Load xml files from $listOfXMLFiles & process them - grab data and update database
-        $xml = json_decode(file_get_contents($xmldir . $xmlFileName));
+        $xml = json_decode(file_get_contents($xmlDirectory . $xmlFileName));
         $RPID = $xml->{"rpid"};
         $TS = $xml->{"log"};
 
@@ -22,7 +34,6 @@
             switch($key) {
                 case "log":
                 case "rpid":
-                case "solarpanelvalue":
                     break;
                 default:
                     //VitalName
@@ -42,27 +53,10 @@
                     $sqlUpdateCurrentStatus = "UPDATE status SET VV='{$VV}', TS='{$TS}' WHERE VID='{$VID}' AND USR='{$USR}' AND RPID='{$RPID}';";
                     $resultInsertIntoLog = mysqli_query($conn, $sqlInsertIntoLog);
                     $resultUpdateCurrentStatus = mysqli_query($conn, $sqlUpdateCurrentStatus);
-                    //echo $sqlInsertIntoLog . "<br>" . $sqlUpdateCurrentStatus . "<br>";
             }
         }
 
         //Move out of the waiting xml folder
-        rename($xmldir . $xmlFileName, $processedxmldir . $xmlFileName);
-    }
-
-    //TODO: Filter $_GET
-    $xmlDirectory = "../../xmls/";
-    $xmlFilename = $_GET["xmlfile"];
-    $xmlFullFilePath = $xmlDirectory . $xmlFilename;
-
-    if(is_file($xmlFullFilePath)) {
-        try { 
-            processXML($xmlFilename); 
-            echo "OK";
-        } catch (Exception $e) { 
-            echo "ERROR";
-        }
-    } else {
-        echo "NO";
+        rename($xmlDirectory . $xmlFileName, $processedxmldir . $xmlFileName);
     }
 ?>
