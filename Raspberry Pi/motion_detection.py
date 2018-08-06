@@ -6,22 +6,27 @@ from enum import Enum
 import datetime
 import time
 import cv2
+import os
 
-class LowerBound(Enum):
-    LENIENT = 0.5
-    STRICT = 0.1
+#Minute Files
+minuteFile = [
+    [],     #Before minuteFile
+    []      #Current minuteFile
+]
 
 def CaptureImage(currentTime, frame):
+    filenameSafeCurrentTime = currentTime.replace(":", "-")
+    if not os.path.isdir(filenameSafeCurrentTime): os.mkdir(filenameSafeCurrentTime)
+    currentDirectory = filenameSafeCurrentTime + "/"
+
     cv2.imwrite("capture" + currentTime + ".jpg", frame)
 
-def Main(fps, LowerBound):
+def Main():
     #Initialize
     vs = VideoStream(src = 0).start()
     firstFrame = None
     minArea = 500
     startTime = time.time()
-    lowerTimebound = fps - LowerBound.value #Has to be greater by this fps minus # - this lowerbound is used to be more strict on the timer if it is capturing multiple pictures around the same time
-    upperTimebound = fps #Has to be less than given fps
 
     #Recording While Loop
     while True:
@@ -51,8 +56,7 @@ def Main(fps, LowerBound):
 
         #Loop through the contours
         for c in contours:
-            #If the contour is too small, move to the next one
-            if cv2.contourArea(c) < minArea: continue
+            if cv2.contourArea(c) < minArea: continue #If the contour is too small, move to the next one
             
             #Generate text and bounding rectangles of the detected object for the view in the windows
             text = "Motion Detected"
@@ -64,23 +68,25 @@ def Main(fps, LowerBound):
 
             #Show Windows
             cv2.imshow("Security Feed", frame)
-            #cv2.imshow("Thresh", thresh)
-            #cv2.imshow("Frame Delta", frameDelta)
 
             #Determine if it has been the set amount of time, then Capture Image in Another Thread
-            timer = (time.time() - startTime) % fps
-            total = fps - timer
-            if total <= upperTimebound and total >= lowerTimebound:
-                sendThread = Thread(target=CaptureImage, args=(currentTime, frame))
-                sendThread.start()
+            CaptureImage(currentTime, frame)
         
+        timer = (time.time() - startTime) % 1
+        total = 1 - timer
+        if total <= 1 and total >= 0.9:
+            if len(minuteFile[1]) == 60: 
+                minuteFile[0] = minuteFile[1].copy()
+                minuteFile[1].clear()
+            else:
+                minuteFile[1].append(frame)
+
         #Quit program if the key 'q' is pressed
-        if cv2.waitKey(1) & 0xFF == ord(chr(27)):
-            break
+        if cv2.waitKey(1) & 0xFF == ord(chr(27)): break
 
     #Stop videostream and close all windows
     vs.stop()
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    Main(5.0, LowerBound.STRICT)
+    Main()
