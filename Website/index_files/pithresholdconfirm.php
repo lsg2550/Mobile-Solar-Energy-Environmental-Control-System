@@ -4,7 +4,7 @@
         include("connect.php");
 
         //Init
-        $fileDirectory = "../../rpis/";
+        $fileDirectory = "../../rpixmlsthresholds/";
         
         //Init - Get User
         $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID={$_GET["rpid"]}";
@@ -31,7 +31,7 @@
             //Get Vitals - Variables with thresholds
             while($vital = mysqli_fetch_assoc($resultGetRPIThresholdsThresh)) {
                 switch($vital["VN"]) {
-                    case "Battery":
+                    case "BatteryVoltage":
                         $thresholdXML->voltagelower = $vital["VL"];
                         $thresholdXML->voltageupper = $vital["VU"];
                         break;
@@ -72,6 +72,7 @@
         generateThresholdAndVitalsFile();
         echo "OK";
     } catch (Exception $e) {
+        echo $e;
         echo "NO";
 
         //Update database log of the error

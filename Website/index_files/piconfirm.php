@@ -1,16 +1,4 @@
 <?php
-    //TODO: Filter $_GET
-    $xmlDirectory = "../../xmls/";
-    $xmlFilename = $_GET["xmlfile"];
-    $xmlFullFilePath = $xmlDirectory . $xmlFilename;
-
-    if(is_file($xmlFullFilePath)) {
-        try { 
-            processXML($xmlFilename); 
-            echo "OK";
-        } catch (Exception $e) { echo "ERROR"; }
-    } else { echo "NO"; }
-
     function processXML($xmlFileName) {
         //Include
         include("connect.php");
@@ -59,4 +47,16 @@
         //Move out of the waiting xml folder
         rename($xmlDirectory . $xmlFileName, $processedxmldir . $xmlFileName);
     }
+
+    //TODO: Filter $_GET
+    $xmlDirectory = "../../rpixmls/";
+    $xmlFilename = $_GET["xmlfile"];
+    $xmlFullFilePath = $xmlDirectory . $xmlFilename;
+
+    if(is_file($xmlFullFilePath)) {
+        try { 
+            processXML($xmlFilename); 
+            echo "OK";
+        } catch (Exception $e) { echo "ERROR"; }
+    } else { echo "NO"; }
 ?>
