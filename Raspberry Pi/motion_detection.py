@@ -18,7 +18,7 @@ try: shutil.rmtree(currMinuteDir)
 except FileNotFoundError: pass
 finally: os.mkdir(currMinuteDir)
 
-def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
+def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold, startTime):
     #Initialize
     if not os.path.isdir(filenameSafeCurrentTime): os.mkdir(filenameSafeCurrentTime)
     prevMinuteDirList = sorted(os.listdir(prevMinuteDir))
@@ -121,20 +121,16 @@ def Main():
         #Minute directory check - Move files in currMinuteDir to prevMinuteDir, if prevMinuteDir exists, delete all contents and store new files in there (new thread)
         timerMinute = (timeTime - startTime) % 60
         totalMinute = 60 - timerMinute
-        if totalMinute <= 60 and totalMinute >= 59.9:
+        if totalMinute < 60 and totalMinute >= 59.99:
             prevMinuteDirList = os.listdir(prevMinuteDir)
             currMinuteDirList = os.listdir(currMinuteDir)
-            for prevImg in prevMinuteDirList:
-                prevImgFP = os.path.join(prevMinuteDir, prevImg)
-                os.unlink(prevImgFP)
-            for currImg in currMinuteDirList:
-                currImgFP = os.path.join(currMinuteDir, currImg)
-                os.rename(currImgFP, prevMinuteDir + currImg)
+            for prevImg in prevMinuteDirList: os.unlink(os.path.join(prevMinuteDir, prevImg))
+            for currImg in currMinuteDirList: os.rename(os.path.join(currMinuteDir, currImg), prevMinuteDir + currImg)
 
         #Capture Image
         timerSecond = (timeTime - startTime) % 1
         totalSecond = 1 - timerSecond
-        if totalSecond <= 1 and totalSecond >= 0.9:
+        if totalSecond < 1 and totalSecond >= 0.9:
             currentTime = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
             filenameSafeCurrentTime = currentTime.replace(":", "-")
             frameName = currMinuteDir + "capture (" + filenameSafeCurrentTime + ").jpg"
