@@ -3,21 +3,21 @@ import shutil
 import imutils
 from imutils.video import VideoStream
 from threading import Thread
-from enum import Enum
 import datetime
 import time
 import cv2
 import os
 
-#Minute Files
+#Create/GC Minute Directories
 prevMinuteDir = "PrevMinuteDir/"
 currMinuteDir = "CurrMinuteDir/"
-shutil.rmtree(prevMinuteDir)
-shutil.rmtree(currMinuteDir)
-if not os.path.isdir(prevMinuteDir): os.mkdir(prevMinuteDir)
-if not os.path.isdir(currMinuteDir): os.mkdir(currMinuteDir)
+try: shutil.rmtree(prevMinuteDir)
+except FileNotFoundError: pass
+finally: os.mkdir(prevMinuteDir)
+try: shutil.rmtree(currMinuteDir)
+except FileNotFoundError: pass
+finally: os.mkdir(currMinuteDir)
 
-#frameName will be used as a point of reference
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     #Initialize
     if not os.path.isdir(filenameSafeCurrentTime): os.mkdir(filenameSafeCurrentTime)
@@ -40,7 +40,16 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
             indexCounter += 1
 
     #Capture an image every N seconds after
-    for _ in range(secondsThreshold)
+    indexCounter = 0
+    while True:
+        if indexCounter == secondsThreshold: break
+
+        #Read frame
+        frame = vs.read()
+        if frame is None: break #Program is not recording, so break
+        frame = imutils.resize(frame, width = minArea) #Convert frame to specified size
+
+        #Get current time (long) for minute directory check and image capture 
         timer = (time.time() - startTime) % 1
         totalSecond = 1 - timer
         if totalSecond < 1 and totalSecond >= 0.9:
@@ -48,13 +57,17 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
             filenameSafeCurrentTime = currentTime.replace(":", "-")
             frameName = currMinuteDir + "capture (" + filenameSafeCurrentTime + ").jpg"
             cv2.imwrite(frameName, frame)
+            shutil.copy(frameName, filenameSafeCurrentTime)
+        
+        #Increment Counter
+        indexCounter += 1
 
 def Main():
     #Initialize
     vs = VideoStream(src = 0).start()
-    firstFrame = None
-    minArea = 1000
     startTime = time.time()
+    firstFrame = None
+    minArea = 500   
 
     #Begin monitoring
     while True:
@@ -99,23 +112,21 @@ def Main():
             filenameSafeCurrentTime = currentTime.replace(":", "-")
             currFrameName = currMinuteDir + "capture (" + filenameSafeCurrentTime + ").jpg"
             cv2.imwrite(currFrameName, frame)
-            CaptureIntrusion(filenameSafeCurrentTime, currFrameName, 4)
+            # CaptureIntrusion(filenameSafeCurrentTime, currFrameName, 4)
         #End for loop
 
-        #Get Current Time (long) for minute directory check and image capture 
+        #Get current time (long) for minute directory check and image capture 
         timeTime = time.time()
 
         #Minute directory check - Move files in currMinuteDir to prevMinuteDir, if prevMinuteDir exists, delete all contents and store new files in there (new thread)
         timerMinute = (timeTime - startTime) % 60
         totalMinute = 60 - timerMinute
         if totalMinute <= 60 and totalMinute >= 59.9:
-            if len(os.listdir(prevMinuteDir)) != 0:
-                prevMinuteDirList = os.listdir(prevMinuteDir)
-                for prevImg in prevMinuteDirList:
-                    prevImgFP = os.path.join(prevMinuteDir, prevImg)
-                    os.unlink(prevImgFP)
-            
+            prevMinuteDirList = os.listdir(prevMinuteDir)
             currMinuteDirList = os.listdir(currMinuteDir)
+            for prevImg in prevMinuteDirList:
+                prevImgFP = os.path.join(prevMinuteDir, prevImg)
+                os.unlink(prevImgFP)
             for currImg in currMinuteDirList:
                 currImgFP = os.path.join(currMinuteDir, currImg)
                 os.rename(currImgFP, prevMinuteDir + currImg)
