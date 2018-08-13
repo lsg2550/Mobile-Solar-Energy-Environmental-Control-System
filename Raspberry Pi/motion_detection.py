@@ -17,15 +17,18 @@ minuteFile = [
 def CaptureImage(currentTime, frame):
     filenameSafeCurrentTime = currentTime.replace(":", "-")
     if not os.path.isdir(filenameSafeCurrentTime): os.mkdir(filenameSafeCurrentTime)
-    currentDirectory = filenameSafeCurrentTime + "/"
+    currentTimeDirectory = filenameSafeCurrentTime + "/"
 
-    cv2.imwrite("capture" + currentTime + ".jpg", frame)
+
+    for target_list in minuteFile[0]:
+        pass
+    cv2.imwrite(currentTimeDirectory + "capture(" + currentTime + ").jpg", frame)
 
 def Main():
     #Initialize
     vs = VideoStream(src = 0).start()
     firstFrame = None
-    minArea = 500
+    minArea = 1000
     startTime = time.time()
 
     #Recording While Loop
@@ -57,7 +60,7 @@ def Main():
         #Loop through the contours
         for c in contours:
             if cv2.contourArea(c) < minArea: continue #If the contour is too small, move to the next one
-            
+
             #Generate text and bounding rectangles of the detected object for the view in the windows
             text = "Motion Detected"
             currentTime = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
@@ -70,12 +73,13 @@ def Main():
             cv2.imshow("Security Feed", frame)
 
             #Determine if it has been the set amount of time, then Capture Image in Another Thread
+            minuteFile[1].append(frame)
             CaptureImage(currentTime, frame)
         
         timer = (time.time() - startTime) % 1
         total = 1 - timer
         if total <= 1 and total >= 0.9:
-            if len(minuteFile[1]) == 60: 
+            if len(minuteFile[1]) >= 60: 
                 minuteFile[0] = minuteFile[1].copy()
                 minuteFile[1].clear()
             else:
