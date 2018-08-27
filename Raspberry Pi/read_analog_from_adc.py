@@ -20,7 +20,9 @@ temperature = 4 #Temperature sensor
 
 #GPIO Devices
 #exhaust = 22
+#engine = 23
 #GPIO.setup(exhaust. GPIO.OUT)
+#GPIO.setup(engine.GPIO.OUT)
 
 def ReadChannel(channel): #Reads from given channel
     adc = spi.xfer2([1, (8 + channel) << 4,0])
@@ -75,6 +77,12 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
     thresholdTL = float(thresholdTemperatureLower)
     thresholdTU = float(thresholdTemperatureUpper)
     
+    #Check for notification purposes
+    if batteryVoltageActualVoltage <= thresholdVL:
+        #Send Notification to Server to Send Notification to User
+        #Send Start Engine Signal
+
+    #Perform Operations with ESSO
     if thresholdSolarPanelToggle == None:
         if batteryVoltageActualVoltage >= thresholdVU:
             tempDictionary["SolarPanel"] = "not charging"
