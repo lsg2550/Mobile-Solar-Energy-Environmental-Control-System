@@ -7,6 +7,14 @@ import datetime
 import time
 import cv2
 import os
+import re
+
+#StartTime Global
+startTime = time.time()
+
+#Regex
+#patternTimestamp = re.compile('[a-zA-Z0-9]*[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}')
+#patternFilenameLastPart = re.compile('[a-zA-Z0-9-]*[0-9]{2}[a-zA-Z]{2}')
 
 #Create/GC Minute Directories
 prevMinuteDir = "PrevMinuteDir/"
@@ -25,6 +33,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     currMinuteDirList = sorted(os.listdir(currMinuteDir))
     currFrameIndex = currMinuteDir.find(frameName)
     indexCounter = 0
+    global startTime
 
     #Capture an image every N seconds before
     try:
@@ -33,29 +42,44 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
             shutil.copy(currMinuteImgFP, filenameSafeCurrentTime)
             indexCounter += 1
     except IndexError:
-        sizeOfList = len(prevMinuteDirList)
-        for prevMinuteImg in prevMinuteDirList[:sizeOfList - indexCounter:-1]:
-            prevMinuteImgFP = os.path.join(prevMinuteDir, prevMinuteImg)
-            shutil.copy(prevMinuteImgFP, filenameSafeCurrentTime)
-            indexCounter += 1
+        try:
+            sizeOfList = len(prevMinuteDirList)
+            for prevMinuteImg in prevMinuteDirList[:sizeOfList - indexCounter:-1]:
+                prevMinuteImgFP = os.path.join(prevMinuteDir, prevMinuteImg)
+                shutil.copy(prevMinuteImgFP, filenameSafeCurrentTime)
+                indexCounter += 1
+        except: pass #Movement must have been caught in the beginning of the loop
 
     #Capture an image every N seconds after
     indexCounter = 0
+    indexSecond = 0
     while True:
-        if indexCounter == secondsThreshold: break
+        if indexCounter == secondsThreshold + 1: break
+        if indexSecond == 0: 
+            matches = re.findall(r'[0-9]{2}-[0-9]{2}-[0-9]{2}', filenameSafeCurrentTime)
+            splits = re.split(r'-', matches[0])
+            indexSecond = int(splits[2])
+            continue
 
-        #Keep reading from current directory until 4 images are collected then break.
-        #Read file names replacing the second as a string and checking if it exists in the new list, if it does, then it is a frame after the 
-        #intrusion has been detected.
-        # shutil.copy(frameName, filenameSafeCurrentTime)
+        #Sleep for a second
+        time.sleep(1)
+
+        #Get new image name
+        getSecondsAndClock = re.findall(r'[0-9]{2}[a-zA-Z]{2}$', filenameSafeCurrentTime)
+        getClock = re.split(r'[0-9]{2}', getSecondsAndClock[0]) #AM/PM
+        getSecondsAndClock = re.sub(r'[0-9]{2}[a-zA-Z]{2}$', str(indexSecond) + getClock[1], filenameSafeCurrentTime)
+        frameFP = currMinuteDir + "capture (" + getSecondsAndClock + ").jpg"
         
-        #Increment counter
-        indexCounter += 1
+        #Move image to minute directory
+        if os.path.isfile(frameFP): 
+            shutil.copy(frameFP, filenameSafeCurrentTime)
+            indexCounter += 1
+            indexSecond += 1
 
 def Main():
     #Initialize
     vs = VideoStream(src = 0).start()
-    startTime = time.time()
+    global startTime
     intrusionThread = None
     firstFrame = None
     minArea = 500
@@ -99,14 +123,15 @@ def Main():
             cv2.putText(frame, currentTime, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
             #cv2.imshow("Security Feed", frame)
 
-            #Capture intrusion
+            #Write image
+            filenameSafeCurrentTime = currentTime.replace(":", "-")
+            currFrameName = "capture (" + filenameSafeCurrentTime + ").jpg"
+            currFrameNameFP = currMinuteDir + currFrameName
+            cv2.imwrite(currFrameNameFP, frame)
+            
+            #Capture intrusion thread
             if intrusionThread == None:
-                filenameSafeCurrentTime = currentTime.replace(":", "-")
-                currFrameName = "capture (" + filenameSafeCurrentTime + ").jpg"
-                currFrameNameFP = currMinuteDir + currFrameName
-                cv2.imwrite(currFrameNameFP, frame)
                 intrusionThread = Thread(target = CaptureIntrusion, args = (filenameSafeCurrentTime, currFrameName, 4, ))
-                intrusionThread.daemon(True)
                 intrusionThread.start()
             elif not intrusionThread.isAlive(): 
                 intrusionThread = None
@@ -127,7 +152,7 @@ def Main():
             for currImg in currMinuteDirList: os.rename(os.path.join(currMinuteDir, currImg), prevMinuteDir + currImg)
 
         #Capture Image
-        if totalSecond < 1 and totalSecond >= 0.99:
+        if totalSecond < 1 and totalSecond >= 0.9:
             currentTime = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
             filenameSafeCurrentTime = currentTime.replace(":", "-")
             currFrameName = "capture (" + filenameSafeCurrentTime + ").jpg"
