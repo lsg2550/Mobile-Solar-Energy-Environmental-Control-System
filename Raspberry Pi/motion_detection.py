@@ -19,16 +19,19 @@ startTime = time.time()
 #Create/GC Minute Directories
 prevMinuteDir = "PrevMinuteDir/"
 currMinuteDir = "CurrMinuteDir/"
+detectionDir = "DetectDir/"
 try: shutil.rmtree(prevMinuteDir)
 except FileNotFoundError: pass
 finally: os.mkdir(prevMinuteDir)
 try: shutil.rmtree(currMinuteDir)
 except FileNotFoundError: pass
 finally: os.mkdir(currMinuteDir)
+if not os.path.isdir(detectionDir): os.mkdir(detectionDir)
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     #Initialize
-    if not os.path.isdir(filenameSafeCurrentTime): os.mkdir(filenameSafeCurrentTime)
+    detectionAndFileNamePath = detectionDir + filenameSafeCurrentTime
+    if not os.path.isdir(detectionAndFileNamePath): os.mkdir(detectionAndFileNamePath)
     prevMinuteDirList = sorted(os.listdir(prevMinuteDir))
     currMinuteDirList = sorted(os.listdir(currMinuteDir))
     currFrameIndex = currMinuteDir.find(frameName)
@@ -39,14 +42,14 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     try:
         for currMinuteImg in currMinuteDirList[currFrameIndex:currFrameIndex - secondsThreshold:-1]:
             currMinuteImgFP = os.path.join(currMinuteDir, currMinuteImg)
-            shutil.copy(currMinuteImgFP, filenameSafeCurrentTime)
+            shutil.copy(currMinuteImgFP, detectionAndFileNamePath)
             indexCounter += 1
     except IndexError:
         try:
             sizeOfList = len(prevMinuteDirList)
             for prevMinuteImg in prevMinuteDirList[:sizeOfList - indexCounter:-1]:
                 prevMinuteImgFP = os.path.join(prevMinuteDir, prevMinuteImg)
-                shutil.copy(prevMinuteImgFP, filenameSafeCurrentTime)
+                shutil.copy(prevMinuteImgFP, detectionAndFileNamePath)
                 indexCounter += 1
         except: pass #Movement must have been caught in the beginning of the loop
 
@@ -62,7 +65,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
             continue
 
         #Sleep for a second
-        time.sleep(1)
+        time.sleep(2)
 
         #Get new image name
         getSecondsAndClock = re.findall(r'[0-9]{2}[a-zA-Z]{2}$', filenameSafeCurrentTime)
@@ -72,7 +75,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         
         #Move image to minute directory
         if os.path.isfile(frameFP): 
-            shutil.copy(frameFP, filenameSafeCurrentTime)
+            shutil.copy(frameFP, detectionAndFileNamePath)
             indexCounter += 1
             indexSecond += 1
 
