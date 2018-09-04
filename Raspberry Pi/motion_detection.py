@@ -20,13 +20,6 @@ startTime = time.time()
 prevMinuteDir = "PrevMinuteDir/"
 currMinuteDir = "CurrMinuteDir/"
 detectionDir = "DetectDir/"
-try: shutil.rmtree(prevMinuteDir)
-except FileNotFoundError: pass
-finally: os.mkdir(prevMinuteDir)
-try: shutil.rmtree(currMinuteDir)
-except FileNotFoundError: pass
-finally: os.mkdir(currMinuteDir)
-if not os.path.isdir(detectionDir): os.mkdir(detectionDir)
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     #Initialize
@@ -133,11 +126,9 @@ def Main():
             cv2.imwrite(currFrameNameFP, frame)
             
             #Capture intrusion thread
-            if intrusionThread == None:
+            if intrusionThread == None or not intrusionThread.isAlive():
                 intrusionThread = Thread(target = CaptureIntrusion, args = (filenameSafeCurrentTime, currFrameName, 4, ))
                 intrusionThread.start()
-            elif not intrusionThread.isAlive(): 
-                intrusionThread = None
         #End for loop
 
         #Get timers and time (long) for minute directory check and image capture 
@@ -168,4 +159,19 @@ def Main():
     cv2.destroyAllWindows()
 
 if __name__ == '__main__':
+    try: shutil.rmtree(prevMinuteDir)
+    except FileNotFoundError: pass
+    finally: os.mkdir(prevMinuteDir)
+    try: shutil.rmtree(currMinuteDir)
+    except FileNotFoundError: pass
+    finally: os.mkdir(currMinuteDir)
+    if not os.path.isdir(detectionDir): os.mkdir(detectionDir)
     Main()
+else:
+    try: shutil.rmtree(prevMinuteDir)
+    except FileNotFoundError: pass
+    finally: os.mkdir(prevMinuteDir)
+    try: shutil.rmtree(currMinuteDir)
+    except FileNotFoundError: pass
+    finally: os.mkdir(currMinuteDir)
+    if not os.path.isdir(detectionDir): os.mkdir(detectionDir) 

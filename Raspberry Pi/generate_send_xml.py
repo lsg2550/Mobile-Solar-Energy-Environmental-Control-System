@@ -6,6 +6,7 @@ import json
 import requests
 import connect_to_ftp as CTF
 import read_analog_from_adc as RAFA
+import motion_detection as MD
 from threading import Thread
 from xml.etree import ElementTree
 from datetime import datetime
@@ -54,14 +55,46 @@ def GetAndSendStatus(): #Send XML to Server
         print(e)
 
     #Debug Output
-    print("Background thread done!")
+    print("Status background thread done!")
 #GetAndSendStatus() end
+
+def GetAndSendImages():
+    try:
+        for storedFile in sorted(os.listdir(storageDirectory)):
+            tempFile = str(storedFile)
+
+            if tempFile.endswith(".json"):
+                fullStoragePath = os.path.join(storageDirectory, tempFile)
+                fullSentPath = os.path.join(sentDirectory, tempFile)
+                CTF.SendStatus(storageDirectory + tempFile)
+                
+                pipayload["xmlfile"] = tempFile
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
+                print(serverConfirmation.text.strip())
+                pipayload.pop("xmlfile")
+
+                if serverConfirmation.text.strip() == "OK":
+                    print("File confirmed received!")
+                    os.rename(fullStoragePath, fullSentPath)
+                elif serverConfirmation.text.strip() == "ERROR":
+                    break
+                else: break #If server did not receive or process the images correctly, break out of the loop
+    except Exception as e:
+        print("Could not connect to server...\nImages were not sent")
+        print(e)
+
+    #Debug Output
+    print("Images background thread done!")
+#GetAndSendImages() end
 
 def Main():
     #Program Start Time
     startTime = time.time()
+    sendThread = None #Thread for sending XML/JSON
+    sendImagesThread = None #Thread for sending detection images
     
     while True:
+        ###########################################################################################################################################
         try: #Retrieve XML Files of Thresholds set by Users
             print("Requesting threshold update from server...")
             serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
@@ -96,7 +129,8 @@ def Main():
         thresholdPhoto = thresholds["photofps"]
         thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
         thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
-        
+        ###########################################################################################################################################
+
         #Read from Sensors
         sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper)
 
@@ -113,9 +147,15 @@ def Main():
         statusFileName = storageDirectory + "status" + str(rpid) + "(" + timeStampForFileName + ").json"
         with open(statusFileName, "w+") as status: json.dump(jsonFormat, status, indent = 4)
             
-        #Send XML in New Thread
-        sendThread = Thread(target=GetAndSendStatus, args=())
-        sendThread.start()
+        #Send XML in new thread
+        if sendThread == None or not sendThread.isAlive():
+            sendThread = Thread(target=GetAndSendStatus, args=())
+            sendThread.start()
+
+        #Send images in new thread
+        if sendImagesThread == None or not sendImagesThread.isAlive():
+            sendImagesThread = Thread(target=GetAndSendImages, args=())
+            sendImagesThread.start()
 
         #Wait for 60 seconds for the next read interval
         timer = (time.time() - startTime) % 60
@@ -127,5 +167,3 @@ def Main():
 if __name__ == "__main__":
     print("Program Start")
     Main()
-else:
-    print("Cannot Start from Outside Script")
