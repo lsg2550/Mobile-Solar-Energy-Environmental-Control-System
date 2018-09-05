@@ -59,6 +59,18 @@ def GetAndSendStatus(): #Send XML to Server
 #GetAndSendStatus() end
 
 def GetAndSendImages():
+    try:
+        detectionDirContents = sorted(os.listdir(MD.detectionDir))
+        for storedImages in detectionDirContents:
+            if detectionDirContents[-1] == storedImages: break #In the chance that the last folder is still being filled with images, we don't send its contents yet
+            tempFileFP = os.path.join(MD.detectionDir, storedImages)
+            for root, subfolders, files in sorted(os.walk(tempFileFP)): CTF.SendImages(root, files)
+    except Exception as e:
+        print("Could not connect to server...\nImages were not sent")
+        print(e)
+
+    #Debug Output
+    print("Images background thread done!")
 #GetAndSendImages() end
 
 def Main():

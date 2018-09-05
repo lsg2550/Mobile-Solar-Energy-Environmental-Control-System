@@ -12,10 +12,6 @@ import re
 #StartTime Global
 startTime = time.time()
 
-#Regex
-#patternTimestamp = re.compile('[a-zA-Z0-9]*[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}')
-#patternFilenameLastPart = re.compile('[a-zA-Z0-9-]*[0-9]{2}[a-zA-Z]{2}')
-
 #Create/GC Minute Directories
 prevMinuteDir = "PrevMinuteDir/"
 currMinuteDir = "CurrMinuteDir/"
@@ -52,6 +48,9 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     indexMinute = 0
     indexSecond = 0
     indexClock = ""
+    strHour = ""
+    strMinute = ""
+    strSecond = ""
     while True:
         if indexCounter == secondsThreshold + 1: break
         if indexSecond == 0: 
@@ -64,15 +63,19 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
             continue
 
         #Get new image name
+        strHour = str(indexHour)
+        strMinute = str(indexMinute)
+        strSecond = str(indexSecond)
+        if len(strHour) == 1: strHour = "0" + strHour
+        if len(strMinute) == 1: strMinute = "0" + strMinute
+        if len(strSecond) == 1: strSecond = "0" + strSecond
         getSecondsAndClock = re.findall(r'[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}$', filenameSafeCurrentTime)
-        indexClock = re.split(r'[0-9]{2}-[0-9]{2}-[0-9]{2}', getSecondsAndClock[0]) #AM/PM
-        getSecondsAndClock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}$', str(indexHour) + "-" + str(indexMinute) + "-" + str(indexSecond) + indexClock[1], filenameSafeCurrentTime) 
+        indexClock = re.split(r'[0-9]{2}-[0-9]{2}-[0-9]{2}', getSecondsAndClock[0]) #AM/PM    
+        getSecondsAndClock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}$', strHour + "-" + strMinute + "-" + strSecond + indexClock[1], filenameSafeCurrentTime) 
         frameFP = currMinuteDir + "capture (" + getSecondsAndClock + ").jpg"        
  
-        print(frameFP) 
-        time.sleep(2)
- 
-        #Move image to minute directory       
+        #Move image to minute directory
+        while not os.path.exists(frameFP): time.sleep(2)
         if os.path.exists(frameFP): 
             shutil.copy(frameFP, detectionAndFileNamePath)
             if indexSecond + 1 == 60: 
@@ -87,8 +90,6 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
                 else: indexClock[1] = "PM"
             indexCounter += 1
             indexSecond += 1
-            print("{}HOUR:{}MINUTE:{}SECONDS".format(indexHour, indexMinute, indexSecond))
-                
 
 def Main():
     #Initialize
