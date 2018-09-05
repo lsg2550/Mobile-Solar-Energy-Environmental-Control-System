@@ -39,6 +39,8 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         except: pass #Movement must have been caught in the beginning of the loop
 
     #Capture an image every N seconds after
+    timeoutMax = 30
+    timeoutCounter = 0
     indexCounter = 0
     indexHour = 0
     indexMinute = 0
@@ -65,27 +67,35 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         if len(strHour) == 1: strHour = "0" + strHour
         if len(strMinute) == 1: strMinute = "0" + strMinute
         if len(strSecond) == 1: strSecond = "0" + strSecond
+        # print("{}:{}:{}\t{}".format(strHour, strMinute, strSecond, indexCounter))
         getSecondsAndClock = re.findall(r'[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}$', filenameSafeCurrentTime)
         indexClock = re.split(r'[0-9]{2}-[0-9]{2}-[0-9]{2}', getSecondsAndClock[0]) #AM/PM    
         getSecondsAndClock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}$', strHour + "-" + strMinute + "-" + strSecond + indexClock[1], filenameSafeCurrentTime) 
-        frameFP = currMinuteDir + "capture (" + getSecondsAndClock + ").jpg"        
- 
+        frameFP = currMinuteDir + "capture (" + getSecondsAndClock + ").jpg"
+        
         #Move image to minute directory
-        while not os.path.exists(frameFP): time.sleep(2)
+        time.sleep(1)
         if os.path.exists(frameFP): 
             shutil.copy(frameFP, detectionAndFileNamePath)
-            if indexSecond + 1 == 60: 
-                indexSecond = 0 #Reset seconds to 0
-                indexMinute += 1 #Increment minute
-            if indexMinute + 1 == 60: 
-                indexMinute = 0 #Reset minutes to 0
-                indexHour += 1 #Increment hour
-            if indexHour + 1 == 13: 
-                indexHour = 1 #Reset hours to 1
-                if indexClock[1] == "PM": indexClock[1] = "AM"  
-                else: indexClock[1] = "PM"
+            
+            #Time/Clock Checks
+            if indexSecond + 1 == 60:
+                indexSecond = 0 #Reset seconds to 0 
+                if indexMinute + 1 == 60: 
+                    indexMinute = 0 #Reset minutes to 0
+                    if indexHour + 1 == 13:
+                        indexHour = 1 #Reset hours to 1
+                        if indexClock[1] == "PM": indexClock[1] = "AM"  
+                        else: indexClock[1] = "PM"
+                    else: indexHour += 1 #Increment hour
+                else: indexMinute += 1 #Increment minute
+            else: indexSecond += 1
+            
             indexCounter += 1
-            indexSecond += 1
+            timeoutCounter = 0
+        else: 
+            timeoutCounter += 1
+            if timeoutCounter == timeoutMax: break
 
 def Main(programTime=None):
     #Initialize
