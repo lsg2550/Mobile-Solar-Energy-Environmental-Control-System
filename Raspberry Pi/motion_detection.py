@@ -39,7 +39,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         except: pass #Movement must have been caught in the beginning of the loop
 
     #Capture an image every N seconds after
-    timeoutMax = 30
+    timeoutMax = 15
     timeoutCounter = 0
     indexCounter = 0
     indexHour = 0
@@ -162,9 +162,11 @@ def Main(programTime=None):
         timerSecond = (timeTime - startTime) % 1
         totalMinute = 60 - timerMinute
         totalSecond = 1 - timerSecond
+        print("Total Minute: {}".format(str(totalMinute)))
+        print("Total Second: {}".format(str(totalSecond)))
 
         #Minute directory check - Move files in currMinuteDir to prevMinuteDir, if prevMinuteDir exists, delete all contents and store new files in there (new thread)
-        if totalMinute < 60 and totalMinute >= 59.99:
+        if totalMinute < 60 and totalMinute >= 59.9:
             prevMinuteDirList = os.listdir(prevMinuteDir)
             currMinuteDirList = os.listdir(currMinuteDir)
             for prevImg in prevMinuteDirList: os.unlink(os.path.join(prevMinuteDir, prevImg))
