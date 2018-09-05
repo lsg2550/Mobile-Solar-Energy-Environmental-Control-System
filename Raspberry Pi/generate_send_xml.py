@@ -79,6 +79,11 @@ def Main():
     sendThread = None #Thread for sending XML/JSON
     sendImagesThread = None #Thread for sending detection images
     
+    #Start Camera Thread
+    cameraThread = Thread(target=MD.Main, args=(startTime, ))
+    cameraThread.setDaemon(True)
+    cameraThread.start()
+
     while True:
         ###########################################################################################################################################
         try: #Retrieve XML Files of Thresholds set by Users

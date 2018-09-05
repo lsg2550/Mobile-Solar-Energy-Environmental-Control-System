@@ -9,10 +9,7 @@ import cv2
 import os
 import re
 
-#StartTime Global
-startTime = time.time()
-
-#Create/GC Minute Directories
+#Minute/Detect Directories
 prevMinuteDir = "PrevMinuteDir/"
 currMinuteDir = "CurrMinuteDir/"
 detectionDir = "DetectDir/"
@@ -25,7 +22,6 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     currMinuteDirList = sorted(os.listdir(currMinuteDir))
     currFrameIndex = currMinuteDir.find(frameName)
     indexCounter = 0
-    global startTime
 
     #Capture an image every N seconds before
     try:
@@ -91,10 +87,10 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
             indexCounter += 1
             indexSecond += 1
 
-def Main():
+def Main(programTime=None):
     #Initialize
     vs = VideoStream(src = 0).start()
-    global startTime
+    startTime = time.time() if programTime == None else programTime
     intrusionThread = None
     firstFrame = None
     minArea = 500
