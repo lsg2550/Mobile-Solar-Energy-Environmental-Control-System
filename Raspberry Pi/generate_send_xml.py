@@ -59,32 +59,6 @@ def GetAndSendStatus(): #Send XML to Server
 #GetAndSendStatus() end
 
 def GetAndSendImages():
-    try:
-        for storedFile in sorted(os.listdir(storageDirectory)):
-            tempFile = str(storedFile)
-
-            if tempFile.endswith(".json"):
-                fullStoragePath = os.path.join(storageDirectory, tempFile)
-                fullSentPath = os.path.join(sentDirectory, tempFile)
-                CTF.SendStatus(storageDirectory + tempFile)
-                
-                pipayload["xmlfile"] = tempFile
-                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
-                print(serverConfirmation.text.strip())
-                pipayload.pop("xmlfile")
-
-                if serverConfirmation.text.strip() == "OK":
-                    print("File confirmed received!")
-                    os.rename(fullStoragePath, fullSentPath)
-                elif serverConfirmation.text.strip() == "ERROR":
-                    break
-                else: break #If server did not receive or process the images correctly, break out of the loop
-    except Exception as e:
-        print("Could not connect to server...\nImages were not sent")
-        print(e)
-
-    #Debug Output
-    print("Images background thread done!")
 #GetAndSendImages() end
 
 def Main():

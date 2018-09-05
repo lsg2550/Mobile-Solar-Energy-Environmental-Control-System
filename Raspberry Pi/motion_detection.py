@@ -48,29 +48,47 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
 
     #Capture an image every N seconds after
     indexCounter = 0
+    indexHour = 0
+    indexMinute = 0
     indexSecond = 0
+    indexClock = ""
     while True:
         if indexCounter == secondsThreshold + 1: break
         if indexSecond == 0: 
             matches = re.findall(r'[0-9]{2}-[0-9]{2}-[0-9]{2}', filenameSafeCurrentTime)
             splits = re.split(r'-', matches[0])
+            indexHour = int(splits[0])
+            indexMinute = int(splits[1])
             indexSecond = int(splits[2])
+            #print(splits)
             continue
 
-        #Sleep for a second
-        time.sleep(2)
-
         #Get new image name
-        getSecondsAndClock = re.findall(r'[0-9]{2}[a-zA-Z]{2}$', filenameSafeCurrentTime)
-        getClock = re.split(r'[0-9]{2}', getSecondsAndClock[0]) #AM/PM
-        getSecondsAndClock = re.sub(r'[0-9]{2}[a-zA-Z]{2}$', str(indexSecond) + getClock[1], filenameSafeCurrentTime)
-        frameFP = currMinuteDir + "capture (" + getSecondsAndClock + ").jpg"
-        
-        #Move image to minute directory
-        if os.path.isfile(frameFP): 
+        getSecondsAndClock = re.findall(r'[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}$', filenameSafeCurrentTime)
+        indexClock = re.split(r'[0-9]{2}-[0-9]{2}-[0-9]{2}', getSecondsAndClock[0]) #AM/PM
+        getSecondsAndClock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}$', str(indexHour) + "-" + str(indexMinute) + "-" + str(indexSecond) + indexClock[1], filenameSafeCurrentTime) 
+        frameFP = currMinuteDir + "capture (" + getSecondsAndClock + ").jpg"        
+ 
+        print(frameFP) 
+        time.sleep(2)
+ 
+        #Move image to minute directory       
+        if os.path.exists(frameFP): 
             shutil.copy(frameFP, detectionAndFileNamePath)
+            if indexSecond + 1 == 60: 
+                indexSecond = 0 #Reset seconds to 0
+                indexMinute += 1 #Increment minute
+            if indexMinute + 1 == 60: 
+                indexMinute = 0 #Reset minutes to 0
+                indexHour += 1 #Increment hour
+            if indexHour + 1 == 13: 
+                indexHour = 1 #Reset hours to 1
+                if indexClock[1] == "PM": indexClock[1] = "AM"  
+                else: indexClock[1] = "PM"
             indexCounter += 1
             indexSecond += 1
+            print("{}HOUR:{}MINUTE:{}SECONDS".format(indexHour, indexMinute, indexSecond))
+                
 
 def Main():
     #Initialize
