@@ -64,7 +64,19 @@ def GetAndSendImages():
         for storedImages in detectionDirContents:
             if detectionDirContents[-1] == storedImages: break #In the chance that the last folder is still being filled with images, we don't send its contents yet
             tempFileFP = os.path.join(MD.detectionDir, storedImages)
-            for root, subfolders, files in sorted(os.walk(tempFileFP)): CTF.SendImages(root, files)
+
+            for root, subfolders, files in sorted(os.walk(tempFileFP)): 
+                CTF.SendImages(root, files)
+
+                pipayload["capture"] = root
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/.php", params=pipayload)
+                print(serverConfirmation.text.strip())
+                pipayload.pop("capture")
+
+                if serverConfirmation.text.strip() == "OK":
+                    print("File and folders confirmed received!")
+                    #Delete Minute Folder
+                else: break
     except Exception as e:
         print("Could not connect to server...\nImages were not sent")
         print(e)
