@@ -50,14 +50,13 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     indexHour = 0
     indexMinute = 0
     indexSecond = 0
-    indexClock = ""
     strHour = ""
     strMinute = ""
     strSecond = ""
     while True:
         if indexCounter == secondsThreshold + 1: break
         if indexSecond == 0: 
-            matches = re.findall(r'[0-9]{2}-[0-9]{2}-[0-9]{2}', filenameSafeCurrentTime)
+            matches = re.findall(r'[0-9]{2}-[0-9]{2}-[0-9]{2}$', filenameSafeCurrentTime)
             splits = re.split(r'-', matches[0])
             indexHour = int(splits[0])
             indexMinute = int(splits[1])
@@ -72,12 +71,11 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         if len(strHour) == 1: strHour = "0" + strHour
         if len(strMinute) == 1: strMinute = "0" + strMinute
         if len(strSecond) == 1: strSecond = "0" + strSecond
-        # print("{}:{}:{}\t{}".format(strHour, strMinute, strSecond, indexCounter))
-        getSecondsAndClock = re.findall(r'[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}$', filenameSafeCurrentTime)
-        indexClock = re.split(r'[0-9]{2}-[0-9]{2}-[0-9]{2}', getSecondsAndClock[0]) #AM/PM    
-        getSecondsAndClock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}[a-zA-Z]{2}$', strHour + "-" + strMinute + "-" + strSecond + indexClock[1], filenameSafeCurrentTime) 
+        #print("{}:{}:{}\t{}".format(strHour, strMinute, strSecond, indexCounter))
+        getSecondsAndClock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}$', strHour + "-" + strMinute + "-" + strSecond, filenameSafeCurrentTime) 
         frameFP = currMinuteDir + "capture (" + getSecondsAndClock + ").jpg"
-        
+        #print(frameFP)
+
         #Move image to minute directory
         time.sleep(1)
         if os.path.exists(frameFP): 
@@ -90,8 +88,6 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
                     indexMinute = 0 #Reset minutes to 0
                     if indexHour + 1 == 13:
                         indexHour = 1 #Reset hours to 1
-                        if indexClock[1] == "PM": indexClock[1] = "AM"  
-                        else: indexClock[1] = "PM"
                     else: indexHour += 1 #Increment hour
                 else: indexMinute += 1 #Increment minute
             else: indexSecond += 1
@@ -170,8 +166,8 @@ def Main(programTime=None):
         timerSecond = (timeTime - startTime) % 1
         totalMinute = 60 - timerMinute
         totalSecond = 1 - timerSecond
-        print("Total Minute: {}".format(str(totalMinute)))
-        print("Total Second: {}".format(str(totalSecond)))
+        #print("Total Minute: {}".format(str(totalMinute)))
+        #print("Total Second: {}".format(str(totalSecond)))
 
         #Minute directory check - Move files in currMinuteDir to prevMinuteDir, if prevMinuteDir exists, delete all contents and store new files in there (new thread)
         if totalMinute < 60 and totalMinute >= 59.9:
