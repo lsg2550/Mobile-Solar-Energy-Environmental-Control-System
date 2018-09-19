@@ -9,13 +9,12 @@
 
     switch ($_GET["noti"]) {
         case 'voltage':
-            $emailMessage = "It has been more than 7 days since RPi '{$result['rpiID']}' has made contact with the server!";
+            $emailMessage = "It has been more than 7 days since RPi '{$_GET["rpid"]}' has made contact with the server!";
             $emailMessage = wordwrap($emailMessage, 70);
             echo $emailMessage; 
             mail($currentRPiOwnerEmail, "Raspberry Pi Last Contact", $emailMessage);    
             break;
         default:
-            # code...
             break;
     }
 ?>
