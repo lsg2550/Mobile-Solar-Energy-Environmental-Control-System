@@ -78,7 +78,7 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
     thresholdTU = float(thresholdTemperatureUpper)
     
     #Check for notification purposes
-    if batteryVoltageActualVoltage <= thresholdVL:
+    if batteryVoltageActualVoltage <= thresholdVL: pass
         #Send Notification to Server to Send Notification to User
         #Send Start Engine Signal
 

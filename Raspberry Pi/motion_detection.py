@@ -3,7 +3,8 @@ import shutil
 import imutils
 from imutils.video import VideoStream
 from threading import Thread
-import datetime
+from datetime import datetime
+from pytz import timezone
 import time
 import cv2
 import os
@@ -13,6 +14,10 @@ import re
 prevMinuteDir = "PrevMinuteDir/"
 currMinuteDir = "CurrMinuteDir/"
 detectionDir = "DetectDir/"
+
+#Date & Time Format
+dateAndTimeFormat = "%Y-%m-%d %H:%M:%S"
+dateAndTimeFormatTwo = "%A %d %B %Y %I:%M:%S%p"
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     #Initialize
@@ -99,7 +104,10 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
 
 def Main(programTime=None):
     #Initialize
-    vs = VideoStream(src = 0).start()
+    try: vs = VideoStream(src = 0).start()
+    except:
+        print("No recording device found...")
+        return
     startTime = time.time() if programTime == None else programTime
     intrusionThread = None
     firstFrame = None
@@ -137,7 +145,7 @@ def Main(programTime=None):
 
             #Generate text and bounding rectangles of the detected object for the view in the windows, then show window
             text = "Motion Detected"
-            currentTime = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
+            currentTime = datetime.now(timezone("UTC")).strftime(dateAndTimeFormat)
             (x, y, w, h) = cv2.boundingRect(c)
             cv2.rectangle(frame, (x,y), (x + w, y + h), (0, 255, 0), 2)
             cv2.putText(frame, "Status: {}".format(text), (10, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
@@ -174,7 +182,7 @@ def Main(programTime=None):
 
         #Capture Image
         if totalSecond < 1 and totalSecond >= 0.9:
-            currentTime = datetime.datetime.now().strftime("%A %d %B %Y %I:%M:%S%p")
+            currentTime = datetime.now(timezone("UTC")).strftime(dateAndTimeFormat)
             filenameSafeCurrentTime = currentTime.replace(":", "-")
             currFrameName = "capture (" + filenameSafeCurrentTime + ").jpg"
             currFrameNameFP = currMinuteDir + currFrameName

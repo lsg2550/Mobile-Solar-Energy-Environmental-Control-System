@@ -69,14 +69,15 @@ def GetAndSendImages():
             for root, subfolders, files in sorted(os.walk(tempFileFP)): 
                 CTF.SendImages(root, files)
 
-                pipayload["capture"] = root
+                pipayload["capture"] = storedImages
+                print(storedImages)
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pipayload)
                 print(serverConfirmation.text.strip())
                 pipayload.pop("capture")
 
                 if serverConfirmation.text.strip() == "OK":
                     print("File and folders confirmed received!")
-                    shutil.rmtree(root) #Delete Capture File
+                    #shutil.rmtree(root) #Delete Capture File
                 else: break
     except Exception as e:
         print("Could not connect to server...\nImages were not sent")
