@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import json
+import shutil
 import requests
 import connect_to_ftp as CTF
 import read_analog_from_adc as RAFA
