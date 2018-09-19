@@ -67,26 +67,15 @@ def GetAndSendImages():
 
             for root, subfolders, files in sorted(os.walk(tempFileFP)): 
                 CTF.SendImages(root, files)
-
-<<<<<<< HEAD
+                
                 pipayload["capture"] = storedImages
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pipayload)
                 #print(serverConfirmation.text.strip())
-=======
-                pipayload["capture"] = root
-                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/.php", params=pipayload)
-                print(serverConfirmation.text.strip())
->>>>>>> ab58f57d1ae528483454b671fab82afb54478cae
                 pipayload.pop("capture")
 
                 if serverConfirmation.text.strip() == "OK":
                     print("File and folders confirmed received!")
-<<<<<<< HEAD
                     shutil.rmtree(root) #Delete Capture File
-=======
-                    
-                    #Delete Minute Folder
->>>>>>> ab58f57d1ae528483454b671fab82afb54478cae
                 else: break
     except Exception as e:
         print("Could not connect to server...\nImages were not sent")
@@ -108,8 +97,8 @@ def Main():
     cameraThread.start()
 
     while True:
-        ###########################################################################################################################################
-        try: #Retrieve XML Files of Thresholds set by Users
+        #Retrieve XML Files of Thresholds set by Users
+        try: 
             print("Requesting threshold update from server...")
             serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
             
@@ -143,8 +132,7 @@ def Main():
         thresholdPhoto = thresholds["photofps"]
         thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
         thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
-        ###########################################################################################################################################
-
+        
         #Read from Sensors
         sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper)
 
