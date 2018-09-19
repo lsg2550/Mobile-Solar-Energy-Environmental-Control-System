@@ -10,7 +10,8 @@
         $V2 = "";
 
         //Init - Get Username
-        $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
+        $RPID = $_GET["rpid"];
+        $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = '{$RPID}'";
         $resultsGetUser = mysqli_query($conn, $sqlGetUser);
         $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 

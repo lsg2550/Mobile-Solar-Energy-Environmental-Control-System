@@ -1,8 +1,13 @@
 #import
 import RPi.GPIO as GPIO
+import requests
 import spidev
 import time
 import os
+
+#RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
+rpid = 0
+pipayload = {"rpid": rpid}
 
 #Initialize
 delay = 1.0
@@ -78,8 +83,11 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
     thresholdTU = float(thresholdTemperatureUpper)
     
     #Check for notification purposes
-    if batteryVoltageActualVoltage <= thresholdVL: pass
-        #Send Notification to Server to Send Notification to User
+    if batteryVoltageActualVoltage <= thresholdVL:
+        pipayload["noti"] = "voltage"
+        serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+        print(serverConfirmation.text.strip())
+        pipayload.pop("noti")
         #Send Start Engine Signal
 
     #Perform Operations with ESSO
@@ -113,17 +121,15 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
         tempDictionary["exhaust"] = "off" #Turn off exhaust
         #Code to power off exhaust
 
-    #Debug Output
+    #Output
     #print("---------------------------------------------------------")
     #print("Battery Voltage: {} ({}V)".format(batteryVoltageReducedVoltage, batteryVoltageActualVoltage))
     #print("---------------------------------------------------------")
     #print("Battery Current: {}A".format(batteryVoltageCurrentRead))
-        
     #print("---------------------------------------------------------")
     #print("Solar Panel Voltage: {} ({}V)".format(solarPanelReducedVoltage, solarPanelActualVoltage))
     #print("---------------------------------------------------------")
     #print("Solar Panel Current: {}A".format(solarPanelCurrentRead))
-        
     #print("---------------------------------------------------------")
     #print("Temperature: {}C ({}F)".format(temperatureValue, CelciusToFahrenheit(temperatureValue)))
     print("Done reading from sensors...")
