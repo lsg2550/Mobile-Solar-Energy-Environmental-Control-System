@@ -3,7 +3,6 @@ import os
 import sys
 import time
 import json
-import shutil
 import requests
 import connect_to_ftp as CTF
 import read_analog_from_adc as RAFA
@@ -69,14 +68,25 @@ def GetAndSendImages():
             for root, subfolders, files in sorted(os.walk(tempFileFP)): 
                 CTF.SendImages(root, files)
 
+<<<<<<< HEAD
                 pipayload["capture"] = storedImages
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pipayload)
                 #print(serverConfirmation.text.strip())
+=======
+                pipayload["capture"] = root
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/.php", params=pipayload)
+                print(serverConfirmation.text.strip())
+>>>>>>> ab58f57d1ae528483454b671fab82afb54478cae
                 pipayload.pop("capture")
 
                 if serverConfirmation.text.strip() == "OK":
                     print("File and folders confirmed received!")
+<<<<<<< HEAD
                     shutil.rmtree(root) #Delete Capture File
+=======
+                    
+                    #Delete Minute Folder
+>>>>>>> ab58f57d1ae528483454b671fab82afb54478cae
                 else: break
     except Exception as e:
         print("Could not connect to server...\nImages were not sent")
@@ -98,8 +108,8 @@ def Main():
     cameraThread.start()
 
     while True:
-        #Retrieve XML Files of Thresholds set by Users
-        try: 
+        ###########################################################################################################################################
+        try: #Retrieve XML Files of Thresholds set by Users
             print("Requesting threshold update from server...")
             serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
             
@@ -118,7 +128,6 @@ def Main():
                 raise FileNotFoundError
         except Exception as e: #Assuming connection error
             print("Could not connect to server/Issue with server...")
-            print(e)
             if os.path.exists(str(rpid) + ".json"):
                 thresholdFileName = str(rpid) + ".json"
                 print("Using previous thresholds...")
@@ -134,6 +143,7 @@ def Main():
         thresholdPhoto = thresholds["photofps"]
         thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
         thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
+        ###########################################################################################################################################
 
         #Read from Sensors
         sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper)
@@ -163,7 +173,7 @@ def Main():
 
         #Wait for 60 seconds for the next read interval
         timer = (time.time() - startTime) % 60
-        print("File transfers moved to background threads...\nMain thread is now on standby for {0:.2} seconds...".format(str((60.0 - timer))))
+        print("File transfer moved to a background thread...\nMain thread is now on standby for {0:.2} seconds...".format(str((60.0 - timer))))
         time.sleep(60.0 - timer)
     #while end
 #Main() end
