@@ -16,9 +16,8 @@
 
         //Get Timestamp    
         date_default_timezone_set('UTC');
-        $dateFormat = "A d B I-M-Sp";
-        $dateObj = date_create_from_format($dateFormat, $xmlFileName);
-        $TS = date("Y-m-d H:i:s", getTimestamp());
+        $dateFormat = "Y-m-d H:i:s";
+        $TS = date_create_from_format($dateFormat, $xmlFileName);
 
         //Update DB
         $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES (NULL, '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
