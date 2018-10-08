@@ -14,7 +14,7 @@
 
     switch ($_GET["noti"]) {
         case 'voltage':
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the voltage threshold with ''V!";
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the voltage threshold with ''v!";
             $emailMessage = wordwrap($emailMessage, 70);
             echo $emailMessage; 
             mail($EMAIL, "Low Voltage", $emailMessage);    
