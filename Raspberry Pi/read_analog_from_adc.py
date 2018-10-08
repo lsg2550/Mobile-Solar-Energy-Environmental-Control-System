@@ -4,6 +4,7 @@ import requests
 import spidev
 import time
 import os
+import random
 
 #RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
 rpid = 0
@@ -46,37 +47,30 @@ def FahrenheitToCelcius(temperatureFahrenheit):
     return ((temperatureFahrenheit - 32) * 5/9)
 
 def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thresholdTemperatureLower=None, thresholdTemperatureUpper=None, thresholdPhoto=None, thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
-    #Debug Output
     print("Reading from sensors...")
     
     #Dictionary to hold {Sensor => Value}
     tempDictionary = {}
     
-    #Read sensors
     #Channel 0 and 1 - Battery
-    batteryVoltageReducedVoltage = ReadChannel(batteryVoltage)
-    batteryVoltageActualVoltage = ConvertVolts(batteryVoltageReducedVoltage, 2)
-    tempDictionary["BatteryVoltage"] = batteryVoltageActualVoltage
-    
-    batteryCurrentRead = ReadChannel(batteryCurrent)
-    tempDictionary["BatteryCurrent"] = batteryCurrent
+    #batteryVoltageReducedVoltage = ReadChannel(batteryVoltage)
+    #batteryVoltageActualVoltage = ConvertVolts(batteryVoltageReducedVoltage, 2)
+    #batteryCurrentRead = ReadChannel(batteryCurrent)
+    batteryVoltageActualVoltage = random.randint(11, 14)
+    batteryCurrentRead = random.randint(0, 1000)
     
     #Channel 2 and 3 - Solar Panel
-    solarPanelReducedVoltage = ReadChannel(solarPanelVoltage)
-    solarPanelActualVoltage = ConvertVolts(solarPanelReducedVoltage, 2)
-    tempDictionary["SolarPanelVoltage"] = solarPanelActualVoltage
-    
-    solarPanelCurrentRead = ReadChannel(solarPanelCurrent)
-    tempDictionary["SolarPanelCurrent"] = solarPanelCurrentRead
-    
-    #if solarPanelActualVoltage >= 1: tempDictionary["solarpanel"] = "charging"
-    #else: tempDictionary["solarpanel"] = "not charging"
+    #solarPanelReducedVoltage = ReadChannel(solarPanelVoltage)
+    #solarPanelActualVoltage = ConvertVolts(solarPanelReducedVoltage, 2)
+    #solarPanelCurrentRead = ReadChannel(solarPanelCurrent)
+    solarPanelActualVoltage = random.randint(0, 17)
+    solarPanelCurrentRead = random.randint(0, 1000)
     
     #Channel 4 - Temperature
-    temperatureValue = ReadChannel(temperature) #Celcius
-    tempDictionary["temperature"] = 30 #temperatureValue
+    #temperatureValue = ReadChannel(temperature) #Celcius
+    temperatureValue = random.randint(0, 100)
     
-    #Do something with read/given values
+    #Do something with given threshold values
     thresholdVL = float(thresholdVoltageLower)
     thresholdVU = float(thresholdVoltageUpper)
     thresholdTL = float(thresholdTemperatureLower)
@@ -90,14 +84,22 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
         pipayload.pop("noti")
         #Send Start Engine Signal
 
+    #Fill tempDictionary with recorded values
+    tempDictionary["BatteryVoltage"] = batteryVoltageActualVoltage
+    tempDictionary["BatteryCurrent"] = batteryCurrentRead
+    tempDictionary["SolarPanelVoltage"] = solarPanelActualVoltage
+    tempDictionary["SolarPanelCurrent"] = solarPanelCurrentRead
+    tempDictionary["temperature"] = temperatureValue
+
     #Perform Operations with ESSO
+    #Solar Panel Operations
     if thresholdSolarPanelToggle == None:
         if batteryVoltageActualVoltage >= thresholdVU:
             tempDictionary["SolarPanel"] = "not charging"
-            #Code to power off/cut off solarpanel
+            #Code to power/cut off solarpanel
         elif batteryVoltageActualVoltage <= thresholdVU:
             tempDictionary["SolarPanel"] = "charging"
-            #Code to power on/connect to solarpanel
+            #Code to power-on/connect to solarpanel
     elif thresholdSolarPanelToggle == "ON":
         tempDictionary["SolarPanel"] = "charging"
         #Code to power on/connect to solarpanel
@@ -105,32 +107,23 @@ def ReadFromSensors(thresholdVoltageLower=None, thresholdVoltageUpper=None, thre
         tempDictionary["SolarPanel"] = "not charging"
         #Code to power off/cut off solarpanel
 
+    #Exhaust Operations
     if thresholdExhaustToggle == None:       
-        if temperatureValue >= thresholdTU:
+        if temperatureValue >= thresholdTU: #For Hot Air -> Cold Air
             if batteryVoltageActualVoltage >= thresholdVL:
-                tempDictionary["exhaust"] = "on" #Turn on exhaust
+                tempDictionary["exhaust"] = "on"
                 #Code to power on exhaust
             else:
-                tempDictionary["exhaust"] = "off" #Turn off exhaust
+                tempDictionary["exhaust"] = "off"
                 #Code to power off exhaust
-        elif temperatureValue <= thresholdTU: pass #Do Nothing (for now) - Would require turning on the exhaust and changing AC to provide warmer air
+        elif temperatureValue <= thresholdTU: #For Cold Air -> Hot Air
+            pass #Do Nothing - Would require turning on the exhaust and changing AC to provide warmer air
     elif thresholdSolarPanelToggle == "ON":
-        tempDictionary["exhaust"] = "on" #Turn on exhaust
+        tempDictionary["exhaust"] = "on"
         #Code to power on exhaust
     elif thresholdSolarPanelToggle == "OFF":
-        tempDictionary["exhaust"] = "off" #Turn off exhaust
+        tempDictionary["exhaust"] = "off"
         #Code to power off exhaust
-
-    #Output
-    #print("---------------------------------------------------------")
-    #print("Battery Voltage: {} ({}V)".format(batteryVoltageReducedVoltage, batteryVoltageActualVoltage))
-    #print("---------------------------------------------------------")
-    #print("Battery Current: {}A".format(batteryVoltageCurrentRead))
-    #print("---------------------------------------------------------")
-    #print("Solar Panel Voltage: {} ({}V)".format(solarPanelReducedVoltage, solarPanelActualVoltage))
-    #print("---------------------------------------------------------")
-    #print("Solar Panel Current: {}A".format(solarPanelCurrentRead))
-    #print("---------------------------------------------------------")
-    #print("Temperature: {}C ({}F)".format(temperatureValue, CelciusToFahrenheit(temperatureValue)))
+        
     print("Done reading from sensors...")
     return tempDictionary;

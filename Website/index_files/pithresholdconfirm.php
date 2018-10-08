@@ -50,7 +50,7 @@
             //Get Vitals - Variables with On/Off
             while($vital = mysqli_fetch_assoc($resultGetRPIThresholdsToggle)) {
                 switch($vital["VN"]) {
-                    case "Solar Panel":
+                    case "SolarPanel":
                         $thresholdXML->solartoggle = $vital["VV"];
                         break;
                     case "Exhaust":
