@@ -11,15 +11,27 @@
     $sqlGetEmail = "SELECT email FROM users WHERE username = '{$USR}'";
     $resultsGetEmail = mysqli_query($conn, $sqlGetEmail);
     $EMAIL = mysqli_fetch_assoc($resultsGetEmail)['email'];
+    $emailMessage = "";
 
     switch ($_GET["noti"]) {
-        case 'voltage':
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the voltage threshold with ''v!";
-            $emailMessage = wordwrap($emailMessage, 70);
-            echo $emailMessage; 
-            mail($EMAIL, "Low Voltage", $emailMessage);    
+        case "bvoltage":
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the battery voltage threshold with ''V!";
+            break;
+        case "bcurrent":
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the battery current threshold with ''mA!";
+            break;
+        case "spvoltage":
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with ''V!";
+            break;
+        case "spcurrent":
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with ''mA!";
             break;
         default:
-            break;
+            exit();
     }
+
+    //Send Emailv
+    //echo $emailMessage;
+    $emailMessage = wordwrap($emailMessage, 70);
+    mail($EMAIL, "Raspberry Pi {$_GET["rpid"]} Notification", $emailMessage);
 ?>

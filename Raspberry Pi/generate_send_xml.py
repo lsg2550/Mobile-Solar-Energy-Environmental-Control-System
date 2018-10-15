@@ -49,10 +49,7 @@ def GetAndSendStatus(): #Send XML to Server
                     os.rename(fullStoragePath, fullSentPath)
                 elif serverConfirmation.text.strip() == "ERROR": break
                 else: break #Server did not receive or process the XML correctly
-    except Exception as e:
-        print("Could not connect to server...\nStoring status file into {}...\nError Received:{}".format(storageDirectory, e))
-
-    #Debug Output
+    except Exception as e: print("Could not connect to server...\nStoring status file into {}...\nError Received:{}".format(storageDirectory, e))
     print("Status background thread done!")
 #GetAndSendStatus() end
 
@@ -76,10 +73,7 @@ def GetAndSendImages():
                     print("File and folders confirmed received!")
                     shutil.rmtree(root) #Delete Capture Folder
                 else: break #Server did not receive or process the images correctly
-    except Exception as e:
-        print("Could not connect to server...\nImages were not sent...\nError Received:{}".format(e))
-
-    #Debug Output
+    except Exception as e: print("Could not connect to server...\nImages were not sent...\nError Received:{}".format(e))
     print("Images background thread done!")
 #GetAndSendImages() end
 
@@ -114,7 +108,7 @@ def Main():
                 pipayload.pop("result")
                 #Notify user/admin that we are unable to retrieve the file
                 raise FileNotFoundError
-        except Exception as e:
+        except:
             print("Could not connect to server/Issue with server...")
             if os.path.exists(str(rpid) + ".json"):
                 thresholdFileName = str(rpid) + ".json"
@@ -126,6 +120,12 @@ def Main():
         with open(thresholdFileName, "r") as thresholdfile: thresholds = json.loads(thresholdfile.read())
         thresholdVoltageLower = thresholds["voltagelower"]
         thresholdVoltageUpper = thresholds["voltageupper"]
+        thresholdCurrentLower = thresholds["currentlower"]
+        thresholdCurrentUpper = thresholds["currentupper"]
+        thresholdSPVoltageLower = thresholds["spvoltagelower"]
+        thresholdSPVoltageUpper = thresholds["spvoltageupper"]
+        thresholdSPCurrentLower = thresholds["spcurrentlower"]
+        thresholdSPCurrentUpper = thresholds["spcurrentupper"]
         thresholdTemperatureLower = thresholds["temperaturelower"]
         thresholdTemperatureUpper = thresholds["temperatureupper"]
         thresholdPhoto = thresholds["photofps"]
@@ -135,7 +135,7 @@ def Main():
         thresholdExhaustToggle = None
         
         #Read from Sensors
-        sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper, thresholdPhoto, thresholdSolarPanelToggle, thresholdExhaustToggle)
+        sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdCurrentLower, thresholdCurrentUpper, thresholdSPVoltageLower, thresholdSPVoltageUpper, thresholdSPCurrentLower, thresholdSPCurrentUpper, thresholdTemperatureLower, thresholdTemperatureUpper, thresholdPhoto, thresholdSolarPanelToggle, thresholdExhaustToggle)
 
         #Generate Timestamps
         timeStampForLog = datetime.now(timezone("UTC")).strftime(dateAndTimeFormat)

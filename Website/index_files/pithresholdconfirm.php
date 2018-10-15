@@ -18,8 +18,7 @@
         while($rpi = mysqli_fetch_assoc($resultGetRPID)) { $RPID[] = $rpi["rpiID"]; } //Gets raspberry pi IDs and stores them into an array
 
         //Generate Threshold JSON
-        foreach($RPID as $rpi) {      
-            //Start JSON Build  
+        foreach($RPID as $rpi) {
             $thresholdXML = new stdClass();
 
             //SQL Queries
@@ -34,6 +33,18 @@
                     case "BatteryVoltage":
                         $thresholdXML->voltagelower = $vital["VL"];
                         $thresholdXML->voltageupper = $vital["VU"];
+                        break;
+                    case "BatteryCurrent":
+                        $thresholdXML->currentlower = $vital["VL"];
+                        $thresholdXML->currentupper = $vital["VU"];
+                        break;
+                    case "SolarPanelVoltage":
+                        $thresholdXML->spvoltagelower = $vital["VL"];
+                        $thresholdXML->spvoltageupper = $vital["VU"];
+                        break;
+                    case "SolarPanelCurrent":
+                        $thresholdXML->spcurrentlower = $vital["VL"];
+                        $thresholdXML->spcurrentupper = $vital["VU"];
                         break;
                     case "Temperature":
                         $thresholdXML->temperaturelower = $vital["VL"];
@@ -64,7 +75,6 @@
             $rpiFile = fopen("{$fileDirectory}{$rpi}.json", "w");
             fwrite($rpiFile, json_encode($thresholdXML));
             fclose($rpiFile);
-            //End JSON Build
         }
     }
 
@@ -74,22 +84,5 @@
     } catch (Exception $e) {
         echo $e;
         echo "NO";
-
-        //Update database log of the error
-        //Include
-        //include("connect.php");
-
-        //Get Timestamp
-        //date_default_timezone_set('UTC');
-        //$currentTimestamp = date("Y-m-d H:i:s", time());
-
-        //Get User
-        //$sqlGetUser = "SELECT owner FROM rpi WHERE rpiID={$_GET['rpid']}";
-        //$resultsGetUser = mysqli_query($conn, $sqlGetUser);
-        //$USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
-
-        #Update DB Log - That there was an issue with the RPi
-        //$sqlUpdateDBWithNO = "INSERT INTO log('TYP', 'USR', 'RPID', 'TS') VALUES ('NO', '{$USR}', '{$_GET['rpid']}', '{$currentTimestamp}');";
-        //mysqli_query($conn, $sqlUpdateDBWithNO);
     }
 ?>
