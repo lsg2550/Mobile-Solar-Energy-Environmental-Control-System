@@ -7,12 +7,17 @@
     $resultsGetUser = mysqli_query($conn, $sqlGetUser);
     $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
+    //Get User Email
+    $sqlGetEmail = "SELECT email FROM users WHERE username = '{$USR}'";
+    $resultsGetEmail = mysqli_query($conn, $sqlGetEmail);
+    $EMAIL = mysqli_fetch_assoc($resultsGetEmail)['email'];
+
     switch ($_GET["noti"]) {
         case 'voltage':
-            $emailMessage = "It has been more than 7 days since RPi '{$_GET["rpid"]}' has made contact with the server!";
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the voltage threshold with ''v!";
             $emailMessage = wordwrap($emailMessage, 70);
             echo $emailMessage; 
-            mail($currentRPiOwnerEmail, "Raspberry Pi Last Contact", $emailMessage);    
+            mail($EMAIL, "Low Voltage", $emailMessage);    
             break;
         default:
             break;

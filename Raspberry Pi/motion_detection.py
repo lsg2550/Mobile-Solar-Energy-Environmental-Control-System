@@ -19,6 +19,9 @@ detectionDir = "DetectDir/"
 dateAndTimeFormat = "%Y-%m-%d %H:%M:%S"
 dateAndTimeFormatTwo = "%A %d %B %Y %I:%M:%S%p"
 
+#RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
+rpid = 0
+
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     #Initialize
     detectionAndFileNamePath = detectionDir + filenameSafeCurrentTime
@@ -72,8 +75,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         if len(strMinute) == 1: strMinute = "0" + strMinute
         if len(strSecond) == 1: strSecond = "0" + strSecond
         getSecondsAndClock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}$', strHour + "-" + strMinute + "-" + strSecond, filenameSafeCurrentTime) 
-        frameFP = currMinuteDir + "capture (" + getSecondsAndClock + ").jpg"
-        #print("{}:{}:{}\t{}".format(strHour, strMinute, strSecond, indexCounter))
+        frameFP = currMinuteDir + str(rpid) + " - capture (" + getSecondsAndClock + ").jpg"
         #print(frameFP)
 
         #Move image to minute directory
@@ -150,7 +152,7 @@ def Main(programTime=None):
 
             #Write image
             filenameSafeCurrentTime = currentTime.replace(":", "-")
-            currFrameName = "capture (" + filenameSafeCurrentTime + ").jpg"
+            currFrameName = str(rpid) + " - capture (" + filenameSafeCurrentTime + ").jpg"
             currFrameNameFP = currMinuteDir + currFrameName
             cv2.imwrite(currFrameNameFP, frame)
             
@@ -180,7 +182,7 @@ def Main(programTime=None):
         if totalSecond < 1 and totalSecond >= 0.9:
             currentTime = datetime.now(timezone("UTC")).strftime(dateAndTimeFormat)
             filenameSafeCurrentTime = currentTime.replace(":", "-")
-            currFrameName = "capture (" + filenameSafeCurrentTime + ").jpg"
+            currFrameName = str(rpid) + " - capture (" + filenameSafeCurrentTime + ").jpg"
             currFrameNameFP = currMinuteDir + currFrameName
             cv2.imwrite(currFrameNameFP, frame)
     #End while loop

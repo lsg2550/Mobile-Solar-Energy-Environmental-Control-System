@@ -47,13 +47,10 @@ def GetAndSendStatus(): #Send XML to Server
                 if serverConfirmation.text.strip() == "OK":
                     print("File confirmed received!")
                     os.rename(fullStoragePath, fullSentPath)
-                elif serverConfirmation.text.strip() == "ERROR":
-                    #sys.exit("Error in server processing XML file...\nDeleting file and exiting program...\nContact an administrator immediately!")
-                    break
-                else: break #If server did not receive or process the XML correctly, break out of the loop
+                elif serverConfirmation.text.strip() == "ERROR": break
+                else: break #Server did not receive or process the XML correctly
     except Exception as e:
-        print("Could not connect to server...\nStoring status file into {}...".format(storageDirectory))
-        print(e)
+        print("Could not connect to server...\nStoring status file into {}...\nError Received:{}".format(storageDirectory, e))
 
     #Debug Output
     print("Status background thread done!")
@@ -62,8 +59,9 @@ def GetAndSendStatus(): #Send XML to Server
 def GetAndSendImages():
     try:
         detectionDirContents = sorted(os.listdir(MD.detectionDir))
+        
         for storedImages in detectionDirContents:
-            if detectionDirContents[-1] == storedImages: break #In the chance that the last folder is still being filled with images, we don't send its contents yet
+            if detectionDirContents[-1] == storedImages: break #Due to the possibility that the last folder is still being filled with images, we skip it
             tempFileFP = os.path.join(MD.detectionDir, storedImages)
 
             for root, subfolders, files in sorted(os.walk(tempFileFP)): 
@@ -76,11 +74,10 @@ def GetAndSendImages():
 
                 if serverConfirmation.text.strip() == "OK":
                     print("File and folders confirmed received!")
-                    shutil.rmtree(root) #Delete Capture File
-                else: break
+                    shutil.rmtree(root) #Delete Capture Folder
+                else: break #Server did not receive or process the images correctly
     except Exception as e:
-        print("Could not connect to server...\nImages were not sent")
-        print(e)
+        print("Could not connect to server...\nImages were not sent...\nError Received:{}".format(e))
 
     #Debug Output
     print("Images background thread done!")
@@ -98,12 +95,12 @@ def Main():
     cameraThread.start()
 
     while True:
-        #Retrieve XML Files of Thresholds set by Users
+        #Retrieve files with thresholds set by user
         try: 
             print("Requesting threshold update from server...")
             serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
             
-            if serverThresholdConfirm.text.strip() == "OK": #Retrieve the XML after getting the OK from the server
+            if serverThresholdConfirm.text.strip() == "OK":
                 CTF.RetrieveThreshold(rpid)
                 thresholdFileName = str(rpid) + ".json"
 
@@ -111,12 +108,13 @@ def Main():
                 pipayload["result"] = "OK"
                 requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
                 pipayload.pop("result")
-            else: #Tell the server that we DID NOT retrieve the file
+            else: #Tell the server that we did not retrieve the file
                 pipayload["result"] = "NO"
                 requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
                 pipayload.pop("result")
+                #Notify user/admin that we are unable to retrieve the file
                 raise FileNotFoundError
-        except Exception as e: #Assuming connection error
+        except Exception as e:
             print("Could not connect to server/Issue with server...")
             if os.path.exists(str(rpid) + ".json"):
                 thresholdFileName = str(rpid) + ".json"
@@ -131,11 +129,13 @@ def Main():
         thresholdTemperatureLower = thresholds["temperaturelower"]
         thresholdTemperatureUpper = thresholds["temperatureupper"]
         thresholdPhoto = thresholds["photofps"]
-        thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
-        thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
+        #thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
+        #thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
+        thresholdSolarPanelToggle = None
+        thresholdExhaustToggle = None
         
         #Read from Sensors
-        sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper)
+        sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdTemperatureLower, thresholdTemperatureUpper, thresholdPhoto, thresholdSolarPanelToggle, thresholdExhaustToggle)
 
         #Generate Timestamps
         timeStampForLog = datetime.now(timezone("UTC")).strftime(dateAndTimeFormat)
