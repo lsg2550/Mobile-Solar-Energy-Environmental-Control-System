@@ -71,9 +71,9 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         if len(strHour) == 1: strHour = "0" + strHour
         if len(strMinute) == 1: strMinute = "0" + strMinute
         if len(strSecond) == 1: strSecond = "0" + strSecond
-        #print("{}:{}:{}\t{}".format(strHour, strMinute, strSecond, indexCounter))
         getSecondsAndClock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}$', strHour + "-" + strMinute + "-" + strSecond, filenameSafeCurrentTime) 
         frameFP = currMinuteDir + "capture (" + getSecondsAndClock + ").jpg"
+        #print("{}:{}:{}\t{}".format(strHour, strMinute, strSecond, indexCounter))
         #print(frameFP)
 
         #Move image to minute directory
