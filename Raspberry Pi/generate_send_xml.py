@@ -1,4 +1,4 @@
-#import
+# import
 import os
 import sys
 import time
@@ -13,23 +13,23 @@ from xml.etree import ElementTree
 from datetime import datetime
 from pytz import timezone
 
-#Create Storage Directories
+# Create Storage Directories
 storageDirectory = "TempStorage/"
 sentDirectory = "SentStorage/"
 if not os.path.isdir(storageDirectory): os.mkdir(storageDirectory)
 if not os.path.isdir(sentDirectory): os.mkdir(sentDirectory)
 
-#Date & Time Format for XML
+# Date & Time Format for XML
 dateAndTimeFormat = "%Y-%m-%d %H:%M:%S"
 
-#JSON Format
+# JSON Format
 jsonFormat = {"photo":"0.5"}
 
-#RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
+# RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
 rpid = 0
 pipayload = {"rpid": rpid}
 
-def GetAndSendStatus(): #Send XML to Server
+def GetAndSendStatus(): # Send XML to Server
     try:
         for storedFile in sorted(os.listdir(storageDirectory)):
             tempFile = str(storedFile)
@@ -41,24 +41,23 @@ def GetAndSendStatus(): #Send XML to Server
                 
                 pipayload["xmlfile"] = tempFile
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
-                #print(serverConfirmation.text.strip())
+                # print(serverConfirmation.text.strip())
                 pipayload.pop("xmlfile")
 
                 if serverConfirmation.text.strip() == "OK":
                     print("File confirmed received!")
                     os.rename(fullStoragePath, fullSentPath)
                 elif serverConfirmation.text.strip() == "ERROR": break
-                else: break #Server did not receive or process the XML correctly
+                else: break # Server did not receive or process the XML correctly
     except Exception as e: print("Could not connect to server...\nStoring status file into {}...\nError Received:{}".format(storageDirectory, e))
     print("Status background thread done!")
-#GetAndSendStatus() end
+# GetAndSendStatus() end
 
 def GetAndSendImages():
-    try:
+    try: 
         detectionDirContents = sorted(os.listdir(MD.detectionDir))
-        
         for storedImages in detectionDirContents:
-            if detectionDirContents[-1] == storedImages: break #Due to the possibility that the last folder is still being filled with images, we skip it
+            if detectionDirContents[-1] == storedImages: break # Due to the possibility that the last folder is still being filled with images, we skip it
             tempFileFP = os.path.join(MD.detectionDir, storedImages)
 
             for root, subfolders, files in sorted(os.walk(tempFileFP)): 
@@ -66,31 +65,30 @@ def GetAndSendImages():
                 
                 pipayload["capture"] = storedImages
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pipayload)
-                #print(serverConfirmation.text.strip())
+                # print(serverConfirmation.text.strip())
                 pipayload.pop("capture")
 
                 if serverConfirmation.text.strip() == "OK":
                     print("File and folders confirmed received!")
-                    shutil.rmtree(root) #Delete Capture Folder
-                else: break #Server did not receive or process the images correctly
+                    shutil.rmtree(root) # Delete Capture Folder
+                else: break # Server did not receive or process the images correctly
     except Exception as e: print("Could not connect to server...\nImages were not sent...\nError Received:{}".format(e))
     print("Images background thread done!")
-#GetAndSendImages() end
+# GetAndSendImages() end
 
 def Main():
-    #Program Start Time
+    # Program Start Time
     startTime = time.time()
-    sendThread = None #Thread for sending XML/JSON
-    sendImagesThread = None #Thread for sending detection images
+    sendThread = None # Thread for sending XML/JSON
+    sendImagesThread = None # Thread for sending detection images
     
-    #Start Camera Thread
+    # Start Camera Thread
     cameraThread = Thread(target=MD.Main, args=(startTime, ))
     cameraThread.setDaemon(True)
     cameraThread.start()
 
     while True:
-        #Retrieve files with thresholds set by user
-        try: 
+        try: # Retrieve files with thresholds set by user
             print("Requesting threshold update from server...")
             serverThresholdConfirm = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pipayload)
             
@@ -98,15 +96,14 @@ def Main():
                 CTF.RetrieveThreshold(rpid)
                 thresholdFileName = str(rpid) + ".json"
 
-                #Tell the server that we retrieved the file
+                # Tell the server that we retrieved the file
                 pipayload["result"] = "OK"
                 requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
                 pipayload.pop("result")
-            else: #Tell the server that we did not retrieve the file
+            else: # Tell the server that we did not retrieve the file
                 pipayload["result"] = "NO"
                 requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pipayload)
                 pipayload.pop("result")
-                #Notify user/admin that we are unable to retrieve the file
                 raise FileNotFoundError
         except:
             print("Could not connect to server/Issue with server...")
@@ -126,43 +123,54 @@ def Main():
         thresholdSPVoltageUpper = thresholds["spvoltageupper"]
         thresholdSPCurrentLower = thresholds["spcurrentlower"]
         thresholdSPCurrentUpper = thresholds["spcurrentupper"]
+        # thresholdCCVoltageLower = thresholds["ccvoltagelower"]
+        # thresholdCCVoltageUpper = thresholds["ccvoltageupper"]
+        # thresholdCCCurrentLower = thresholds["cccurrentlower"]
+        # thresholdCCCurrentUpper = thresholds["cccurrentupper"]
         thresholdTemperatureLower = thresholds["temperaturelower"]
         thresholdTemperatureUpper = thresholds["temperatureupper"]
-        thresholdPhoto = thresholds["photofps"]
-        #thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
-        #thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
+        # thresholdPhoto = thresholds["photofps"]
+        # thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
+        # thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
         thresholdSolarPanelToggle = None
         thresholdExhaustToggle = None
         
-        #Read from Sensors
-        sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper, thresholdCurrentLower, thresholdCurrentUpper, thresholdSPVoltageLower, thresholdSPVoltageUpper, thresholdSPCurrentLower, thresholdSPCurrentUpper, thresholdTemperatureLower, thresholdTemperatureUpper, thresholdPhoto, thresholdSolarPanelToggle, thresholdExhaustToggle)
+        # Read from Sensors
+        sensorDictionary = RAFA.ReadFromSensors(thresholdVoltageLower, thresholdVoltageUpper,
+                                                thresholdCurrentLower, thresholdCurrentUpper,
+                                                thresholdSPVoltageLower, thresholdSPVoltageUpper,
+                                                thresholdSPCurrentLower, thresholdSPCurrentUpper,
+                                                None, None,  # thresholdCCVoltageLower, thresholdCCVoltageUpper,
+                                                None, None,  # thresholdCCCurrentLower, thresholdCCCurrentUpper,
+                                                thresholdTemperatureLower, thresholdTemperatureUpper,
+                                                thresholdSolarPanelToggle, thresholdExhaustToggle)
 
-        #Generate Timestamps
+        # Generate Timestamps
         timeStampForLog = datetime.now(timezone("UTC")).strftime(dateAndTimeFormat)
         timeStampForFileName = timeStampForLog.replace(":", "-")
         
-        #Update jsonFormat
+        # Update jsonFormat
         jsonFormat["log"] = str(timeStampForLog)
         jsonFormat["rpid"] = str(rpid)
         for key, value in sensorDictionary.items(): jsonFormat[key] = str(value)
             
-        #Write and Close File
+        # Write and Close File
         statusFileName = storageDirectory + "status" + str(rpid) + "(" + timeStampForFileName + ").json"
         with open(statusFileName, "w+") as status: json.dump(jsonFormat, status, indent = 4)
             
-        #Send XML in new thread
+        # Send XML in new thread
         if sendThread == None or not sendThread.isAlive():
             sendThread = Thread(target=GetAndSendStatus, args=())
             sendThread.start()
 
-        #Send images in new thread
+        # Send images in new thread
         if sendImagesThread == None or not sendImagesThread.isAlive():
             sendImagesThread = Thread(target=GetAndSendImages, args=())
             sendImagesThread.start()
 
-        #Wait for 60 seconds for the next read interval
+        # Wait for 60 seconds for the next read interval
         timer = (time.time() - startTime) % 60
-        print("File transfer moved to a background thread...\nMain thread is now on standby for {0:.2} seconds...".format(str((60.0 - timer))))
+        print("File transfer moved to a background thread...\nMain thread is now on standby for {0:.2} seconds...\n".format(str((60.0 - timer))))
         time.sleep(60.0 - timer)
     #while end
 #Main() end
