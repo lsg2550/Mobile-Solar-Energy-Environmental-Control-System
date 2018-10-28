@@ -54,9 +54,13 @@
                         $thresholdXML->cccurrentlower = $vital["VL"];
                         $thresholdXML->cccurrentupper = $vital["VU"];
                         break;
-                    case "Temperature":
-                        $thresholdXML->temperaturelower = $vital["VL"];
-                        $thresholdXML->temperatureupper = $vital["VU"];
+                    case "TemperatureInner":
+                        $thresholdXML->temperatureinnerlower = $vital["VL"];
+                        $thresholdXML->temperatureinnerupper = $vital["VU"];
+                        break;
+                    case "TemperatureOuter":
+                        $thresholdXML->temperatureouterlower = $vital["VL"];
+                        $thresholdXML->temperatureouterupper = $vital["VU"];
                         break;
                     case "Photo":
                         $thresholdXML->photofps = $vital["VL"];

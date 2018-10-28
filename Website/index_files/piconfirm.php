@@ -24,17 +24,25 @@
                 case "rpid":
                     break;
                 default:
-                    //VitalName
+                    //Vital Name & Vital Values
                     $VN = $key;
+                    $V1 = ""; //Latitude
+                    $V2 = ""; //Longitude
+
+                    if($VN != "gps") {
+                        $V1 = $VV = $value;
+                        $V2 = "";
+                    } else {
+                        $value = str_replace(array('"', '[', ']', '"'), '', $value);
+                        $value = explode(",", $value);
+                        $V1 = $value[0]; //Latitude
+                        $V2 = $value[1]; //Longitude
+                    }
 
                     //Get VID
                     $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$VN}' AND RPID='{$RPID}' AND USR='{$USR}';";
                     $resultGetVID = mysqli_query($conn, $sqlGetVID);
                     $VID = mysqli_fetch_assoc($resultGetVID)['VID'];
-
-                    //Vital Values
-                    $V1 = $VV = $value;
-                    $V2 = "";
 
                     //Update DB
                     $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
