@@ -244,8 +244,8 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     tempDictionary["temperatureouter"] = temperatureValueO
     tempDictionary["gpslatitude"] = gpsLatitude
     tempDictionary["gpslongitude"] = gpsLongitude
-    tempDictionary["ccvoltage"] = ccCVoltage
-    tempDictionary["cccurrent"] = ccCCurrent
+    tempDictionary["chargecontrollervoltage"] = ccCVoltage
+    tempDictionary["chargecontrollercurrent"] = ccCCurrent
 
     print("Done reading from sensors...")
     return tempDictionary
