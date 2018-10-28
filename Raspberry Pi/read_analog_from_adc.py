@@ -1,5 +1,6 @@
 # import
 from datetime import datetime
+from threading import Thread
 import RPi.GPIO as GPIO
 import requests
 import spidev
@@ -14,6 +15,7 @@ pipayload = {"rpid": rpid}
 
 # Initialize
 delay = 1.0
+notificationThread = None
 
 # Analog Devices = Channel #
 spi = spidev.SpiDev()
@@ -56,7 +58,7 @@ def ReadGPS():
             lonAct = lonDeg + (lonMin/60)
 
             tLatLon["latitude"] = latAct
-            tLatLon["longtitude"] = lonAct
+            tLatLon["longitude"] = lonAct
             break
     return tLatLon
 
@@ -64,6 +66,62 @@ def ReadChargeController():
     tCVCCSVSC = {}
     # line = serialChargeController.readlines(10)
     return tCVCCSVSC
+
+def CheckAndNotify(batteryVoltageRead, batteryCurrentRead,
+                   ccSPVoltage, ccSPCurrent,
+                   ccCVoltage, ccCCurrent,
+                   temperatureValueI, temperatureValueO,
+                   thresholdBVL, thresholdBVU,
+                   thresholdBCL, thresholdBCU,
+                   thresholdSPVL, thresholdSPVU,
+                   thresholdSPCL, thresholdSPCU,
+                   thresholdCCVL, thresholdCCVU,
+                   thresholdCCCL, thresholdCCCU,
+                   thresholdTL, thresholdTU):
+    try:
+        currentHour = int(datetime.now().strftime("%H")) # Uses military hours (0-23)
+        if currentHour >= 9 and currentHour <= 16:
+            if batteryVoltageRead <= thresholdBVL or batteryVoltageRead >= thresholdBVU:
+                pipayload["noti"] = "bvoltage"
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                # print(serverConfirmation.text.strip())
+                pipayload.pop("noti")
+            if batteryCurrentRead <= thresholdBCL or batteryCurrentRead >= thresholdBCU:
+                pipayload["noti"] = "bcurrent"
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                # print(serverConfirmation.text.strip())
+                pipayload.pop("noti")
+            if ccSPVoltage <= thresholdSPVL or ccSPVoltage >= thresholdSPVU:
+                pipayload["noti"] = "spvoltage"
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                # print(serverConfirmation.text.strip())
+                pipayload.pop("noti")
+            if ccSPCurrent <= thresholdSPCL or ccSPCurrent >= thresholdSPCU:
+                pipayload["noti"] = "spcurrent"
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                # print(serverConfirmation.text.strip())
+                pipayload.pop("noti")
+            if ccCVoltage <= thresholdCCVL or ccCVoltage >= thresholdCCVU:
+                pipayload["noti"] = "ccvoltage"
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                # print(serverConfirmation.text.strip())
+                pipayload.pop("noti")
+            if ccCCurrent <= thresholdCCCL or ccCCurrent >= thresholdCCCU:
+                pipayload["noti"] = "cccurrent"
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                # print(serverConfirmation.text.strip())
+                pipayload.pop("noti")
+            if temperatureValueI <= thresholdTL or temperatureValueI >= thresholdTU:
+                pipayload["noti"] = "temperatureI"
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                # print(serverConfirmation.text.strip())
+                pipayload.pop("noti")
+            if temperatureValueO <= thresholdTL or temperatureValueO >= thresholdTU: 
+                pipayload["noti"] = "temperatureO"
+                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                # print(serverConfirmation.text.strip())
+                pipayload.pop("noti")
+    except: pass  # Unable to connect to internet, so just disregard sending a notification
 
 def ReadChannel(channel):  # Reads from given channel
     adc = spi.xfer2([1, (8 + channel) << 4, 0])
@@ -86,7 +144,9 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
                     thresholdChCtCurrentLower=None, thresholdChCtCurrentUpper=None,
                     thresholdTemperatureLower=None, thresholdTemperatureUpper=None,
                     thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
-    # Set Thresholds
+    # Global Var
+    global notificationThread
+    
     # Battery Thresholds
     thresholdBVL = float(thresholdBattVoltageLower)
     thresholdBVU = float(thresholdBattVoltageUpper)
@@ -124,6 +184,8 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
 
     # Read Serially - GPS and Charge Controller
     # ccCVCCSVSC = ReadChargeController()
+    ccCVoltage = random.randint(0, 20)
+    ccCCurrent = random.randint(0, 10000)
     # ccCVoltage = ccCVCCSVSC[0]
     # ccCCurrent = ccCVCCSVSC[1]
     ccSPVoltage = random.randint(0, 17)
@@ -131,54 +193,14 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     # ccSPVoltage = ccCVCCSVSC[2]
     # ccSPCurrent = ccCVCCSVSC[3]
     gpsLatLon = ReadGPS()
-    gpsLatitude = gpsLatLon[0]
-    gpsLongitude = gpsLatLon[1]
+    gpsLatitude = gpsLatLon["latitude"]
+    gpsLongitude = gpsLatLon["longitude"]
 
     # Check for notification purposes
-    try:
-        currentHour = int(datetime.now().strftime("%H")) # Uses military hours (0-23)
-        if currentHour >= 9 and currentHour <= 16:
-            if batteryVoltageRead <= thresholdBVL or batteryVoltageRead >= thresholdBVU:
-                pipayload["noti"] = "bvoltage"
-                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if batteryCurrentRead <= thresholdBCL or batteryCurrentRead >= thresholdBCU:
-                pipayload["noti"] = "bcurrent"
-                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if ccSPVoltage <= thresholdSPVL or ccSPVoltage >= thresholdSPVU:
-                pipayload["noti"] = "spvoltage"
-                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if ccSPCurrent <= thresholdSPCL or ccSPCurrent >= thresholdSPCU:
-                pipayload["noti"] = "spcurrent"
-                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            # if ccCVoltage <= thresholdCCVL or ccCVoltage >= thresholdCCVL:
-            #     pipayload["noti"] = "ccvoltage"
-            #     serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-            #     # print(serverConfirmation.text.strip())
-            #     pipayload.pop("noti")
-            # if ccCCurrent <= thresholdCCCL or ccCCurrent >= thresholdCCCL:
-            #     pipayload["noti"] = "cccurrent"
-            #     serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-            #     # print(serverConfirmation.text.strip())
-            #     pipayload.pop("noti")
-            if temperatureValueI <= thresholdTL or temperatureValueI >= thresholdTU:
-                pipayload["noti"] = "temperatureI"
-                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if temperatureValueO <= thresholdTL or temperatureValueO >= thresholdTU: 
-                pipayload["noti"] = "temperatureO"
-                serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-    except: pass  # Unable to connect to internet, so just disregard sending a notification
+    if notificationThread == None or not notificationThread.isAlive():
+        notificationThread = Thread(target=CheckAndNotify, args=(batteryVoltageRead, batteryCurrentRead, ccSPVoltage, ccSPCurrent, ccCVoltage, ccCCurrent, temperatureValueI, temperatureValueO,
+                                                                 thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCVL, thresholdCCVU, thresholdCCCL, thresholdCCCU, thresholdTL, thresholdTU,))
+        notificationThread.start()
 
     # ESSO Operations
     # Solar Panel Operations
@@ -222,8 +244,8 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     tempDictionary["temperatureouter"] = temperatureValueO
     tempDictionary["gpslatitude"] = gpsLatitude
     tempDictionary["gpslongitude"] = gpsLongitude
-    # tempDictionary["ccvoltage"] = ccVoltage
-    # tempDictionary["cccurrent"] = ccCurrent
+    tempDictionary["ccvoltage"] = ccCVoltage
+    tempDictionary["cccurrent"] = ccCCurrent
 
     print("Done reading from sensors...")
     return tempDictionary
