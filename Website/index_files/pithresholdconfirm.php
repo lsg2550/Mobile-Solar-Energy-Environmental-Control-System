@@ -46,6 +46,14 @@
                         $thresholdXML->spcurrentlower = $vital["VL"];
                         $thresholdXML->spcurrentupper = $vital["VU"];
                         break;
+                    case "ChargeControllerVoltage":
+                        $thresholdXML->ccvoltagelower = $vital["VL"];
+                        $thresholdXML->ccvoltageupper = $vital["VU"];
+                        break;
+                    case "ChargeControllerCurrent":
+                        $thresholdXML->cccurrentlower = $vital["VL"];
+                        $thresholdXML->cccurrentupper = $vital["VU"];
+                        break;
                     case "Temperature":
                         $thresholdXML->temperaturelower = $vital["VL"];
                         $thresholdXML->temperatureupper = $vital["VU"];
