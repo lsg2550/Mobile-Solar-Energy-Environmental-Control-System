@@ -33,29 +33,31 @@ engine = 23
 
 # Serial Devices
 try:
-    serialGPS = serial.Serial(port = "/dev/ttyUSB0", baudrate = 9600, timeout = 1)
+    serialGPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
     serialChargeController = serial.Serial(port = "/dev/ttyUSB0", baudrate = 9600, timeout = 1)
 except: pass
 
 def ReadGPS():
     tLatLon = {}
-    line = serialGPS.readlines(10) #TODO: reading 10 lines is temporary, will change later
-    data = line.split(",")
-    if data[0] == "$GPRMC" and data[2] == "A": 
-        # Latitude
-        latGPS = float(data[3]) if data[4] != "S" else float(-data[3])
-        latDeg = int(latGPS/100)
-        latMin = latGPS - latDeg*100
-        latAct = latDeg + (latMin/60)
+    while True:
+        line = serialGPS.readline().decode("utf-8")
+        data = line.split(",")
+        if data[0] == "$GPRMC" and data[2] == "A": 
+            # Latitude
+            latGPS = float(data[3]) if data[4] != "S" else -float(data[3])
+            latDeg = int(latGPS/100)
+            latMin = latGPS - latDeg*100
+            latAct = latDeg + (latMin/60)
 
-        # Longitude
-        lonGPS = float(data[5]) if data[6] != "W" else float(-data[5])
-        lonDeg = int(lonGPS/100)
-        lonMin = lonGPS - lonDeg*100
-        lonAct = lonDeg + (lonMin/60)
+            # Longitude
+            lonGPS = float(data[5]) if data[6] != "W" else -float(data[5])
+            lonDeg = int(lonGPS/100)
+            lonMin = lonGPS - lonDeg*100
+            lonAct = lonDeg + (lonMin/60)
 
-        tLatLon["latitude"] = latAct
-        tLatLon["longtitude"] = lonAct
+            tLatLon["latitude"] = latAct
+            tLatLon["longtitude"] = lonAct
+            break
     return tLatLon
 
 def ReadChargeController():
@@ -78,7 +80,7 @@ def FahrenheitToCelcius(temperatureFahrenheit): return ((temperatureFahrenheit -
 
 def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=None,
                     thresholdBattCurrentLower=None, thresholdBattCurrentUpper=None,
-                    threhsoldSoPaVoltageLower=None, thresholdSoPaVoltageUpper=None,
+                    thresholdSoPaVoltageLower=None, thresholdSoPaVoltageUpper=None,
                     thresholdSoPaCurrentLower=None, thresholdSoPaCurrentUpper=None,
                     thresholdChCtVoltageLower=None, thresholdChCtVoltageUpper=None,
                     thresholdChCtCurrentLower=None, thresholdChCtCurrentUpper=None,
@@ -91,7 +93,7 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     thresholdBCL = float(thresholdBattCurrentLower)
     thresholdBCU = float(thresholdBattCurrentUpper)
     # Solar Panel Thresholds
-    thresholdSPVL = float(threhsoldSoPaVoltageLower)
+    thresholdSPVL = float(thresholdSoPaVoltageLower)
     thresholdSPVU = float(thresholdSoPaVoltageUpper)
     thresholdSPCL = float(thresholdSoPaCurrentLower)
     thresholdSPCU = float(thresholdSoPaCurrentUpper)
@@ -128,9 +130,9 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     ccSPCurrent = random.randint(0, 1000)
     # ccSPVoltage = ccCVCCSVSC[2]
     # ccSPCurrent = ccCVCCSVSC[3]
-    # gpsLatLon = ReadGPS()
-    # gpsLatitude = gpsLatLon[0]
-    # gpsLongitude = gpsLatLon[1]
+    gpsLatLon = ReadGPS()
+    gpsLatitude = gpsLatLon[0]
+    gpsLongitude = gpsLatLon[1]
 
     # Check for notification purposes
     try:
@@ -218,8 +220,8 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     tempDictionary["solarpanelcurrent"] = ccSPCurrent
     tempDictionary["temperatureinner"] = temperatureValueI
     tempDictionary["temperatureouter"] = temperatureValueO
-    # tempDictionary["gpslatitude"] = gpsLatitude
-    # tempDictionary["gpslongitude"] = gpsLongitude
+    tempDictionary["gpslatitude"] = gpsLatitude
+    tempDictionary["gpslongitude"] = gpsLongitude
     # tempDictionary["ccvoltage"] = ccVoltage
     # tempDictionary["cccurrent"] = ccCurrent
 

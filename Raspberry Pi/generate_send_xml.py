@@ -123,10 +123,10 @@ def Main():
         thresholdSPVoltageUpper = thresholds["spvoltageupper"]
         thresholdSPCurrentLower = thresholds["spcurrentlower"]
         thresholdSPCurrentUpper = thresholds["spcurrentupper"]
-        # thresholdCCVoltageLower = thresholds["ccvoltagelower"]
-        # thresholdCCVoltageUpper = thresholds["ccvoltageupper"]
-        # thresholdCCCurrentLower = thresholds["cccurrentlower"]
-        # thresholdCCCurrentUpper = thresholds["cccurrentupper"]
+        thresholdCCVoltageLower = thresholds["ccvoltagelower"]
+        thresholdCCVoltageUpper = thresholds["ccvoltageupper"]
+        thresholdCCCurrentLower = thresholds["cccurrentlower"]
+        thresholdCCCurrentUpper = thresholds["cccurrentupper"]
         thresholdTemperatureLower = thresholds["temperaturelower"]
         thresholdTemperatureUpper = thresholds["temperatureupper"]
         # thresholdPhoto = thresholds["photofps"]
@@ -140,8 +140,8 @@ def Main():
                                                 thresholdCurrentLower, thresholdCurrentUpper,
                                                 thresholdSPVoltageLower, thresholdSPVoltageUpper,
                                                 thresholdSPCurrentLower, thresholdSPCurrentUpper,
-                                                None, None,  # thresholdCCVoltageLower, thresholdCCVoltageUpper,
-                                                None, None,  # thresholdCCCurrentLower, thresholdCCCurrentUpper,
+                                                thresholdCCVoltageLower, thresholdCCVoltageUpper,
+                                                thresholdCCCurrentLower, thresholdCCCurrentUpper,
                                                 thresholdTemperatureLower, thresholdTemperatureUpper,
                                                 thresholdSolarPanelToggle, thresholdExhaustToggle)
 
