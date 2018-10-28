@@ -77,7 +77,8 @@ def CheckAndNotify(batteryVoltageRead, batteryCurrentRead,
                    thresholdSPCL, thresholdSPCU,
                    thresholdCCVL, thresholdCCVU,
                    thresholdCCCL, thresholdCCCU,
-                   thresholdTL, thresholdTU):
+                   thresholdTIL, thresholdTIU,
+                   thresholdTOL, thresholdTOU):
     try:
         currentHour = int(datetime.now().strftime("%H")) # Uses military hours (0-23)
         if currentHour >= 9 and currentHour <= 16:
@@ -111,12 +112,12 @@ def CheckAndNotify(batteryVoltageRead, batteryCurrentRead,
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
                 # print(serverConfirmation.text.strip())
                 pipayload.pop("noti")
-            if temperatureValueI <= thresholdTL or temperatureValueI >= thresholdTU:
+            if temperatureValueI <= thresholdTIL or temperatureValueI >= thresholdTIU:
                 pipayload["noti"] = "temperatureI"
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
                 # print(serverConfirmation.text.strip())
                 pipayload.pop("noti")
-            if temperatureValueO <= thresholdTL or temperatureValueO >= thresholdTU: 
+            if temperatureValueO <= thresholdTOL or temperatureValueO >= thresholdTOU: 
                 pipayload["noti"] = "temperatureO"
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
                 # print(serverConfirmation.text.strip())
@@ -142,7 +143,8 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
                     thresholdSoPaCurrentLower=None, thresholdSoPaCurrentUpper=None,
                     thresholdChCtVoltageLower=None, thresholdChCtVoltageUpper=None,
                     thresholdChCtCurrentLower=None, thresholdChCtCurrentUpper=None,
-                    thresholdTemperatureLower=None, thresholdTemperatureUpper=None,
+                    thresholdTemperatureInnerLower=None, thresholdTemperatureInnerUpper=None,
+                    thresholdTemperatureOuterLower=None, thresholdTemperatureOuterUpper=None,
                     thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
     # Global Var
     global notificationThread
@@ -163,8 +165,10 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     thresholdCCCL = float(thresholdChCtCurrentLower)
     thresholdCCCU = float(thresholdChCtCurrentUpper)
     # Temperature Thresolds
-    thresholdTL = float(thresholdTemperatureLower)
-    thresholdTU = float(thresholdTemperatureUpper)
+    thresholdTIL = float(thresholdTemperatureInnerLower)
+    thresholdTIU = float(thresholdTemperatureInnerUpper)
+    thresholdTOL = float(thresholdTemperatureOuterLower)
+    thresholdTOU = float(thresholdTemperatureOuterUpper)
     
     # Dictionary to hold {Sensor => Value}
     print("Reading from sensors...")
@@ -199,7 +203,7 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     # Check for notification purposes
     if notificationThread == None or not notificationThread.isAlive():
         notificationThread = Thread(target=CheckAndNotify, args=(batteryVoltageRead, batteryCurrentRead, ccSPVoltage, ccSPCurrent, ccCVoltage, ccCCurrent, temperatureValueI, temperatureValueO,
-                                                                 thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCVL, thresholdCCVU, thresholdCCCL, thresholdCCCU, thresholdTL, thresholdTU,))
+                                                                 thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCVL, thresholdCCVU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, ))
         notificationThread.start()
 
     # ESSO Operations
@@ -219,14 +223,14 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
         # Code to power off/cut off solarpanel
     # Exhaust Operations
     if thresholdExhaustToggle == None:
-        if temperatureValueI >= thresholdTU:  # For Hot Air -> Cold Air
+        if temperatureValueI >= thresholdTIU:  # For Hot Air -> Cold Air
             if batteryVoltageRead >= thresholdBVL:
                 tempDictionary["exhaust"] = "on"
                 # Code to power on exhaust
             else:
                 tempDictionary["exhaust"] = "off"
                 # Code to power off exhaust
-        elif temperatureValueI <= thresholdTU:  # For Cold Air -> Hot Air
+        elif temperatureValueI <= thresholdTIU:  # For Cold Air -> Hot Air
             pass  # Do Nothing - Would require turning on the exhaust and changing AC to provide warmer air
     elif thresholdSolarPanelToggle == "ON":
         tempDictionary["exhaust"] = "on"
@@ -242,10 +246,10 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     tempDictionary["solarpanelcurrent"] = ccSPCurrent
     tempDictionary["temperatureinner"] = temperatureValueI
     tempDictionary["temperatureouter"] = temperatureValueO
-    tempDictionary["gpslatitude"] = gpsLatitude
-    tempDictionary["gpslongitude"] = gpsLongitude
     tempDictionary["chargecontrollervoltage"] = ccCVoltage
     tempDictionary["chargecontrollercurrent"] = ccCCurrent
+    tempDictionary["gps"] = [gpsLatitude]
+    tempDictionary["gps"].append(gpsLongitude)
 
     print("Done reading from sensors...")
     return tempDictionary

@@ -41,7 +41,7 @@ def GetAndSendStatus(): # Send XML to Server
                 
                 pipayload["xmlfile"] = tempFile
                 serverConfirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
+                print(serverConfirmation.text.strip())
                 pipayload.pop("xmlfile")
 
                 if serverConfirmation.text.strip() == "OK":
@@ -127,8 +127,10 @@ def Main():
         thresholdCCVoltageUpper = thresholds["ccvoltageupper"]
         thresholdCCCurrentLower = thresholds["cccurrentlower"]
         thresholdCCCurrentUpper = thresholds["cccurrentupper"]
-        thresholdTemperatureLower = thresholds["temperaturelower"]
-        thresholdTemperatureUpper = thresholds["temperatureupper"]
+        thresholdTemperatureInnerLower = thresholds["temperatureinnerlower"]
+        thresholdTemperatureInnerUpper = thresholds["temperatureinnerupper"]
+        thresholdTemperatureOuterLower = thresholds["temperatureouterlower"]
+        thresholdTemperatureOuterUpper = thresholds["temperatureouterupper"]
         # thresholdPhoto = thresholds["photofps"]
         # thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
         # thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
@@ -142,7 +144,8 @@ def Main():
                                                 thresholdSPCurrentLower, thresholdSPCurrentUpper,
                                                 thresholdCCVoltageLower, thresholdCCVoltageUpper,
                                                 thresholdCCCurrentLower, thresholdCCCurrentUpper,
-                                                thresholdTemperatureLower, thresholdTemperatureUpper,
+                                                thresholdTemperatureInnerLower, thresholdTemperatureInnerUpper,
+                                                thresholdTemperatureOuterLower, thresholdTemperatureOuterUpper,
                                                 thresholdSolarPanelToggle, thresholdExhaustToggle)
 
         # Generate Timestamps
