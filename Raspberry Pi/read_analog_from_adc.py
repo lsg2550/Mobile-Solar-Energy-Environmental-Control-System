@@ -22,16 +22,19 @@ spi = spidev.SpiDev()
 spi.open(0, 0)
 batteryVoltage = 0  # ESU - Voltage
 batteryCurrent = 1  # ESU - Current
-temperatureInner = 4  # Temperature inner sensor
 temperatureOuter = 5  # Temperature outer sensor
 
-# GPIO Devices
+# GPIO Devices = GPIO Pin #
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
+GPIO.cleanup()
 exhaust = 22
 engine = 23
-# GPIO.setup(exhaust.GPIO.OUT)
-# GPIO.setup(engine.GPIO.OUT)
+temperatureInner = 4 # Temperature inner sensor
+# GPIO.setup(exhaust, GPIO.OUT, pull_up_down = GPIO.PUD_DOWN)
+# GPIO.setup(engine, GPIO.OUT, pull_up_down = GPIO.PUD_DOWN)
+GPIO.setup(temperatureInner, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+
 
 # Serial Devices
 try:
