@@ -306,7 +306,8 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     ccSPCurrent = random.randint(0, 1000)
     # ccSPVoltage = ccCVCCSVSC[2]
     # ccSPCurrent = ccCVCCSVSC[3]
-    gpsLatLon = ReadGPS()
+    try: gpsLatLon = ReadGPS()
+    except: gpsLatLon = [GPS_COORD_INACCESSIBLE, 0, 0]
 
     # Check for notification purposes
     if notificationThread == None or not notificationThread.isAlive():
@@ -330,14 +331,14 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
         # Code to power off/cut off solarpanel
     # Exhaust Operations
     if thresholdExhaustToggle == None:
-        if temperatureValueI >= thresholdTIU:  # For Hot Air -> Cold Air
+        if temperatureValueI[1] >= thresholdTIU:  # For Hot Air -> Cold Air
             if batteryVoltageRead >= thresholdBVL:
                 tempDictionary["exhaust"] = "on"
                 # Code to power on exhaust
             else:
                 tempDictionary["exhaust"] = "off"
                 # Code to power off exhaust
-        elif temperatureValueI <= thresholdTIU:  # For Cold Air -> Hot Air
+        elif temperatureValueI[1] <= thresholdTIU:  # For Cold Air -> Hot Air
             pass  # Do Nothing - Would require turning on the exhaust and changing AC to provide warmer air
     elif thresholdSolarPanelToggle == "ON":
         tempDictionary["exhaust"] = "on"
