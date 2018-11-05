@@ -14,7 +14,7 @@ rpid = 0
 pipayload = {"rpid": rpid}
 
 # Initialize
-notificationThread = None
+NOTIFICATION_THREAD = None
 TEMPERATURE_NO_ERROR = 0
 TEMPERATURE_DATA_MISSING = 1
 TEMPERATURE_CHECKSUM_ERROR = 2
@@ -32,16 +32,20 @@ GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.cleanup()
 DHT11 = 22
-# exhaust = 23
-# engine = 24
-# GPIO.setup(exhaust, GPIO.OUT, pull_up_down = GPIO.PUD_DOWN)
-# GPIO.setup(engine, GPIO.OUT, pull_up_down = GPIO.PUD_DOWN)
+
+# Previous Temperature/Humidity/GPS Values
+prevTempValI = 0
+prevHumiValI = 0
+prevTempValO = 0
+prevHumiValO = 0
+prevLatitude = 0
+prevLongitude = 0
 
 # Serial Devices
 try: serialGPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
-except: pass
+except Exception as e: print(e)
 try: serialChargeController = serial.Serial(port = "/dev/ttyUSB0", baudrate = 9600, timeout = 1)
-except: pass
+except Exception as e: print(e)
 
 def ReadGPS():
     # Init
@@ -179,7 +183,6 @@ def ReadADCChannel(channel):
     adc = spi.xfer2([1, (8 + channel) << 4, 0])
     data = ((adc[1] & 3) << 8) + adc[2]
     return data
-
 def CheckAndNotify(batteryVoltageRead, batteryCurrentRead,
                    ccSPVoltage, ccSPCurrent,
                    ccCVoltage, ccCCurrent,
@@ -242,7 +245,6 @@ def ConvertVolts(data, place):
     return volts
 def CelciusToFahrenheit(temperatureCelcius): return ((temperatureCelcius * 9/5) + 32)
 def FahrenheitToCelcius(temperatureFahrenheit): return ((temperatureFahrenheit - 32) * 5/9)
-
 def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=None,
                     thresholdBattCurrentLower=None, thresholdBattCurrentUpper=None,
                     thresholdSoPaVoltageLower=None, thresholdSoPaVoltageUpper=None,
@@ -253,12 +255,18 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
                     thresholdTemperatureOuterLower=None, thresholdTemperatureOuterUpper=None,
                     thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
     # Init - Global Var 
-    global notificationThread
+    global NOTIFICATION_THREAD
     global TEMPERATURE_NO_ERROR
     global TEMPERATURE_DATA_MISSING
     global TEMPERATURE_CHECKSUM_ERROR
     global GPS_NO_ERROR
     global GPS_COORD_INACCESSIBLE
+    global prevTempValI
+    global prevHumiValI
+    global prevTempValO
+    global prevHumiValO
+    global prevLatitude
+    global prevLongitude
     
     # Thresholds
     # Battery Thresholds
@@ -295,6 +303,12 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     # GPIO BCM Format Pin(s) 22 - Inner and Outer Temperature Sensors
     temperatureValueI = ReadTemperatureSensor(DHT11)
     temperatureValueO = ReadTemperatureSensor(DHT11)
+    if temperatureValueI[0] == TEMPERATURE_NO_ERROR:
+        prevTempValI = temperatureValueI[1]
+        prevHumiValI = temperatureValueI[2]
+    if temperatureValueO[0] == TEMPERATURE_NO_ERROR:
+        prevTempValO = temperatureValueO[1]
+        prevHumiValO = temperatureValueO[2]
 
     # Read Serially - GPS and Charge Controller
     # ccCVCCSVSC = ReadChargeController()
@@ -306,13 +320,17 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     ccSPCurrent = random.randint(0, 1000)
     # ccSPVoltage = ccCVCCSVSC[2]
     # ccSPCurrent = ccCVCCSVSC[3]
-    try: gpsLatLon = ReadGPS()
+    try: 
+        gpsLatLon = ReadGPS()
+        if gpsLatLon[0] == GPS_NO_ERROR:
+            prevLatitude = gpsLatLon[1]
+            prevLongitude = gpsLatLon[2]
     except: gpsLatLon = [GPS_COORD_INACCESSIBLE, 0, 0]
 
     # Check for notification purposes
-    if notificationThread == None or not notificationThread.isAlive():
-        notificationThread = Thread(target=CheckAndNotify, args=(batteryVoltageRead, batteryCurrentRead, ccSPVoltage, ccSPCurrent, ccCVoltage, ccCCurrent, temperatureValueI, temperatureValueO, thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCVL, thresholdCCVU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, ))
-        notificationThread.start()
+    if NOTIFICATION_THREAD == None or not NOTIFICATION_THREAD.isAlive():
+        NOTIFICATION_THREAD = Thread(target=CheckAndNotify, args=(batteryVoltageRead, batteryCurrentRead, ccSPVoltage, ccSPCurrent, ccCVoltage, ccCCurrent, temperatureValueI, temperatureValueO, thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCVL, thresholdCCVU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, ))
+        NOTIFICATION_THREAD.start()
 
     # ESSO Operations
     # Solar Panel Operations
@@ -348,18 +366,36 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
         # Code to power off exhaust
 
     # Populate tempDictionary with recorded values
+    # Battery Values
     tempDictionary["batteryvoltage"] = batteryVoltageRead
     tempDictionary["batterycurrent"] = batteryCurrentRead
+    # Solar Panel Values
     tempDictionary["solarpanelvoltage"] = ccSPVoltage
     tempDictionary["solarpanelcurrent"] = ccSPCurrent
+    # Charge Controller Values
     tempDictionary["chargecontrollervoltage"] = ccCVoltage
     tempDictionary["chargecontrollercurrent"] = ccCCurrent
-    tempDictionary["temperatureinner"] = temperatureValueI[1]
-    tempDictionary["temperatureouter"] = temperatureValueO[1]
-    tempDictionary["humidityinner"] = temperatureValueI[2]
-    tempDictionary["humidityouter"] = temperatureValueO[2]
-    tempDictionary["gps"] = [gpsLatLon[1]]
-    tempDictionary["gps"].append(gpsLatLon[2])
+    # Temperature Values
+    if temperatureValueI[0] == TEMPERATURE_NO_ERROR:
+        tempDictionary["temperatureinner"] = temperatureValueI[1]
+        tempDictionary["humidityinner"] = temperatureValueI[2]
+    else:
+        tempDictionary["temperatureinner"] = prevTempValI
+        tempDictionary["humidityinner"] = prevHumiValI
+    if temperatureValueO[0] == TEMPERATURE_NO_ERROR:
+        tempDictionary["temperatureouter"] = temperatureValueO[1]
+        tempDictionary["humidityouter"] = temperatureValueO[2]
+    else:
+        tempDictionary["temperatureouter"] = prevTempValO
+        tempDictionary["humidityouter"] = prevHumiValO
+    # GPS Values
+    if gpsLatLon[0] == GPS_NO_ERROR:
+        tempDictionary["gps"] = [gpsLatLon[1]]
+        tempDictionary["gps"].append(gpsLatLon[2])
+    else:
+        tempDictionary["gps"] = [prevLatitude]
+        tempDictionary["gps"].append(prevLongitude)
 
+    # Return
     print("Done reading from sensors...")
     return tempDictionary

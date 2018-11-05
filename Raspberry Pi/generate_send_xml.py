@@ -131,9 +131,6 @@ def Main():
         thresholdTemperatureInnerUpper = thresholds["temperatureinnerupper"]
         thresholdTemperatureOuterLower = thresholds["temperatureouterlower"]
         thresholdTemperatureOuterUpper = thresholds["temperatureouterupper"]
-        # thresholdPhoto = thresholds["photofps"]
-        # thresholdSolarPanelToggle = thresholds["solartoggle"] if "solartoggle" in thresholds else None
-        # thresholdExhaustToggle = thresholds["exhausttoggle"] if "exhausttoggle" in thresholds else None
         thresholdSolarPanelToggle = None
         thresholdExhaustToggle = None
         
@@ -165,7 +162,7 @@ def Main():
         if sendThread == None or not sendThread.isAlive():
             sendThread = Thread(target=GetAndSendStatus, args=())
             sendThread.start()
-
+            
         # Send images in new thread
         if sendImagesThread == None or not sendImagesThread.isAlive():
             sendImagesThread = Thread(target=GetAndSendImages, args=())
