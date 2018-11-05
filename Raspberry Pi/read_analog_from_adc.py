@@ -14,36 +14,43 @@ rpid = 0
 pipayload = {"rpid": rpid}
 
 # Initialize
-delay = 1.0
 notificationThread = None
+TEMPERATURE_NO_ERROR = 0
+TEMPERATURE_DATA_MISSING = 1
+TEMPERATURE_CHECKSUM_ERROR = 2
+GPS_NO_ERROR = 0
+GPS_COORD_INACCESSIBLE = 1
 
 # Analog Devices = Channel #
 spi = spidev.SpiDev()
 spi.open(0, 0)
 batteryVoltage = 0  # ESU - Voltage
 batteryCurrent = 1  # ESU - Current
-temperatureOuter = 5  # Temperature outer sensor
 
 # GPIO Devices = GPIO Pin #
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.cleanup()
-exhaust = 22
-engine = 23
-temperatureInner = 4 # Temperature inner sensor
+DHT11 = 22
+# exhaust = 23
+# engine = 24
 # GPIO.setup(exhaust, GPIO.OUT, pull_up_down = GPIO.PUD_DOWN)
 # GPIO.setup(engine, GPIO.OUT, pull_up_down = GPIO.PUD_DOWN)
-GPIO.setup(temperatureInner, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-
 
 # Serial Devices
-try:
-    serialGPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
-    serialChargeController = serial.Serial(port = "/dev/ttyUSB0", baudrate = 9600, timeout = 1)
+try: serialGPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
+except: pass
+try: serialChargeController = serial.Serial(port = "/dev/ttyUSB0", baudrate = 9600, timeout = 1)
 except: pass
 
 def ReadGPS():
-    tLatLon = {}
+    # Init
+    global GPS_NO_ERROR
+    global GPS_COORD_INACCESSIBLE
+    timeoutMaxCount = 100
+    timeoutCounter = 0
+    tLatLon = []
+    
     while True:
         line = serialGPS.readline().decode("utf-8")
         data = line.split(",")
@@ -60,15 +67,118 @@ def ReadGPS():
             lonMin = lonGPS - lonDeg*100
             lonAct = lonDeg + (lonMin/60)
 
-            tLatLon["latitude"] = latAct
-            tLatLon["longitude"] = lonAct
+            tLatLon[0] = GPS_NO_ERROR
+            tLatLon[1] = latAct
+            tLatLon[2] = lonAct
+            break
+        # Test for Timeout - May be caused by the GPS module not being able to detect its location   
+        timeoutCounter += 1
+        if timeoutCounter > timeoutMaxCount:
+            tLatLon[0] = GPS_COORD_INACCESSIBLE
+            tLatLon[1] = latAct
+            tLatLon[2] = lonAct
             break
     return tLatLon
-
 def ReadChargeController():
     tCVCCSVSC = {}
     # line = serialChargeController.readlines(10)
     return tCVCCSVSC
+def ReadTemperatureSensor(sensorPin):
+    # Init
+    global DHT11
+    global TEMPERATURE_NO_ERROR
+    global TEMPERATURE_DATA_MISSING
+    global TEMPERATURE_CHECKSUM_ERROR
+
+    # 'Open' sensor to gather data
+    GPIO.setup(DHT11, GPIO.OUT)
+    GPIO.output(DHT11, GPIO.HIGH)
+    time.sleep(0.025)
+    GPIO.output(DHT11, GPIO.LOW)
+    time.sleep(0.020)
+    GPIO.setup(DHT11, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+
+    # Read data
+    timeoutMaxCount = 100
+    timeoutCounter = 0
+    tempPrev = -1
+    data = []
+    while True:
+        tempCurr = GPIO.input(DHT11)
+        data.append(tempCurr)
+        if tempPrev != tempCurr:
+            timeoutCounter = 0
+            tempPrev = tempCurr
+        else:
+            timeoutCounter += 1
+            if timeoutCounter > timeoutMaxCount: break
+
+    # Find Pull-Up-Down Position Lengths
+    ST_INIT_PUD_DOWN = 1
+    ST_INIT_PUD_UP = 2
+    ST_DATA_FIRST_PUD_DOWN = 3
+    ST_DATA_PUD_UP = 4
+    ST_DATA_PUD_DOWN = 5
+    initialState = ST_INIT_PUD_DOWN
+    listOfStateLengths = []
+    lengthCounter = 0
+    for i in range(len(data)):
+        currentPUDPosition = data[i]
+        lengthCounter += 1
+        if initialState == ST_INIT_PUD_DOWN:
+            if currentPUDPosition == GPIO.LOW: initialState = ST_INIT_PUD_UP
+            continue
+        if initialState == ST_INIT_PUD_UP:
+            if currentPUDPosition == GPIO.HIGH: initialState = ST_DATA_FIRST_PUD_DOWN
+            continue
+        if initialState == ST_DATA_FIRST_PUD_DOWN:
+            if currentPUDPosition == GPIO.LOW: initialState = ST_DATA_PUD_UP
+            continue
+        if initialState == ST_DATA_PUD_UP:
+            if currentPUDPosition == GPIO.HIGH:
+                initialState = ST_DATA_PUD_DOWN
+                lengthCounter = 0
+            continue
+        if initialState == ST_DATA_PUD_DOWN:
+            if currentPUDPosition == GPIO.LOW:
+                initialState = ST_DATA_PUD_UP
+                listOfStateLengths.append(lengthCounter)
+            continue
+    if len(listOfStateLengths) != 40: return [TEMPERATURE_DATA_MISSING, 0, 0]
+    
+    # Find Bits
+    shortestPUD = float('Inf')
+    longestPUD = 0
+    listOfBits = []
+    for i in range(0, len(listOfStateLengths)):
+        length = listOfStateLengths[i]
+        if length < shortestPUD: shortestPUD = length
+        if length > longestPUD: longestPUD = length
+    medianPUDPosition = shortestPUD + ((longestPUD - shortestPUD) / 2)
+    for i in range(0, len(listOfStateLengths)):
+        if listOfStateLengths[i] > medianPUDPosition: bit = True
+        else: bit = False
+        listOfBits.append(bit)
+    
+    # Convert Bits to Bytes
+    listOfBytes = []
+    byte = 0
+    for i in range(0, len(listOfBits)):
+        byte = byte << 1
+        if listOfBits[i]: byte = byte | 1
+        else: byte = byte | 0
+        if (i + 1) % 8 == 0:
+            listOfBytes.append(byte)
+            byte = 0
+    checksum = listOfBytes[0] + listOfBytes[1] + listOfBytes[2] + listOfBytes[3] & 255
+    if listOfBytes[4] != checksum: return [TEMPERATURE_CHECKSUM_ERROR, 0, 0]
+
+    # Return Status, Temperature, Humidity
+    return [TEMPERATURE_NO_ERROR, listOfBytes[2], listOfBytes[0]]
+def ReadADCChannel(channel):
+    adc = spi.xfer2([1, (8 + channel) << 4, 0])
+    data = ((adc[1] & 3) << 8) + adc[2]
+    return data
 
 def CheckAndNotify(batteryVoltageRead, batteryCurrentRead,
                    ccSPVoltage, ccSPCurrent,
@@ -126,17 +236,10 @@ def CheckAndNotify(batteryVoltageRead, batteryCurrentRead,
                 # print(serverConfirmation.text.strip())
                 pipayload.pop("noti")
     except: pass  # Unable to connect to internet, so just disregard sending a notification
-
-def ReadChannel(channel):  # Reads from given channel
-    adc = spi.xfer2([1, (8 + channel) << 4, 0])
-    data = ((adc[1] & 3) << 8) + adc[2]
-    return data
-
 def ConvertVolts(data, place):
     volts = (data * 3.3) / float(1023)  # TODO: Change this
     volts = round(volts, place)
     return volts
-
 def CelciusToFahrenheit(temperatureCelcius): return ((temperatureCelcius * 9/5) + 32)
 def FahrenheitToCelcius(temperatureFahrenheit): return ((temperatureFahrenheit - 32) * 5/9)
 
@@ -149,9 +252,15 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
                     thresholdTemperatureInnerLower=None, thresholdTemperatureInnerUpper=None,
                     thresholdTemperatureOuterLower=None, thresholdTemperatureOuterUpper=None,
                     thresholdSolarPanelToggle=None, thresholdExhaustToggle=None):
-    # Global Var
+    # Init - Global Var 
     global notificationThread
+    global TEMPERATURE_NO_ERROR
+    global TEMPERATURE_DATA_MISSING
+    global TEMPERATURE_CHECKSUM_ERROR
+    global GPS_NO_ERROR
+    global GPS_COORD_INACCESSIBLE
     
+    # Thresholds
     # Battery Thresholds
     thresholdBVL = float(thresholdBattVoltageLower)
     thresholdBVU = float(thresholdBattVoltageUpper)
@@ -177,17 +286,15 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     print("Reading from sensors...")
     tempDictionary = {}
 
-    # Channel 0 and 1 - Battery
-    # batteryVoltageRead = ReadChannel(batteryVoltage)
-    # batteryCurrentRead = ReadChannel(batteryCurrent)
+    # ADC Channel 0 and 1 - Battery
+    # batteryVoltageRead = ReadADCChannel(batteryVoltage)
+    # batteryCurrentRead = ReadADCChannel(batteryCurrent)
     batteryVoltageRead = random.randint(11, 14)
     batteryCurrentRead = random.randint(0, 1000)
 
-    # Channel 4 and 5 - Inner and Outer Temperature Sensors
-    # temperatureValueI = ReadChannel(temperatureInner) 
-    # temperatureValueO = ReadChannel(temperatureOuter) 
-    temperatureValueI = random.randint(0, 100)
-    temperatureValueO = random.randint(0, 100)
+    # GPIO BCM Format Pin(s) 22 - Inner and Outer Temperature Sensors
+    temperatureValueI = ReadTemperatureSensor(DHT11)
+    temperatureValueO = ReadTemperatureSensor(DHT11)
 
     # Read Serially - GPS and Charge Controller
     # ccCVCCSVSC = ReadChargeController()
@@ -200,13 +307,10 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     # ccSPVoltage = ccCVCCSVSC[2]
     # ccSPCurrent = ccCVCCSVSC[3]
     gpsLatLon = ReadGPS()
-    gpsLatitude = gpsLatLon["latitude"]
-    gpsLongitude = gpsLatLon["longitude"]
 
     # Check for notification purposes
     if notificationThread == None or not notificationThread.isAlive():
-        notificationThread = Thread(target=CheckAndNotify, args=(batteryVoltageRead, batteryCurrentRead, ccSPVoltage, ccSPCurrent, ccCVoltage, ccCCurrent, temperatureValueI, temperatureValueO,
-                                                                 thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCVL, thresholdCCVU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, ))
+        notificationThread = Thread(target=CheckAndNotify, args=(batteryVoltageRead, batteryCurrentRead, ccSPVoltage, ccSPCurrent, ccCVoltage, ccCCurrent, temperatureValueI, temperatureValueO, thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCVL, thresholdCCVU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, ))
         notificationThread.start()
 
     # ESSO Operations
@@ -242,17 +346,19 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
         tempDictionary["exhaust"] = "off"
         # Code to power off exhaust
 
-    # Fill tempDictionary with recorded values
+    # Populate tempDictionary with recorded values
     tempDictionary["batteryvoltage"] = batteryVoltageRead
     tempDictionary["batterycurrent"] = batteryCurrentRead
     tempDictionary["solarpanelvoltage"] = ccSPVoltage
     tempDictionary["solarpanelcurrent"] = ccSPCurrent
-    tempDictionary["temperatureinner"] = temperatureValueI
-    tempDictionary["temperatureouter"] = temperatureValueO
     tempDictionary["chargecontrollervoltage"] = ccCVoltage
     tempDictionary["chargecontrollercurrent"] = ccCCurrent
-    tempDictionary["gps"] = [gpsLatitude]
-    tempDictionary["gps"].append(gpsLongitude)
+    tempDictionary["temperatureinner"] = temperatureValueI[1]
+    tempDictionary["temperatureouter"] = temperatureValueO[1]
+    tempDictionary["humidityinner"] = temperatureValueI[2]
+    tempDictionary["humidityouter"] = temperatureValueO[2]
+    tempDictionary["gps"] = [gpsLatLon[1]]
+    tempDictionary["gps"].append(gpsLatLon[2])
 
     print("Done reading from sensors...")
     return tempDictionary

@@ -1,126 +1,102 @@
 import RPi.GPIO as GPIO
 import time
 
-# GPIO Init
+# GPIO Devices = GPIO Pin #
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.cleanup()
-dht11 = 22
-timeoutCount = 100
-
-def bin2dec(string_num): return str(int(string_num, 2))
+DHT11 = 22
 
 while True:
+    global DHT11
+
     # 'Open' sensor to gather data
-    GPIO.setup(dht11, GPIO.OUT)
-    GPIO.output(dht11, GPIO.HIGH)
-    time.sleep(0.050)
-    GPIO.output(dht11, GPIO.LOW)
+    GPIO.setup(DHT11, GPIO.OUT)
+    GPIO.output(DHT11, GPIO.HIGH)
     time.sleep(0.025)
+    GPIO.output(DHT11, GPIO.LOW)
+    time.sleep(0.020)
+    GPIO.setup(DHT11, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
     # Read data
-    GPIO.setup(dht11, GPIO.IN, pull_up_down = GPIO.PUD_UP)
-    unchangedCount = 0
-    tempLast = -1
+    timeoutMaxCount = 100
+    timeoutCounter = 0
+    tempPrev = -1
     data = []
     while True:
-        tempCurr = GPIO.input(dht11)
+        tempCurr = GPIO.input(DHT11)
         data.append(tempCurr)
-        if tempLast != tempCurr:
-            unchangedCount = 0
-            tempLast = tempCurr
+        if tempPrev != tempCurr:
+            timeoutCounter = 0
+            tempPrev = tempCurr
         else:
-            unchangedCount += 1
-            if unchangedCount > timeoutCount: break
+            timeoutCounter += 1
+            if timeoutCounter > timeoutMaxCount: break
 
-    TemperatureBit = ""
-    HumidityBit = ""
-    bit_count = 0
-    count = 0
-    crc = ""
-    tmp = 0
+    # Find Pull-Up-Down Position Lengths
+    ST_INIT_PUD_DOWN = 1
+    ST_INIT_PUD_UP = 2
+    ST_DATA_FIRST_PUD_DOWN = 3
+    ST_DATA_PUD_UP = 4
+    ST_DATA_PUD_DOWN = 5
+    initialState = ST_INIT_PUD_DOWN
+    listOfStateLengths = []
+    lengthCounter = 0
+    for i in range(len(data)):
+        currentPUDPosition = data[i]
+        lengthCounter += 1
+        if initialState == ST_INIT_PUD_DOWN:
+            if currentPUDPosition == GPIO.LOW: initialState = ST_INIT_PUD_UP
+            continue
+        if initialState == ST_INIT_PUD_UP:
+            if currentPUDPosition == GPIO.HIGH: initialState = ST_DATA_FIRST_PUD_DOWN
+            continue
+        if initialState == ST_DATA_FIRST_PUD_DOWN:
+            if currentPUDPosition == GPIO.LOW: initialState = ST_DATA_PUD_UP
+            continue
+        if initialState == ST_DATA_PUD_UP:
+            if currentPUDPosition == GPIO.HIGH:
+                initialState = ST_DATA_PUD_DOWN
+                lengthCounter = 0
+            continue
+        if initialState == ST_DATA_PUD_DOWN:
+            if currentPUDPosition == GPIO.LOW:
+                initialState = ST_DATA_PUD_UP
+                listOfStateLengths.append(lengthCounter)
+            continue
+    if len(listOfStateLengths) != 40: 
+        print("MISSING DATA ERROR, {}, {}".format(0, 0))
+        continue
+    
+    # Find Bits
+    shortestPUD = float('Inf')
+    longestPUD = 0
+    listOfBits = []
+    for i in range(0, len(listOfStateLengths)):
+        length = listOfStateLengths[i]
+        if length < shortestPUD: shortestPUD = length
+        if length > longestPUD: longestPUD = length
+    medianPUDPosition = shortestPUD + ((longestPUD - shortestPUD) / 2)
+    for i in range(0, len(listOfStateLengths)):
+        if listOfStateLengths[i] > medianPUDPosition: bit = True
+        else: bit = False
+        listOfBits.append(bit)
+    
+    # Convert Bits to Bytes
+    listOfBytes = []
+    byte = 0
+    for i in range(0, len(listOfBits)):
+        byte = byte << 1
+        if listOfBits[i]: byte = byte | 1
+        else: byte = byte | 0
+        if (i + 1) % 8 == 0:
+            listOfBytes.append(byte)
+            byte = 0
+    checksum = listOfBytes[0] + listOfBytes[1] + listOfBytes[2] + listOfBytes[3] & 255
+    if listOfBytes[4] != checksum: 
+        print("CHECKSUM ERROR, {}, {}".format(0, 0))
+        continue
 
-    try:
-        # Find State Positions
-        STATE_INIT_PULL_DOWN = 1
-        STATE_INIT_PULL_UP = 2
-        STATE_DATA_FIRST_PULL_DOWN = 3
-        STATE_DATA_PULL_UP = 4
-        STATE_DATA_PULL_DOWN = 5
-        state = STATE_INIT_PULL_DOWN
-        lengths = []
-        currentLength = 0
-        
-        for i in range(len(data)):
-            current = data[i]
-            currentLength += 1
-            
-            if state == STATE_INIT_PULL_DOWN:
-                if current == GPIO.LOW:
-                    state = STATE_INIT_PULL_UP
-                    continue
-                else: continue
-                
-            if state == STATE_INIT_PULL_UP:
-                if current == GPIO.HIGH:
-                    state = STATE_DATA_FIRST_PULL_DOWN
-                    continue
-                else: continue
-                
-            if state == STATE_DATA_FIRST_PULL_DOWN:
-                if current == GPIO.LOW:
-                    state = STATE_DATA_PULL_UP
-                    continue
-                else: continue
-                
-            if state == STATE_DATA_PULL_UP:
-                if current == GPIO.HIGH:
-                    currentLength = 0
-                    state = STATE_DATA_PULL_DOWN
-                    continue
-                else: continue
-                
-            if state == STATE_DATA_PULL_DOWN:
-                if current == GPIO.LOW:
-                    lengths.append(currentLength)
-                    state = STATE_DATA_PULL_UP
-                    continue
-                else: continue
-        
-        if len(lengths) != 40:
-            print("MISSING DATA")
-            continue
-        
-        # Find Bits
-        shortest_pull_up = 1000
-        longest_pull_up = 0
-        bits = []
-        for i in range(0, len(lengths)):
-            length = lengths[i]
-            if length < shortest_pull_up: shortest_pull_up = length
-            if length > longest_pull_up: longest_pull_up = length
-        halfwayPeriod = shortest_pull_up + ((longest_pull_up - shortest_pull_up) / 2)
-        for i in range(0, len(lengths)):
-            bit = False
-            if lengths[i] > halfwayPeriod: bit = True
-            bits.append(bit)
-        
-        # Convert Bits to Bytes
-        bytes = []
-        byte = 0
-        for i in range(0, len(bits)):
-            byte = byte << 1
-            if bits[i]: byte = byte | 1
-            else: byte = byte | 0
-            if (i + 1)%8 == 0:
-                bytes.append(byte)
-                byte = 0
-        checksum = bytes[0] + bytes[1] + bytes[2] + bytes[3] & 255
-        if bytes[4] != checksum:
-            print("CHECKSUM ERROR")
-            continue
-        
-        print("No Error, {}, {}".format(str(bytes[2]), str(bytes[0])))
-    except Exception as e:
-        print(e)
+    # Return Status, Temperature, Humidity
+    print("NO ERROR, {}, {}".format(str(listOfBytes[2]), str(listOfBytes[0])))
     time.sleep(1)
