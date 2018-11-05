@@ -53,7 +53,7 @@ def ReadGPS():
     global GPS_COORD_INACCESSIBLE
     timeoutMaxCount = 100
     timeoutCounter = 0
-    tLatLon = []
+    tLatLon = [None, None, None]
     
     while True:
         line = serialGPS.readline().decode("utf-8")
@@ -320,12 +320,8 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     ccSPCurrent = random.randint(0, 1000)
     # ccSPVoltage = ccCVCCSVSC[2]
     # ccSPCurrent = ccCVCCSVSC[3]
-    try: 
-        gpsLatLon = ReadGPS()
-        if gpsLatLon[0] == GPS_NO_ERROR:
-            prevLatitude = gpsLatLon[1]
-            prevLongitude = gpsLatLon[2]
-    except: gpsLatLon = [GPS_COORD_INACCESSIBLE, 0, 0]
+    try:  gpsLatLon = ReadGPS()
+    except Exception as e: gpsLatLon = [GPS_COORD_INACCESSIBLE, 0, 0]
 
     # Check for notification purposes
     if NOTIFICATION_THREAD == None or not NOTIFICATION_THREAD.isAlive():
@@ -392,6 +388,8 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     if gpsLatLon[0] == GPS_NO_ERROR:
         tempDictionary["gps"] = [gpsLatLon[1]]
         tempDictionary["gps"].append(gpsLatLon[2])
+        prevLatitude = gpsLatLon[1]
+        prevLongitude = gpsLatLon[2]
     else:
         tempDictionary["gps"] = [prevLatitude]
         tempDictionary["gps"].append(prevLongitude)
