@@ -93,7 +93,7 @@ def CheckAndNotify(batteryVoltageRead, batteryCurrentRead,
                    ccSPVoltage, ccSPCurrent,
                    ccCVoltage, ccCCurrent,
                    temperatureValueI, temperatureValueO,
-                   humidityValueI, humidityValueO
+                   humidityValueI, humidityValueO,
                    thresholdBVL, thresholdBVU,
                    thresholdBCL, thresholdBCU,
                    thresholdSPVL, thresholdSPVU,
@@ -257,14 +257,14 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
         # Code to power off/cut off solarpanel
     # Exhaust Operations
     if thresholdExhaustToggle == None:
-        if temperatureValueI[1] >= thresholdTIU:  # For Hot Air -> Cold Air
+        if temperatureInner >= thresholdTIU:  # For Hot Air -> Cold Air
             if batteryVoltageRead >= thresholdBVL:
                 tempDictionary["exhaust"] = "on"
                 # Code to power on exhaust
             else:
                 tempDictionary["exhaust"] = "off"
                 # Code to power off exhaust
-        elif temperatureValueI[1] <= thresholdTIU:  # For Cold Air -> Hot Air
+        elif temperatureInner <= thresholdTIU:  # For Cold Air -> Hot Air
             pass  # Do Nothing - Would require turning on the exhaust and changing AC to provide warmer air
     elif thresholdSolarPanelToggle == "ON":
         tempDictionary["exhaust"] = "on"
