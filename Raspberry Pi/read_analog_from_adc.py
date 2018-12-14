@@ -24,14 +24,16 @@ GPS_COORD_INACCESSIBLE = 1
 # Analog Devices = Channel #
 spi = spidev.SpiDev()
 spi.open(0, 0)
-batteryVoltage = 0  # ESU - Voltage
+batteryVoltage = 2  # ESU - Voltage
 batteryCurrent = 1  # ESU - Current
 
 # GPIO Devices = GPIO Pin #
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.cleanup()
-DHT11 = 22
+DHT11_I = 22
+DHT11_O = 17
+
 
 # Previous Temperature/Humidity/GPS Values
 prevTempValI = 0
@@ -43,8 +45,6 @@ prevLongitude = 0
 
 # Serial Devices
 try: serialGPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
-except Exception as e: print(e)
-try: serialChargeController = serial.Serial(port = "/dev/ttyUSB0", baudrate = 9600, timeout = 1)
 except Exception as e: print(e)
 
 def ReadGPS():
@@ -89,18 +89,17 @@ def ReadChargeController():
     return tCVCCSVSC
 def ReadTemperatureSensor(sensorPin):
     # Init
-    global DHT11
     global TEMPERATURE_NO_ERROR
     global TEMPERATURE_DATA_MISSING
     global TEMPERATURE_CHECKSUM_ERROR
 
     # 'Open' sensor to gather data
-    GPIO.setup(DHT11, GPIO.OUT)
-    GPIO.output(DHT11, GPIO.HIGH)
+    GPIO.setup(sensorPin, GPIO.OUT)
+    GPIO.output(sensorPin, GPIO.HIGH)
     time.sleep(0.025)
-    GPIO.output(DHT11, GPIO.LOW)
+    GPIO.output(sensorPin, GPIO.LOW)
     time.sleep(0.020)
-    GPIO.setup(DHT11, GPIO.IN, pull_up_down = GPIO.PUD_UP)
+    GPIO.setup(sensorPin, GPIO.IN, pull_up_down = GPIO.PUD_UP)
 
     # Read data
     timeoutMaxCount = 100
@@ -108,7 +107,7 @@ def ReadTemperatureSensor(sensorPin):
     tempPrev = -1
     data = []
     while True:
-        tempCurr = GPIO.input(DHT11)
+        tempCurr = GPIO.input(sensorPin)
         data.append(tempCurr)
         if tempPrev != tempCurr:
             timeoutCounter = 0
@@ -295,14 +294,13 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     tempDictionary = {}
 
     # ADC Channel 0 and 1 - Battery
-    # batteryVoltageRead = ReadADCChannel(batteryVoltage)
+    batteryVoltageRead = ReadADCChannel(batteryVoltage)
     # batteryCurrentRead = ReadADCChannel(batteryCurrent)
-    batteryVoltageRead = random.randint(11, 14)
     batteryCurrentRead = random.randint(0, 1000)
 
     # GPIO BCM Format Pin(s) 22 - Inner and Outer Temperature Sensors
-    temperatureValueI = ReadTemperatureSensor(DHT11)
-    temperatureValueO = ReadTemperatureSensor(DHT11)
+    temperatureValueI = ReadTemperatureSensor(DHT11_I)
+    temperatureValueO = ReadTemperatureSensor(DHT11_O)
     if temperatureValueI[0] == TEMPERATURE_NO_ERROR:
         prevTempValI = temperatureValueI[1]
         prevHumiValI = temperatureValueI[2]
