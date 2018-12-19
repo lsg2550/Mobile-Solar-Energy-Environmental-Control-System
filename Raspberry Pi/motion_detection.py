@@ -1,221 +1,236 @@
-#import
-from picamera.array import PiRGBArray
-from picamera import PiCamera
-from threading import Thread
-from datetime import datetime
-from pytz import timezone
-import shutil
-import imutils
-import time
-import cv2
-import os
-import re
+# import
+from picamera.array import PiRGBArray # PiCamera Module - Specifically the type of frames we want
+from picamera import PiCamera # PiCamera Module
+from threading import Thread # Threading
+from datetime import datetime # DateTime
+from pytz import timezone # Timezone
+import shutil # File Operations
+import imutils # Image Utilities
+import time # Time
+import cv2 # OpenCV
+import os # System Calls
+import re # Regex
 
-# Minute/Detect Directories
-prevMinuteDir = "PrevMinuteDir/"
-currMinuteDir = "CurrMinuteDir/"
-detectionDir = "DetectDir/"
-
-# Date & Time Format
-dateAndTimeFormat = "%Y-%m-%d %H:%M:%S"
-dateAndTimeFormatTwo = "%A %d %B %Y %I:%M:%S%p"
-
-# RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
-rpid = 0
+# Previous/Current Minute Directories & Detect Directories
+PREVIOUS_MINUTE_DIRECTORY = "PrevMinuteDir/"
+CURRENT_MINUTE_DIRECTORY = "CurrMinuteDir/"
+DETECTION_DIRECTORY = "DetectDir/"
+DATE_AND_TIME_FORMAT = "%Y-%m-%d %H:%M:%S" # Date & time format for file names and image embedding
+RPID = 0 # RaspberryPi Identification Number (rpid)
+WIDTH = 640 # Max Width
+HEIGHT = 480 # Max Height
+FRAMERATE = 30 # Max Framerate
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
-    # Initialize
-    detectionAndFileNamePath = detectionDir + filenameSafeCurrentTime
-    if not os.path.isdir(detectionAndFileNamePath): os.mkdir(detectionAndFileNamePath)
-    prevMinuteDirList = sorted(os.listdir(prevMinuteDir))
-    currMinuteDirList = sorted(os.listdir(currMinuteDir))
-    currFrameIndex = currMinuteDir.find(frameName)
-    indexCounter = 0
+    # Set globals
+    global PREVIOUS_MINUTE_DIRECTORY
+    global CURRENT_MINUTE_DIRECTORY
+    global DATE_AND_TIME_FORMAT
+    global DETECTION_DIRECTORY
+    global FRAMERATE
+    global HEIGHT
+    global WIDTH
+    global RPID
 
-    # Capture an image every N seconds before
+    # Create a detection directory for this instance of motion detected
+    detection_and_filename_path = DETECTION_DIRECTORY + filenameSafeCurrentTime 
+    if not os.path.isdir(detection_and_filename_path): os.mkdir(detection_and_filename_path)
+
+    # Load names of files in the previous/current directories
+    previous_minute_directory_list = sorted(os.listdir(PREVIOUS_MINUTE_DIRECTORY))
+    current_minute_directory_list = sorted(os.listdir(CURRENT_MINUTE_DIRECTORY))
+    current_frame_index = CURRENT_MINUTE_DIRECTORY.find(frameName) # Find the frame index where motion was detected
+    index_counter = 0 # Counter to keep track of how many frames we collect before and after motion detection
+
+    # Grab N frames before motion was detected
     try:
-        for currMinuteImg in currMinuteDirList[currFrameIndex:currFrameIndex - secondsThreshold:-1]:
-            currMinuteImgFP = os.path.join(currMinuteDir, currMinuteImg)
-            shutil.copy(currMinuteImgFP, detectionAndFileNamePath)
-            indexCounter += 1
-    except IndexError:
+        for current_minute_frame in current_minute_directory_list[current_frame_index:current_frame_index - secondsThreshold:-1]:
+            current_minute_frame_full_path = os.path.join(CURRENT_MINUTE_DIRECTORY, current_minute_frame)
+            shutil.copy(current_minute_frame_full_path, detection_and_filename_path)
+            index_counter += 1
+    except IndexError as ie: # We've reached EoF for the current directory, move on to the prev (if it exists)
         try:
-            sizeOfList = len(prevMinuteDirList)
-            for prevMinuteImg in prevMinuteDirList[:sizeOfList - indexCounter:-1]:
-                prevMinuteImgFP = os.path.join(prevMinuteDir, prevMinuteImg)
-                shutil.copy(prevMinuteImgFP, detectionAndFileNamePath)
-                indexCounter += 1
-        except: pass # Movement must have been caught in the beginning of the loop
+            size_of_previous_directory_list = len(previous_minute_directory_list)
+            for previous_minute_frame in previous_minute_directory_list[:size_of_previous_directory_list - index_counter:-1]:
+                previous_minute_frame_full_path = os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_minute_frame)
+                shutil.copy(previous_minute_frame_full_path, detection_and_filename_path)
+                index_counter += 1
+        except Exception as e: pass # Movement has been caught in the beginning of the loop - thus there are no images to grab in the previous directory
 
-    # Capture an image every N seconds after
-    timeoutMax = 15
-    timeoutCounter = 0
-    indexCounter = 0
-    indexHour = 0
-    indexMinute = 0
-    indexSecond = 0
-    strHour = ""
-    strMinute = ""
-    strSecond = ""
+    # Grab N frames after motion was detected
+    timeout_max = 15
+    timeout_counter = 0
+    index_counter = 0
+    index_hour = 0
+    index_minute = 0
+    index_second = 0
+    string_hour = ""
+    string_minute = ""
+    string_second = ""
     while True:
-        if indexCounter == secondsThreshold + 1: break
-        if indexSecond == 0: 
+        if index_counter == secondsThreshold + 1: break # If the N frames has been collected, break
+        # Find current time (hour-minute-second), then split all 3 into an array [hour, minute, second]
+        if index_second == 0: 
             matches = re.findall(r'[0-9]{2}-[0-9]{2}-[0-9]{2}$', filenameSafeCurrentTime)
             splits = re.split(r'-', matches[0])
-            indexHour = int(splits[0])
-            indexMinute = int(splits[1])
-            indexSecond = int(splits[2])
+            index_hour = int(splits[0])
+            index_minute = int(splits[1])
+            index_second = int(splits[2])
             # print(splits)
             continue
 
         # Get new image name
-        strHour = str(indexHour)
-        strMinute = str(indexMinute)
-        strSecond = str(indexSecond)
-        if len(strHour) == 1: strHour = "0" + strHour
-        if len(strMinute) == 1: strMinute = "0" + strMinute
-        if len(strSecond) == 1: strSecond = "0" + strSecond
-        getSecondsAndClock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}$', strHour + "-" + strMinute + "-" + strSecond, filenameSafeCurrentTime) 
-        frameFP = currMinuteDir + str(rpid) + " - capture (" + getSecondsAndClock + ").jpg"
-        # print(frameFP)
+        string_hour = str(index_hour)
+        string_minute = str(index_minute)
+        string_second = str(index_second)
+        if len(string_hour) == 1: string_hour = "0" + string_hour
+        if len(string_minute) == 1: string_minute = "0" + string_minute
+        if len(string_second) == 1: string_second = "0" + string_second
+        get_seconds_and_clock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}$', string_hour + "-" + string_minute + "-" + string_second, filenameSafeCurrentTime) 
+        frame_full_path = CURRENT_MINUTE_DIRECTORY + str(RPID) + " - capture (" + get_seconds_and_clock + ").jpg"
+        # print(frame_full_path)
 
-        # Move image to minute directory
-        time.sleep(1)
-        if os.path.exists(frameFP): 
-            shutil.copy(frameFP, detectionAndFileNamePath)
+        # Move image to detection directory
+        time.sleep(0.5)
+        if os.path.exists(frame_full_path): 
+            shutil.copy(frame_full_path, detection_and_filename_path)
             
             #Time/Clock Checks
-            if indexSecond + 1 == 60:
-                indexSecond = 0 # Reset seconds to 0 
-                if indexMinute + 1 == 60: 
-                    indexMinute = 0 # Reset minutes to 0
-                    if indexHour + 1 == 13:
-                        indexHour = 1 # Reset hours to 1
-                    else: indexHour += 1 # Increment hour
-                else: indexMinute += 1 # Increment minute
-            else: indexSecond += 1
-            
-            indexCounter += 1
-            timeoutCounter = 0
+            if index_second + 1 == 60:
+                index_second = 0 # Reset seconds to 0 
+                if index_minute + 1 == 60: 
+                    index_minute = 0 # Reset minutes to 0
+                    if index_hour + 1 == 13: index_hour = 1 # Reset hours to 1
+                    else: index_hour += 1 # Increment hour
+                else: index_minute += 1 # Increment minute
+            else: index_second += 1
+            index_counter += 1
+            timeout_counter = 0
         else: 
-            timeoutCounter += 1
-            if timeoutCounter == timeoutMax: break
+            timeout_counter += 1
+            if timeout_counter == timeout_max: break
 
 def Main(programTime=None):
-    # Initialize
-    minWidth = 640
-    minHeight = 480
+    # Set globals
+    global PREVIOUS_MINUTE_DIRECTORY
+    global CURRENT_MINUTE_DIRECTORY
+    global DATE_AND_TIME_FORMAT
+    global DETECTION_DIRECTORY
+    global FRAMERATE
+    global HEIGHT
+    global WIDTH
+    global RPID
+
+    # Initialize camera
     try:
-        camera = PiCamera()
-        camera.resolution = (minWidth, minHeight)
-        camera.framerate = 30
-        rawCapture = PiRGBArray(camera, size=(minWidth, minHeight))
+        CAMERA = PiCamera()
+        CAMERA.resolution = (WIDTH, HEIGHT)
+        CAMERA.framerate = FRAMERATE
+        raw_capture = PiRGBArray(CAMERA, size=(WIDTH, HEIGHT))
         time.sleep(0.1)
     except Exception as e:
         print("No recording device found...\n{}".format(e))
         return
-    startTime = time.time() if programTime == None else programTime
-    intrusionThread = None
-    firstFrame = None
+
+    # Initialize/Synchronize program time
+    START_TIME = time.time() if programTime == None else programTime
+    INTRUSION_THREAD = None # Thread for creating detection directories when motion is detected
+    first_frame = None # This frame is used to compare against the next frame to determine changes (or motion) between the frames
 
     # Begin monitoring
-    for image in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
+    for image in CAMERA.capture_continuous(raw_capture, format="bgr", use_video_port=True):
         # Read frame
         frame = image.array
-        text = "Clear"
+        frame_text = "Clear"
 
         # Convert frame to specified size and perform color and blur operations for comparisons
         #frame = imutils.resize(frame, width = minArea)
-        frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frameGray = cv2.GaussianBlur(frameGray, (21, 21), 0)
+        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        frame_gray = cv2.GaussianBlur(frame_gray, (21, 21), 0)
 
         # Initial run only - no previous frame to compare so set the converted frame to the firstFrame and continue to the next iteration of the loop
-        if firstFrame is None:
-            firstFrame = frameGray
-            rawCapture.truncate(0)
+        if first_frame is None:
+            first_frame = frame_gray
+            raw_capture.truncate(0)
             continue
 
         # Compute the difference between the first frame and the new frame - Perform image operations to find contours
-        frameDelta = cv2.absdiff(firstFrame, frameGray)
-        thresh = cv2.threshold(frameDelta, 25, 255, cv2.THRESH_BINARY)[1]
+        frame_delta = cv2.absdiff(first_frame, frame_gray)
+        thresh = cv2.threshold(frame_delta, 25, 255, cv2.THRESH_BINARY)[1]
         thresh = cv2.dilate(thresh, None, iterations = 2)
         contours = cv2.findContours(thresh.copy(), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         contours = contours[0] if imutils.is_cv2() else contours[1]
 
         # Loop through the contours
-        for c in contours:
-            if cv2.contourArea(c) < minWidth: continue # If the contour is too small, move to the next one
+        for contour in contours:
+            if cv2.contourArea(contour) < WIDTH: continue # If the contour is too small, move to the next one
 
             # Generate text and bounding rectangles of the detected object for the view in the windows, then show window
-            text = "Motion Detected"
-            currentTime = datetime.now(timezone("UTC")).strftime(dateAndTimeFormat)
-            (x, y, w, h) = cv2.boundingRect(c)
+            frame_text = "Motion Detected"
+            current_time = datetime.now(timezone("UTC")).strftime(DATE_AND_TIME_FORMAT)
+            (x, y, w, h) = cv2.boundingRect(contour)
             cv2.rectangle(frame, (x,y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(frame, "Status: {}".format(text), (10, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
-            cv2.putText(frame, currentTime, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+            cv2.putText(frame, "Status: {}".format(frame_text), (10, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
+            cv2.putText(frame, current_time, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
             # Write image
-            filenameSafeCurrentTime = currentTime.replace(":", "-")
-            currFrameName = str(rpid) + " - capture (" + filenameSafeCurrentTime + ").jpg"
-            currFrameNameFP = currMinuteDir + currFrameName
-            cv2.imwrite(currFrameNameFP, frame)
+            filename_safe_current_time = current_time.replace(":", "-")
+            current_frame_name = str(RPID) + " - capture (" + filename_safe_current_time + ").jpg"
+            current_frame_name_full_path = CURRENT_MINUTE_DIRECTORY + current_frame_name
+            cv2.imwrite(current_frame_name_full_path, frame)
             
             # Capture intrusion thread
-            if intrusionThread == None or not intrusionThread.isAlive():
-                intrusionThread = Thread(target = CaptureIntrusion, args = (filenameSafeCurrentTime, currFrameName, 4, ))
-                intrusionThread.start()
+            if INTRUSION_THREAD == None or not INTRUSION_THREAD.isAlive():
+                INTRUSION_THREAD = Thread(target = CaptureIntrusion, args = (filename_safe_current_time, current_frame_name, 4, ))
+                INTRUSION_THREAD.start()
                 
             # Clear Stream
-            rawCapture.truncate(0)
-        # End for loop
+            raw_capture.truncate(0)
+        # End contours for loop
 
         # Get timers and time (long) for minute directory check and image capture 
-        timeTime = time.time()        
-        timerMinute = (timeTime - startTime) % 60
-        timerSecond = (timeTime - startTime) % 1
-        totalMinute = 60 - timerMinute
-        totalSecond = 1 - timerSecond
-        # print("Total Minute: {}".format(str(totalMinute)))
-        # print("Total Second: {}".format(str(totalSecond)))
+        timer_time = time.time()        
+        timer_minute = (timer_time - START_TIME) % 60
+        timer_second = (timer_time - START_TIME) % 1
+        total_timer_minute = 60 - timer_minute
+        total_timer_second = 1 - timer_second
+        # print("Total Minute: {}".format(str(total_timer_minute)))
+        # print("Total Second: {}".format(str(total_timer_second)))
 
         # Minute directory check - Move files in currMinuteDir to prevMinuteDir, if prevMinuteDir exists, delete all contents and store new files in there (new thread)
-        if totalMinute < 60 and totalMinute >= 59.9:
-            prevMinuteDirList = os.listdir(prevMinuteDir)
-            currMinuteDirList = os.listdir(currMinuteDir)
-            for prevImg in prevMinuteDirList: os.unlink(os.path.join(prevMinuteDir, prevImg))
-            for currImg in currMinuteDirList: os.rename(os.path.join(currMinuteDir, currImg), prevMinuteDir + currImg)
+        if total_timer_minute < 60 and total_timer_minute >= 59.9:
+            previous_minute_directory_list = os.listdir(PREVIOUS_MINUTE_DIRECTORY)
+            current_minute_directory_list = os.listdir(CURRENT_MINUTE_DIRECTORY)
+            for previous_frame in previous_minute_directory_list: os.unlink(os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_frame))
+            for current_frame in current_minute_directory_list: os.rename(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame), PREVIOUS_MINUTE_DIRECTORY + current_frame)
 
         # Capture Image
-        if totalSecond < 1 and totalSecond >= 0.9:
-            currentTime = datetime.now(timezone("UTC")).strftime(dateAndTimeFormat)
-            filenameSafeCurrentTime = currentTime.replace(":", "-")
-            currFrameName = str(rpid) + " - capture (" + filenameSafeCurrentTime + ").jpg"
-            currFrameNameFP = currMinuteDir + currFrameName
-            cv2.imwrite(currFrameNameFP, frame)
+        if total_timer_second < 1 and total_timer_second >= 0.9:
+            current_time = datetime.now(timezone("UTC")).strftime(DATE_AND_TIME_FORMAT)
+            filename_safe_current_time = current_time.replace(":", "-")
+            current_frame_name = str(RPID) + " - capture (" + filename_safe_current_time + ").jpg"
+            current_frame_name_full_path = CURRENT_MINUTE_DIRECTORY + current_frame_name
+            cv2.imwrite(current_frame_name_full_path, frame)
         
         # Clear Stream
-        rawCapture.truncate(0)
+        raw_capture.truncate(0)
     # End while loop
-
-    # Stop videostream and close all windows
-    vs.stop()
-    cv2.destroyAllWindows()
 # Main() End
 
 if __name__ == '__main__':
-    try: shutil.rmtree(prevMinuteDir)
+    try: shutil.rmtree(PREVIOUS_MINUTE_DIRECTORY)
     except FileNotFoundError: pass
-    finally: os.mkdir(prevMinuteDir)
-    try: shutil.rmtree(currMinuteDir)
+    finally: os.mkdir(PREVIOUS_MINUTE_DIRECTORY)
+    try: shutil.rmtree(CURRENT_MINUTE_DIRECTORY)
     except FileNotFoundError: pass
-    finally: os.mkdir(currMinuteDir)
-    if not os.path.isdir(detectionDir): os.mkdir(detectionDir)
+    finally: os.mkdir(CURRENT_MINUTE_DIRECTORY)
+    if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY)
     Main()
 else:
-    try: shutil.rmtree(prevMinuteDir)
+    try: shutil.rmtree(PREVIOUS_MINUTE_DIRECTORY)
     except FileNotFoundError: pass
-    finally: os.mkdir(prevMinuteDir)
-    try: shutil.rmtree(currMinuteDir)
+    finally: os.mkdir(PREVIOUS_MINUTE_DIRECTORY)
+    try: shutil.rmtree(CURRENT_MINUTE_DIRECTORY)
     except FileNotFoundError: pass
-    finally: os.mkdir(currMinuteDir)
-    if not os.path.isdir(detectionDir): os.mkdir(detectionDir) 
+    finally: os.mkdir(CURRENT_MINUTE_DIRECTORY)
+    if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY) 

@@ -15,8 +15,4 @@
     "temperatureinnerupper":40,
     "temperatureouterlower":20,
     "temperatureouterupper":40,
-    "photolower":0.5,
-    "photoupper":2,
-    "solartoggle":"",
-    "exhausttoggle":""
 }
