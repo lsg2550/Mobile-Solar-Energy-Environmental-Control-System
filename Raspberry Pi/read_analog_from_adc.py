@@ -32,6 +32,9 @@ GPIO.setwarnings(False)
 GPIO.cleanup()
 DHT11_I = 22
 DHT11_O = 17
+EXHAUST = 4
+GPIO.setup(EXHAUST, GPIO.OUT)
+
 
 # Previous Temperature/Humidity/GPS Values
 prevTempValI = 0
@@ -245,34 +248,27 @@ def ReadFromSensors(thresholdBattVoltageLower=None, thresholdBattVoltageUpper=No
     if thresholdSolarPanelToggle == None:
         if batteryVoltageRead >= thresholdBVU:
             tempDictionary["solarpanel"] = "not charging"
-            # Code to power/cut off solarpanel
         elif batteryVoltageRead <= thresholdBVU:
             tempDictionary["solarpanel"] = "charging"
-            # Code to power-on/connect to solarpanel
-    elif thresholdSolarPanelToggle == "ON":
-        tempDictionary["solarpanel"] = "charging"
-        # Code to power on/connect to solarpanel
-    elif thresholdSolarPanelToggle == "OFF":
-        tempDictionary["solarpanel"] = "not charging"
-        # Code to power off/cut off solarpanel
     # Exhaust Operations
     if thresholdExhaustToggle == None:
-        if temperatureInner >= thresholdTIU:  # For Hot Air -> Cold Air
-            if batteryVoltageRead >= thresholdBVL:
-                tempDictionary["exhaust"] = "on"
-                # Code to power on exhaust
-            else:
-                tempDictionary["exhaust"] = "off"
-                # Code to power off exhaust
-        elif temperatureInner <= thresholdTIU:  # For Cold Air -> Hot Air
-            pass  # Do Nothing - Would require turning on the exhaust and changing AC to provide warmer air
-    elif thresholdSolarPanelToggle == "ON":
-        tempDictionary["exhaust"] = "on"
-        # Code to power on exhaust
-    elif thresholdSolarPanelToggle == "OFF":
-        tempDictionary["exhaust"] = "off"
-        # Code to power off exhaust
-
+        try:
+            if temperatureInner >= thresholdTIU:  # For Hot Air -> Cold Air
+                if batteryVoltageRead >= thresholdBVL:
+                    tempDictionary["exhaust"] = "on"
+                    GPIO.output(EXHAUST, GPIO.HIGH)
+                else:
+                    tempDictionary["exhaust"] = "off"
+                    GPIO.output(EXHAUST, GPIO.LOW)
+        except Exception as e:
+            if prevTempValI >= thresholdTIU:  # For Hot Air -> Cold Air
+                if batteryVoltageRead >= thresholdBVL:
+                    tempDictionary["exhaust"] = "on"
+                    GPIO.output(EXHAUST, GPIO.HIGH)
+                else:
+                    tempDictionary["exhaust"] = "off"
+                    GPIO.output(EXHAUST, GPIO.LOW)
+            
     # Populate tempDictionary with recorded values
     # Battery Values
     tempDictionary["batteryvoltage"] = batteryVoltageRead
