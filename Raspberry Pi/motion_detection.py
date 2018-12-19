@@ -1,10 +1,11 @@
 #import
-import shutil
-import imutils
-from imutils.video import VideoStream
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 from threading import Thread
 from datetime import datetime
 from pytz import timezone
+import shutil
+import imutils
 import time
 import cv2
 import os
@@ -102,32 +103,36 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
 
 def Main(programTime=None):
     # Initialize
-    try: vs = VideoStream(src = 0).start()
-    except:
-        print("No recording device found...")
+    minWidth = 640
+    minHeight = 480
+    try:
+        camera = PiCamera()
+        camera.resolution = (minWidth, minHeight)
+        camera.framerate = 30
+        rawCapture = PiRGBArray(camera, size=(minWidth, minHeight))
+        time.sleep(0.1)
+    except Exception as e:
+        print("No recording device found...\n{}".format(e))
         return
     startTime = time.time() if programTime == None else programTime
     intrusionThread = None
     firstFrame = None
-    minArea = 500
 
     # Begin monitoring
-    while True:
+    for image in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
         # Read frame
-        frame = vs.read()
+        frame = image.array
         text = "Clear"
 
-        # Program is not recording, so break
-        if frame is None: break
-
         # Convert frame to specified size and perform color and blur operations for comparisons
-        frame = imutils.resize(frame, width = minArea)
+        #frame = imutils.resize(frame, width = minArea)
         frameGray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frameGray = cv2.GaussianBlur(frameGray, (21, 21), 0)
 
         # Initial run only - no previous frame to compare so set the converted frame to the firstFrame and continue to the next iteration of the loop
         if firstFrame is None:
             firstFrame = frameGray
+            rawCapture.truncate(0)
             continue
 
         # Compute the difference between the first frame and the new frame - Perform image operations to find contours
@@ -139,7 +144,7 @@ def Main(programTime=None):
 
         # Loop through the contours
         for c in contours:
-            if cv2.contourArea(c) < minArea: continue # If the contour is too small, move to the next one
+            if cv2.contourArea(c) < minWidth: continue # If the contour is too small, move to the next one
 
             # Generate text and bounding rectangles of the detected object for the view in the windows, then show window
             text = "Motion Detected"
@@ -148,7 +153,6 @@ def Main(programTime=None):
             cv2.rectangle(frame, (x,y), (x + w, y + h), (0, 255, 0), 2)
             cv2.putText(frame, "Status: {}".format(text), (10, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
             cv2.putText(frame, currentTime, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
-            # cv2.imshow("Security Feed", frame)
 
             # Write image
             filenameSafeCurrentTime = currentTime.replace(":", "-")
@@ -160,6 +164,9 @@ def Main(programTime=None):
             if intrusionThread == None or not intrusionThread.isAlive():
                 intrusionThread = Thread(target = CaptureIntrusion, args = (filenameSafeCurrentTime, currFrameName, 4, ))
                 intrusionThread.start()
+                
+            # Clear Stream
+            rawCapture.truncate(0)
         # End for loop
 
         # Get timers and time (long) for minute directory check and image capture 
@@ -185,6 +192,9 @@ def Main(programTime=None):
             currFrameName = str(rpid) + " - capture (" + filenameSafeCurrentTime + ").jpg"
             currFrameNameFP = currMinuteDir + currFrameName
             cv2.imwrite(currFrameNameFP, frame)
+        
+        # Clear Stream
+        rawCapture.truncate(0)
     # End while loop
 
     # Stop videostream and close all windows
