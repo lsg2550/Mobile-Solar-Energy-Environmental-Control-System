@@ -26,13 +26,10 @@
                 default:
                     //Vital Name & Vital Values
                     $VN = $key;
-                    $V1 = ""; //Latitude
-                    $V2 = ""; //Longitude
+                    $V1 = $VV = $value;
+                    $V2 = "";
 
-                    if($VN != "gps") {
-                        $V1 = $VV = $value;
-                        $V2 = "";
-                    } else {
+                    if($VN == "gps") {
                         $value = str_replace(array('"', '[', ']', '"'), '', $value);
                         $value = explode(",", $value);
                         $V1 = $value[0]; //Latitude
@@ -46,7 +43,11 @@
 
                     //Update DB
                     $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
-                    $sqlUpdateCurrentStatus = "UPDATE status SET VV='{$VV}', TS='{$TS}' WHERE VID='{$VID}' AND USR='{$USR}' AND RPID='{$RPID}';";
+                    try {
+                        $sqlUpdateCurrentStatus = "UPDATE status SET VV='{$VV}', TS='{$TS}' WHERE VID='{$VID}' AND USR='{$USR}' AND RPID='{$RPID}';";
+                    } catch (Exception $e) {
+                        $sqlUpdateCurrentStatus = "INSERT INTO status (VID, VV, TS, USR, RPID) VALUES ('{$VID}', '{$VV}', '{$TS}', '{$VID}', '{$USR}', '{$RPID}');";
+                    }
                     $resultInsertIntoLog = mysqli_query($conn, $sqlInsertIntoLog);
                     $resultUpdateCurrentStatus = mysqli_query($conn, $sqlUpdateCurrentStatus);
             }
