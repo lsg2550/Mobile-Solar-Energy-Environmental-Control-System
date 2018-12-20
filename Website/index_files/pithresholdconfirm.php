@@ -70,20 +70,6 @@
                 }
             }
 
-            //Get Vitals - Variables with On/Off
-            while($vital = mysqli_fetch_assoc($resultGetRPIThresholdsToggle)) {
-                switch($vital["VN"]) {
-                    case "SolarPanel":
-                        $thresholdXML->solartoggle = $vital["VV"];
-                        break;
-                    case "Exhaust":
-                        $thresholdXML->exhausttoggle = $vital["VV"];
-                        break;
-                    default:
-                        break;
-                }
-            }
-
             $rpiFile = fopen("{$fileDirectory}{$rpi}.json", "w");
             fwrite($rpiFile, json_encode($thresholdXML));
             fclose($rpiFile);

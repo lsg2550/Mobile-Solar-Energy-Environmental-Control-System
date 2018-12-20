@@ -1,3 +1,31 @@
-table, th, td {
+.displays {
+	text-align: center;
+}
+
+fieldset {
+	text-align: left;
+	display: inline-block;
+}
+
+table {
 	border: 1px solid black;
+	border-collapse: separate;
+	border-spacing: 10px 0px;
+	text-align: center;
+}
+
+th {
+	border-bottom: 1px solid black;
+}
+
+td {
+	text-align: left;
+}
+
+td:nth-child(odd), th:nth-child(odd) {
+	background: lightgrey;
+}
+
+td:nth-child(even) {
+	text-align: center;
 }

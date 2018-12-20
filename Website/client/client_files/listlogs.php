@@ -90,26 +90,24 @@
         <link rel="stylesheet" type="text/css" href="listlogs.css">
     </head>
 
-    <body>
-        <div>
-            <div>
-                <fieldset><legend>Current Status</legend>
-                    <?php
-                        foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, "<tr><th>Vital Name</th><th>Status</th><th>Timestamp</th></tr>", false); }
-                        echo "</table>";
-                        resetGlobals();
-                    ?>
-                </fieldset>
-            </div>
-            <div>
-                <fieldset><legend>Log</legend>
-                    <?php
-                        foreach ($arrayLog as $aL) { echo getData($aL, "<tr><th>VID</th><th>TYP</th><th>RPiID</th><th>Vital 1</th><th>Vital 2</th><th>Timestamp</th></tr>", true); }
-                        echo "</table>";
-                        resetGlobals();
-                    ?>
-                </fieldset>
-            </div>
+    <body>            
+        <div class="displays">
+            <fieldset><legend>Current Status</legend>
+                <?php
+                    foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, "<tr><th>Vital Name</th><th>Status</th><th>Timestamp</th></tr>", false); }
+                    echo "</table>";
+                    resetGlobals();
+                ?>
+            </fieldset>
+        </div>
+        <div class="displays">
+            <fieldset><legend>Log</legend>
+                <?php
+                    foreach ($arrayLog as $aL) { echo getData($aL, "<tr><th>VID</th><th>TYP</th><th>RPiID</th><th>Vital 1</th><th>Vital 2</th><th>Timestamp</th></tr>", true); }
+                    echo "</table>";
+                    resetGlobals();
+                ?>
+            </fieldset>
         </div>
     </body>
 </html>
