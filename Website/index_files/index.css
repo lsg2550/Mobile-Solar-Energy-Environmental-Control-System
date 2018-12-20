@@ -1,0 +1,23 @@
+/* CSS Document */
+.title {
+	text-align: center;
+}
+
+/* Form */
+.form {
+	text-align: center;
+}
+
+form {
+	display: inline-block;
+	text-align: left;
+}
+
+input {
+	display: block;
+}
+
+.btn {
+	margin: auto;
+	width: 100%;
+}
