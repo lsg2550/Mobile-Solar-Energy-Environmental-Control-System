@@ -16,7 +16,7 @@
         $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
         //Get Timestamp    
-        date_default_timezone_set('UTC');
+        date_default_timezone_set('America/Chicago');
         $dateFormat = "Y-m-d H:i:s";
         $TS = date_create_from_format($dateFormat, $xmlFileName);
 

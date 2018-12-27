@@ -5,7 +5,7 @@
     require("connect.php");
 
     //Get Timestamp
-    date_default_timezone_set('UTC');
+    date_default_timezone_set('America/Chicago');
     $currentTimestamp = date("Y-m-d H:i:s", time());
 
     //Get User
