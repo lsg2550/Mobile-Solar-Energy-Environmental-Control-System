@@ -167,7 +167,7 @@ def Main(programTime=None):
 
             # Generate text and bounding rectangles of the detected object for the view in the windows, then show window
             frame_text = "Motion Detected"
-            current_time = datetime.now(timezone("UTC")).strftime(DATE_AND_TIME_FORMAT)
+            current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
             (x, y, w, h) = cv2.boundingRect(contour)
             cv2.rectangle(frame, (x,y), (x + w, y + h), (0, 255, 0), 2)
             cv2.putText(frame, "Status: {}".format(frame_text), (10, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
@@ -206,7 +206,7 @@ def Main(programTime=None):
 
         # Capture Image
         if total_timer_second < 1 and total_timer_second >= 0.9:
-            current_time = datetime.now(timezone("UTC")).strftime(DATE_AND_TIME_FORMAT)
+            current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
             filename_safe_current_time = current_time.replace(":", "-")
             current_frame_name = str(RPID) + " - capture (" + filename_safe_current_time + ").jpg"
             current_frame_name_full_path = CURRENT_MINUTE_DIRECTORY + current_frame_name

@@ -139,7 +139,7 @@ def Main():
         print("Done reading from sensors...")
 
         # Generate Timestamps
-        timestamp_for_log = datetime.now(timezone("UTC")).strftime(DATE_AND_TIME_FORMAT)
+        timestamp_for_log = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
         timestamp_for_filename = timestamp_for_log.replace(":", "-")
         
         # Update jsonFormat
