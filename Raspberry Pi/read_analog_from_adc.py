@@ -26,6 +26,9 @@ spi.open(0, 0)
 battery_voltage = 0
 battery_current = 1
 #charge_controller_voltage = 2
+#charge_controller_current = 3
+#solar_panel_voltage = 4
+#solar_panel_current = 5
 
 # GPIO Devices = GPIO Pin #
 GPIO.setmode(GPIO.BCM)
