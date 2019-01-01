@@ -6,8 +6,7 @@
         //Init
         global $xmlDirectory;
         $TYP = "ST";
-        $V1 = "IMG";
-        $V2 = "";
+        $V1 = $V2 = "IMG";
 
         //Init - Get Username
         $RPID = $_GET["rpid"];
@@ -15,10 +14,8 @@
         $resultsGetUser = mysqli_query($conn, $sqlGetUser);
         $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
-        //Get Timestamp    
-        date_default_timezone_set('America/Chicago');
-        $dateFormat = "Y-m-d H:i:s";
-        $TS = date_create_from_format($dateFormat, $xmlFileName);
+        //Get Timestamp
+        $TS = $xmlFileName;
 
         //Update DB
         $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES (NULL, '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
