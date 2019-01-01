@@ -8,7 +8,7 @@
     //Database Queries
     $currentUser = $_SESSION["username"]; //Current User
     $sqlCurrentStatus = "SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR='{$currentUser}';"; //Select all current status related to the current user
-    $sqlLog = "SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR='{$currentUser}' ORDER BY RPID, TS;"; //Select all logs related to the current user
+    $sqlLog = "SELECT V.VN, TYP, l.RPID, V1, V2, TS FROM log AS l NATURAL JOIN vitals AS V WHERE l.USR='{$currentUser}' ORDER BY l.RPID, l.TS DESC;"; //Select all logs related to the current user
 
     //Execute Queries
     $resultCurrentStatus = mysqli_query($conn, $sqlCurrentStatus);
@@ -18,6 +18,8 @@
     $arrayCurrentStatus = array(); 
     if(mysqli_num_rows($resultCurrentStatus) > 0) {
         while($row = mysqli_fetch_assoc($resultCurrentStatus)) {
+            // Perform units checks
+            
             $tempRow = "[ {$row['VN']}, {$row['VV']}, {$row['RPID']}, {$row['TS']} ]";
             $arrayCurrentStatus[] = $tempRow;
         }
@@ -29,8 +31,11 @@
         while($row = mysqli_fetch_assoc($resultLog)) {
             //If V2 is blank, replace it with 'N/A'
             if($row['V2'] == NULL || $row['V2'] == "") { $row['V2'] = "N/A"; }
+            else { $row['V1'] = $row['V1'] . $row['V2']; }
 
-            $tempRow = "[ {$row['VID']}, {$row['TYP']}, {$row['RPID']}, {$row['V1']}, {$row['V2']}, {$row['TS']} ]";
+            // Perform units checks
+
+            $tempRow = "[ {$row['VN']}, {$row['TYP']}, {$row['RPID']}, {$row['V1']}, {$row['TS']} ]";
             $arrayLog[] = $tempRow;
         }
     }
@@ -53,7 +58,7 @@
             if($initalRaspberryPi === false){ $displayHTML .= "</table>"; } //Closes the table from the previous RaspberryPi
             else { $initalRaspberryPi = false; } //Initial table will change this to false after it creates the first table header
 
-            $displayHTML .= "<table><caption>Raspberry Pi - {$currentRaspberryPi}</caption>{$tableHeader}";
+            $displayHTML .= "<table>{$tableHeader}";
         }
 
         //Generate HTML currentstatus/log tables
@@ -103,7 +108,7 @@
         <div class="displays">
             <fieldset><legend>Log</legend>
                 <?php
-                    foreach ($arrayLog as $aL) { echo getData($aL, "<tr><th>VID</th><th>TYP</th><th>RPiID</th><th>Vital 1</th><th>Vital 2</th><th>Timestamp</th></tr>", true); }
+                    foreach ($arrayLog as $aL) { echo getData($aL, "<tr><th>Vital Name</th><th>TYP</th><th>RPiID</th><th>Vital Value</th><th>Timestamp</th></tr>", true); }
                     echo "</table>";
                     resetGlobals();
                 ?>

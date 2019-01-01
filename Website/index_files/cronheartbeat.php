@@ -6,7 +6,7 @@
     $diffFormat = "%a";
 
     //Get Timestamp
-    date_default_timezone_set('UTC');
+    date_default_timezone_set('America/Chicago');
     $currentTimestamp = new DateTime(date("Y-m-d H:i:s", time()));
 
     //Get List of RPis
