@@ -140,16 +140,19 @@ def CheckAndNotify(battery_voltage_value, battery_current_value,
                 server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
                 # print(serverConfirmation.text.strip())
                 pipayload.pop("noti")
-            if temperature_inner_value <= threshold_temperature_inner_lower or temperature_inner_value >= threshold_temperature_inner_upper:
-                pipayload["noti"] = "temperatureI"
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if temperature_outer_value <= threshold_temperature_outer_lower or temperature_outer_value >= threshold_temperature_outer_upper: 
-                pipayload["noti"] = "temperatureO"
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
+                
+            if temperature_inner_value is not None:
+                if temperature_inner_value <= threshold_temperature_inner_lower or temperature_inner_value >= threshold_temperature_inner_upper:
+                    pipayload["noti"] = "temperatureI"
+                    server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                    # print(serverConfirmation.text.strip())
+                    pipayload.pop("noti")
+            if temperature_outer_value is not None:                
+                if temperature_outer_value <= threshold_temperature_outer_lower or temperature_outer_value >= threshold_temperature_outer_upper: 
+                    pipayload["noti"] = "temperatureO"
+                    server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
+                    # print(serverConfirmation.text.strip())
+                    pipayload.pop("noti")
     except Exception as e: print(e)  # Unable to connect to internet, so just disregard sending a notification
 # CheckAndNotify end
 
@@ -265,13 +268,13 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     temporary_sensor_dictionary["chargecontrollercurrent"] = charge_controller_current_value
     
     # Temperature Values
-    if temperature_inner is None: temporary_sensor_dictionary["temperatureinner"] = previous_temperature_value_inner
+    if temperature_inner is None: temporary_sensor_dictionary["temperatureinner"] = "NULL"
     else: temporary_sensor_dictionary["temperatureinner"] = temperature_inner
-    if humidity_inner is None: temporary_sensor_dictionary["humidityinner"] = previous_humidity_value_inner
+    if humidity_inner is None: temporary_sensor_dictionary["humidityinner"] = "NULL"
     else: temporary_sensor_dictionary["humidityinner"] = humidity_inner
-    if temperature_outer is None: temporary_sensor_dictionary["temperatureouter"] = previous_temperature_value_outer
+    if temperature_outer is None: temporary_sensor_dictionary["temperatureouter"] = "NULL"
     else: temporary_sensor_dictionary["temperatureouter"] = temperature_outer
-    if humidity_outer is None: temporary_sensor_dictionary["humidityouter"] = previous_humidity_value_outer
+    if humidity_outer is None: temporary_sensor_dictionary["humidityouter"] = "NULL"
     else: temporary_sensor_dictionary["humidityouter"] = humidity_outer
         
     # GPS Values

@@ -154,11 +154,13 @@ def Main():
         # Send XML in new thread
         if SEND_STATUS_THREAD == None or not SEND_STATUS_THREAD.isAlive():
             SEND_STATUS_THREAD = Thread(target=GetAndSendStatus, args=())
+            SEND_STATUS_THREAD.daemon = True
             SEND_STATUS_THREAD.start()
             
         # Send images in new thread
         if SEND_IMAGES_THREAD == None or not SEND_IMAGES_THREAD.isAlive():
             SEND_IMAGES_THREAD = Thread(target=GetAndSendImages, args=())
+            SEND_IMAGES_THREAD.daemon = True
             SEND_IMAGES_THREAD.start()
 
         # Wait for 60 seconds for the next read interval
