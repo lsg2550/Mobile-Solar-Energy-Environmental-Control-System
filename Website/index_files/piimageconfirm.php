@@ -23,7 +23,7 @@
     }
 
     //TODO: Filter $_GET
-    $xmlDirectory = "../../DetectDir/";
+    $xmlDirectory = "../detectdir/";
     $xmlFilename = $_GET["capture"];
     $xmlFullFilePath = $xmlDirectory . $xmlFilename;
 

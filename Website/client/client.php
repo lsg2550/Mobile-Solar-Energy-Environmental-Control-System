@@ -16,6 +16,9 @@
 		<form action="client_files/listlogs.php" method="post" target="status">
 		  <input type="submit" value="List Logs">
 		</form>
+		<form action="image_files/image.php" method="post">
+		  <input type="submit" value="View Images">
+		</form>
 		<form action="../index_files/logout.php" method="post">
 		  <input type="submit" value="Log Out">
 		</form>
