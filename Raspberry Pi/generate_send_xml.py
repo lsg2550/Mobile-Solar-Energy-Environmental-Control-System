@@ -35,7 +35,7 @@ def GetAndSendStatus(): # Send XML to Server
                 CTF.SendStatus(TEMPORARY_STORAGE_DIRECTORY + temporary_file)
                 
                 pi_payload["xmlfile"] = temporary_file
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pi_payload)
+                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pi_payload, timeout=5)
                 print(server_confirmation.text.strip())
                 pi_payload.pop("xmlfile")
 
@@ -58,7 +58,7 @@ def GetAndSendImages():
                 CTF.SendImages(root, files)
                 
                 pi_payload["capture"] = stored_frames
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pi_payload)
+                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pi_payload, timeout=5)
                 print(server_confirmation.text.strip())
                 pi_payload.pop("capture")
 
@@ -84,7 +84,7 @@ def Main():
     while True:
         try: # Retrieve files with thresholds set by user
             print("Requesting threshold update from server...")
-            server_threshold_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pi_payload)
+            server_threshold_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pi_payload, timeout=5)
             
             if server_threshold_confirmation.text.strip() == "OK":
                 CTF.RetrieveThreshold(RPID)
@@ -92,11 +92,11 @@ def Main():
 
                 # Tell the server that we retrieved the file
                 pi_payload["result"] = "OK"
-                requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pi_payload)
+                requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pi_payload, timeout=5)
                 pi_payload.pop("result")
             else: # Tell the server that we did not retrieve the file
                 pi_payload["result"] = "NO"
-                requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pi_payload)
+                requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pi_payload, timeout=5)
                 pi_payload.pop("result")
                 raise FileNotFoundError
         except Exception as e:

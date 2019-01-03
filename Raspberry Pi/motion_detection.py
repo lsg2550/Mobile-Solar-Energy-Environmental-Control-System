@@ -14,7 +14,7 @@ import re # Regex
 # Previous/Current Minute Directories & Detect Directories
 PREVIOUS_MINUTE_DIRECTORY = "PrevMinuteDir/"
 CURRENT_MINUTE_DIRECTORY = "CurrMinuteDir/"
-DETECTION_DIRECTORY = "DetectDir/"
+DETECTION_DIRECTORY = "detectdir/"
 DATE_AND_TIME_FORMAT = "%Y-%m-%d %H:%M:%S" # Date & time format for file names and image embedding
 RPID = 0 # RaspberryPi Identification Number (rpid)
 WIDTH = 640 # Max Width
