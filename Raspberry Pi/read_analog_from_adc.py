@@ -140,7 +140,6 @@ def CheckAndNotify(battery_voltage_value, battery_current_value,
                 server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
                 # print(serverConfirmation.text.strip())
                 pipayload.pop("noti")
-                
             if temperature_inner_value is not None:
                 if temperature_inner_value <= threshold_temperature_inner_lower or temperature_inner_value >= threshold_temperature_inner_upper:
                     pipayload["noti"] = "temperatureI"
@@ -281,11 +280,11 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     if gps_latitude_longitude[0] == GPS_NO_ERROR:
         temporary_sensor_dictionary["gps"] = [gps_latitude_longitude[1]]
         temporary_sensor_dictionary["gps"].append(gps_latitude_longitude[2])
-        previous_latitude = gps_latitude_longitude[1]
-        previous_longitude = gps_latitude_longitude[2]
+        #previous_latitude = gps_latitude_longitude[1]
+        #previous_longitude = gps_latitude_longitude[2]
     else:
-        temporary_sensor_dictionary["gps"] = [previous_latitude]
-        temporary_sensor_dictionary["gps"].append(previous_longitude)
+        temporary_sensor_dictionary["gps"] = ["NULL"]
+        temporary_sensor_dictionary["gps"].append("NULL")
 
     # Return
     return temporary_sensor_dictionary
