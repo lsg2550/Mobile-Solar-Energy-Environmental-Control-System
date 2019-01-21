@@ -23,12 +23,11 @@ DHT11_SENSOR = Adafruit_DHT.DHT11
 # Analog Devices = Channel #
 spi = spidev.SpiDev()
 spi.open(0, 0)
-battery_voltage = 0
-battery_current = 1
-#charge_controller_voltage = 2
-#charge_controller_current = 3
-#solar_panel_voltage = 4
-#solar_panel_current = 5
+battery_voltage = 1 # ESU - Voltage
+solar_voltage = 2 # Solar Panel - Voltage
+battery_current = 3 # ESU - Current
+solar_current = 4 # Solar Panel - Current
+charge_con_current = 5 # Charge Controller - Current
 
 # GPIO Devices = GPIO Pin #
 GPIO.setmode(GPIO.BCM)
@@ -155,7 +154,8 @@ def CheckAndNotify(battery_voltage_value, battery_current_value,
     except Exception as e: print(e)  # Unable to connect to internet, so just disregard sending a notification
 # CheckAndNotify end
 
-def ConvertVolts(data, place): return round((data * 3.3) / float(1023))
+def ConvertVolts(data, place): return (data / float(1023)) * 25
+def ConvertAmps(data, place): return (data / float(1023)) * (5 / 41) * (100/0.75)
 def CelciusToFahrenheit(temperature_celcius): return ((temperature_celcius * 9/5) + 32)
 def FahrenheitToCelcius(temperature_fahrenheit): return ((temperature_fahrenheit - 32) * 5/9)
 
@@ -204,17 +204,17 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     # Dictionary to hold {Sensor => Value}
     temporary_sensor_dictionary = {}
 
-    # ADC Channel 0 and 1 - Battery
-    battery_voltage_value = ReadADCChannel(battery_voltage) # From Resistor Network - Circuit Diagram
-    battery_current_value = ReadADCChannel(battery_current) # From OpAmp
+    # Read Battery Voltage and Current
+    battery_voltage_value = ConvertVolts(ReadADCChannel(battery_voltage), 2) # From Resistor Network - Circuit Diagram
+    battery_current_value = ConvertAmps(ReadADCChannel(battery_current), 2) # From OpAmp
 
-    # ADC Channel 2 and 3 - Charge Controller
+    # Read Charge Controller Current 
     charge_controller_voltage_value = random.randint(0, 20)
-    charge_controller_current_value = random.randint(0, 10000)
+    charge_controller_current_value = ConvertAmps(ReadADCChannel(charge_con_current), 2) # From OpAmp
     
     # ADC Channel 4 and 5 - Solar Panel
-    solar_panel_voltage_value = random.randint(0, 17)
-    solar_panel_current_value = random.randint(0, 1000)
+    solar_panel_voltage_value = ConvertVolts(ReadADCChannel(solar_voltage), 2) # From Resistor Network - Circuit Diagram
+    solar_panel_current_value = ConvertAmps(ReadADCChannel(solar_current), 2) # From OpAmp
 
     # Inner and Outer Temperature Sensors
     humidity_inner, temperature_inner = Adafruit_DHT.read(DHT11_SENSOR, DHT11_I)
@@ -263,7 +263,7 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     temporary_sensor_dictionary["solarpanelvoltage"] = solar_panel_voltage_value
     temporary_sensor_dictionary["solarpanelcurrent"] = solar_panel_current_value
     # Charge Controller Values
-    temporary_sensor_dictionary["chargecontrollervoltage"] = charge_controller_voltage_value
+    #temporary_sensor_dictionary["chargecontrollervoltage"] = charge_controller_voltage_value
     temporary_sensor_dictionary["chargecontrollercurrent"] = charge_controller_current_value
     
     # Temperature Values
