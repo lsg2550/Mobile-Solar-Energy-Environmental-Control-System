@@ -18,7 +18,36 @@
     $arrayCurrentStatus = array(); 
     if(mysqli_num_rows($resultCurrentStatus) > 0) {
         while($row = mysqli_fetch_assoc($resultCurrentStatus)) {
-            $tempRow = "[ {$row['VN']}, {$row['VV']}, {$row['RPID']}, {$row['TS']} ]";
+            $tempRow = "";
+            $tempVV = "";
+            switch ($row['VN']) {
+                case 'BatteryVoltage':
+                case 'SolarPanelVoltage':
+                    $tempVV = round($row['VV'], 2) . "V";
+                    break;
+                case 'BatteryCurrent':
+                case 'SolarPanelCurrent':
+                case 'ChargeControllerCurrent':
+                    $tempVV = round($row['VV'], 2) . "A";
+                    break;
+                case 'TemperatureInner':
+                case 'TemperatureOuter':
+                    $tempVV = round($row['VV'], 2) . "&deg;C";
+                    break;
+                case 'HumidityInner':
+                case 'HumidityOuter':
+                    $tempVV = round($row['VV'], 2) . "g/m<sup>3</sup>";
+                    break;
+                // case 'GPS':
+                //     $tempOne = (round($row['VV'], 2) > 0) ? round($row['VV'], 2) . '&deg;N' : round($row['VV'], 2) . '&deg;S';
+                //     $tempTwo = (round($row['VV'], 2) > 0) ? round($row['VV'], 2) . '&deg;E' : round($row['VV'], 2) . '&deg;W';
+                //     $tempVV = $tempOne . '&comma;' . $tempTwo; 
+                //     break;
+                default:
+                    $tempVV = $row['VV'];
+                    break;
+            }
+            $tempRow = "[ {$row['VN']}, {$tempVV}, {$row['RPID']}, {$row['TS']} ]";
             $arrayCurrentStatus[] = $tempRow;
         }
     }

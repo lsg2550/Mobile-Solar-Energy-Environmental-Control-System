@@ -32,7 +32,7 @@
 <html>
 <head>
 <title>Remote Site - Client Page</title>
-<link rel="stylesheet" href="image.css">
+<link rel="stylesheet" type="text/css" href="image.css">
 <script src="adjustimageframe.js"></script>
 </head>
 <body>

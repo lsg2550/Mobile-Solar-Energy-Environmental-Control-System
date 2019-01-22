@@ -19,13 +19,13 @@
     $listOfVitalNames = array_map('trim', $_POST['vitalname']);
 
     //Get Timestamp
-    date_default_timezone_set('UTC');
+    date_default_timezone_set('America/Chicago');
     $currentTimestamp = date("Y-m-d H:i:s", time());
 
     for($counter_i = 0; $counter_i < $amtOfRPis; $counter_i++) {
         $tempRPi = $listOfRPis[$counter_i];
         
-        for($counter_j = 0; $counter_j < 3; $counter_j++) {
+        for($counter_j = 0; $counter_j < $amtOfVitals; $counter_j++) {
             $tempVL = $listOfLowerVitals[$counter_j];
             $tempVU = $listOfUpperVitals[$counter_j];
             $tempVN = $listOfVitalNames[$counter_j];
@@ -43,6 +43,6 @@
         }
     }
 
-    header("Refresh:0; url=../vitals.php");
+    header("Refresh:0; url=vitals.php");
     ob_end_flush();
 ?>

@@ -1,14 +1,14 @@
 <?php
     //Require
-    require("../index_files/sessionstart.php");
-    require("../index_files/sessioncheck.php");
-    require("../index_files/connect.php");
-    require("../index_files/operations.php");
-    require("vitals_files/generatecontrolpanel.php");
+    require("../../index_files/sessionstart.php");
+    require("../../index_files/sessioncheck.php");
+    require("../../index_files/connect.php");
+    require("../../index_files/operations.php");
+    require("generatecontrolpanel.php");
 
     //Database Queries
     $currentUser = $_SESSION['username']; //Get Current User Name
-    $sqlVitalsCurrentThresholds = "SELECT VN, VL, VU, RPID FROM vitals WHERE USR='{$currentUser}';"; //Select vital settings (lower & upper limits) to display and allow user to change those vital settings
+    $sqlVitalsCurrentThresholds = "SELECT VN, VL, VU, RPID FROM vitals WHERE USR='{$currentUser}' ORDER BY VN;"; //Select vital settings (lower & upper limits) to display and allow user to change those vital settings
 
     //Execute Queries
     $resultCurrentThresholds = mysqli_query($conn, $sqlVitalsCurrentThresholds);
@@ -27,7 +27,7 @@
 <html>
     <head>
         <title>Remote Site - Vital Control Panel</title>
-        <link rel="stylesheet" type="text/css" href="vitals_files/vitals.css">
+        <link rel="stylesheet" type="text/css" href="vitals.css">
     </head>
     <body>
     <h1 class="title">Remote Site - Mobile Solar Energy & Environmental Control System</h1>
@@ -40,20 +40,18 @@
             </form>
         </div>
 
-        <div> <!-- Vital Threshold Control Panels -->
-            <div>
-                <form action="vitalsthreshold.php" method="post">
-                    <fieldset><legend>Vital Threshold Control Panel:</legend>
-                        <?php
-                            echo "<fieldset>";
-                            foreach ($arrayCurrentThreshold as $aCT) { echo generateVitalThresholdControlPanel($aCT); } //Generate Threshold Control Panel
-                            echo "</table></fieldset>";
-                            resetGlobals();
-                        ?>
-                        <input type="submit" value="Commit Any Changes">
-                    </fieldset>
-                </form>
-            </div>
+        <div class="displays">
+            <form action="vitalsthreshold.php" method="post">
+                <fieldset><legend>Vital Threshold Control Panel:</legend>
+                    <?php
+                        echo "<fieldset>";
+                        foreach ($arrayCurrentThreshold as $aCT) { echo generateVitalThresholdControlPanel($aCT); } //Generate Threshold Control Panel
+                        echo "</table></fieldset>";
+                        resetGlobals();
+                    ?>
+                    <input type="submit" value="Commit Any Changes">
+                </fieldset>
+            </form>
         </div>
     </body>
 </html>
