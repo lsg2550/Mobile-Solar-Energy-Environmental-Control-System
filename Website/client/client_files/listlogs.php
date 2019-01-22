@@ -31,7 +31,12 @@
         while($row = mysqli_fetch_assoc($resultLog)) {
             //If V2 is blank, replace it with 'N/A'
             if($row['V2'] == NULL || $row['V2'] == "") { $row['V2'] = "N/A"; }
-            else { $row['V1'] = $row['V1'] . $row['V2']; }
+            else {
+                $tempOne = round($row['V1'], 2);
+                $tempTwo = round($row['V2'], 2);
+                $tempThree = $tempOne . '&comma; ' . $tempTwo;
+                $row['V1'] = $tempThree;
+            }
 
             // Perform units checks
 
