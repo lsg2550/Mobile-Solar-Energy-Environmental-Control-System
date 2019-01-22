@@ -26,6 +26,15 @@
         case "spcurrent":
             $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with '{$_GET["valu"]}'mA!";
             break;
+        case "cccurrent":
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with '{$_GET["valu"]}'mA!";
+            break;
+        case "temperatureI":
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the inside temperature threshold with '{$_GET["valu"]}'F!";
+            break;        
+        case "temperatureI":
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the outside temperature threshold with '{$_GET["valu"]}'F!";
+            break;
         default:
             exit();
     }
