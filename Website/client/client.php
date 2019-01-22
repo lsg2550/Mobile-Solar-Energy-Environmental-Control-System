@@ -13,6 +13,9 @@
 <body>
 <h1 class="title">Remote Site - Mobile Solar Energy & Environmental Control System</h1>
 	<div class="formdiv">
+		<form action="vitals_files/vitals.php" method="post">
+		  <input type="submit" value="Control Panel">
+		</form>
 		<form action="client_files/listlogs.php" method="post" target="status">
 		  <input type="submit" value="List Logs">
 		</form>
