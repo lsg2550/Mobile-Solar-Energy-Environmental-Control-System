@@ -15,16 +15,16 @@
 
     switch ($_GET["noti"]) {
         case "bvoltage":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the battery voltage threshold with ''V!";
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the battery voltage threshold with '{$_GET["valu"]}'V!";
             break;
         case "bcurrent":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the battery current threshold with ''mA!";
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the battery current threshold with '{$_GET["valu"]}'mA!";
             break;
         case "spvoltage":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with ''V!";
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with '{$_GET["valu"]}'V!";
             break;
         case "spcurrent":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with ''mA!";
+            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with '{$_GET["valu"]}'mA!";
             break;
         default:
             exit();

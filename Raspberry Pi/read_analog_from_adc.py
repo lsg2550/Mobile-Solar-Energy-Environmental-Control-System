@@ -1,18 +1,15 @@
 # import
+from notify_server import CheckAndNotify
 from datetime import datetime
 from threading import Thread
 import RPi.GPIO as GPIO
+import math_calc as MC
 import Adafruit_DHT
-import requests
 import spidev
 import serial
 import time
 import os
 import random
-
-# RaspberryPi Identification Number (rpid) & Payload for Server Confirmation
-rpid = 0
-pipayload = {"rpid": rpid}
 
 # Initialize
 NOTIFICATION_THREAD = None
@@ -43,8 +40,6 @@ previous_temperature_value_inner = 0
 previous_humidity_value_inner = 0
 previous_temperature_value_outer = 0
 previous_humidity_value_outer = 0
-previous_latitude = 0
-previous_longitude = 0
 
 # Serial Devices
 try: SERIAL_GPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
@@ -94,76 +89,10 @@ def ReadADCChannel(channel):
     return analog_to_digital_channel_data
 # ReadADCChannel end
 
-def CheckAndNotify(battery_voltage_value, battery_current_value,
-                   solar_panel_voltage_value, solar_panel_current_value,
-                   charge_controller_voltage_value, charge_controller_current_value,
-                   temperature_inner_value, temperature_outer_value,
-                   threshold_battery_voltage_lower, threshold_battery_voltage_upper,
-                   threshold_battery_current_lower, threshold_battery_current_upper,
-                   threshold_solar_panel_voltage_lower, threshold_solar_panel_voltage_upper,
-                   threshold_solar_panel_current_lower, threshold_solar_panel_current_upper,
-                   threshold_charge_controller_voltage_lower, threshold_charge_controller_voltage_upper,
-                   threshold_charge_controller_current_lower, threshold_charge_controller_current_upper,
-                   threshold_temperature_inner_lower, threshold_temperature_inner_upper,
-                   threshold_temperature_outer_lower, threshold_temperature_outer_upper):
-    try:
-        current_hour = int(datetime.now().strftime("%H")) # Uses military hours (0-23)
-        if current_hour >= 9 and current_hour <= 16:
-            if battery_voltage_value <= threshold_battery_voltage_lower or battery_voltage_value >= threshold_battery_voltage_upper:
-                pipayload["noti"] = "bvoltage"
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if battery_current_value <= threshold_battery_current_lower or battery_current_value >= threshold_battery_current_upper:
-                pipayload["noti"] = "bcurrent"
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if solar_panel_voltage_value <= threshold_solar_panel_voltage_lower or solar_panel_voltage_value >= threshold_solar_panel_voltage_upper:
-                pipayload["noti"] = "spvoltage"
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if solar_panel_current_value <= threshold_solar_panel_current_lower or solar_panel_current_value >= threshold_solar_panel_current_upper:
-                pipayload["noti"] = "spcurrent"
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if charge_controller_voltage_value <= threshold_charge_controller_voltage_lower or charge_controller_voltage_value >= threshold_charge_controller_voltage_upper:
-                pipayload["noti"] = "ccvoltage"
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if charge_controller_current_value <= threshold_charge_controller_current_lower or charge_controller_current_value >= threshold_charge_controller_current_upper:
-                pipayload["noti"] = "cccurrent"
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                # print(serverConfirmation.text.strip())
-                pipayload.pop("noti")
-            if temperature_inner_value is not None:
-                if temperature_inner_value <= threshold_temperature_inner_lower or temperature_inner_value >= threshold_temperature_inner_upper:
-                    pipayload["noti"] = "temperatureI"
-                    server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                    # print(serverConfirmation.text.strip())
-                    pipayload.pop("noti")
-            if temperature_outer_value is not None:                
-                if temperature_outer_value <= threshold_temperature_outer_lower or temperature_outer_value >= threshold_temperature_outer_upper: 
-                    pipayload["noti"] = "temperatureO"
-                    server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=pipayload)
-                    # print(serverConfirmation.text.strip())
-                    pipayload.pop("noti")
-    except Exception as e: print(e)  # Unable to connect to internet, so just disregard sending a notification
-# CheckAndNotify end
-
-def ConvertVolts(data, place): return (data / float(1023)) * 25
-def ConvertAmps(data, place): return (data / float(1023)) * (5 / 41) * (100/0.75)
-def CelciusToFahrenheit(temperature_celcius): return ((temperature_celcius * 9/5) + 32)
-def FahrenheitToCelcius(temperature_fahrenheit): return ((temperature_fahrenheit - 32) * 5/9)
-
 def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_voltage_upper=None,
                     threshold_battery_current_lower=None, threshold_battery_current_upper=None,
                     threshold_solar_panel_voltage_lower=None, threshold_solar_panel_voltage_upper=None,
                     threshold_solar_panel_current_lower=None, threshold_solar_panel_current_upper=None,
-                    threshold_charge_controller_voltage_lower=None, threshold_charge_controller_voltage_upper=None,
                     threshold_charge_controller_current_lower=None, threshold_charge_controller_current_upper=None,
                     threshold_temperature_inner_lower=None, threshold_temperature_inner_upper=None,
                     threshold_temperature_outer_lower=None, threshold_temperature_outer_upper=None):
@@ -176,8 +105,6 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     global previous_humidity_value_inner
     global previous_temperature_value_outer
     global previous_humidity_value_outer
-    global previous_latitude
-    global previous_longitude
     
     # Thresholds
     # Battery Thresholds
@@ -191,8 +118,6 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     thresholdSPCL = float(threshold_solar_panel_current_lower)
     thresholdSPCU = float(threshold_solar_panel_current_upper)
     # Charge Controller Thresholds
-    thresholdCCVL = float(threshold_charge_controller_voltage_lower)
-    thresholdCCVU = float(threshold_charge_controller_voltage_upper)
     thresholdCCCL = float(threshold_charge_controller_current_lower)
     thresholdCCCU = float(threshold_charge_controller_current_upper)
     # Temperature Thresolds
@@ -205,16 +130,15 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     temporary_sensor_dictionary = {}
 
     # Read Battery Voltage and Current
-    battery_voltage_value = ConvertVolts(ReadADCChannel(battery_voltage), 2) # From Resistor Network - Circuit Diagram
-    battery_current_value = ConvertAmps(ReadADCChannel(battery_current), 2) # From OpAmp
+    battery_voltage_value = MC.ConvertVolts(ReadADCChannel(battery_voltage), 2) # From Resistor Network - Circuit Diagram
+    battery_current_value = MC.ConvertAmps(ReadADCChannel(battery_current), 2) # From OpAmp
 
-    # Read Charge Controller Current 
-    charge_controller_voltage_value = random.randint(0, 20)
-    charge_controller_current_value = ConvertAmps(ReadADCChannel(charge_con_current), 2) # From OpAmp
+    # Read Charge Controller Current
+    charge_controller_current_value = MC.ConvertAmps(ReadADCChannel(charge_con_current), 2) # From OpAmp
     
     # ADC Channel 4 and 5 - Solar Panel
-    solar_panel_voltage_value = ConvertVolts(ReadADCChannel(solar_voltage), 2) # From Resistor Network - Circuit Diagram
-    solar_panel_current_value = ConvertAmps(ReadADCChannel(solar_current), 2) # From OpAmp
+    solar_panel_voltage_value = MC.ConvertVolts(ReadADCChannel(solar_voltage), 2) # From Resistor Network - Circuit Diagram
+    solar_panel_current_value = MC.ConvertAmps(ReadADCChannel(solar_current), 2) # From OpAmp
 
     # Inner and Outer Temperature Sensors
     humidity_inner, temperature_inner = Adafruit_DHT.read(DHT11_SENSOR, DHT11_I)
@@ -230,15 +154,13 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
 
     # Check for notification purposes
     if NOTIFICATION_THREAD == None or not NOTIFICATION_THREAD.isAlive():
-        NOTIFICATION_THREAD = Thread(target=CheckAndNotify, args=(battery_voltage_value, battery_current_value, solar_panel_voltage_value, solar_panel_current_value, charge_controller_voltage_value, charge_controller_current_value, temperature_inner, temperature_outer, thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCVL, thresholdCCVU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, ))
+        NOTIFICATION_THREAD = Thread(target=CheckAndNotify, args=(battery_voltage_value, battery_current_value, solar_panel_voltage_value, solar_panel_current_value, charge_controller_current_value, temperature_inner, temperature_outer, thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, ))
+        NOTIFICATION_THREAD.setDaemon(True)
         NOTIFICATION_THREAD.start()
 
     # ESSO Operations
-    # Solar Panel Operations
-    if battery_voltage_value >= thresholdBVU: temporary_sensor_dictionary["solarpanel"] = "not charging"
-    elif battery_voltage_value <= thresholdBVU: temporary_sensor_dictionary["solarpanel"] = "charging"
-    
-    try: # Exhaust Operations
+    # Exhaust Operations
+    try: 
         if temperature_inner >= thresholdTIU:  # For Hot Air -> Cold Air
             if battery_voltage_value > thresholdBVL:
                 temporary_sensor_dictionary["exhaust"] = "on"
@@ -256,14 +178,10 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
                 GPIO.output(EXHAUST, GPIO.LOW)
             
     # Populate tempDictionary with recorded values
-    # Battery Values
     temporary_sensor_dictionary["batteryvoltage"] = battery_voltage_value
     temporary_sensor_dictionary["batterycurrent"] = battery_current_value
-    # Solar Panel Values
     temporary_sensor_dictionary["solarpanelvoltage"] = solar_panel_voltage_value
     temporary_sensor_dictionary["solarpanelcurrent"] = solar_panel_current_value
-    # Charge Controller Values
-    #temporary_sensor_dictionary["chargecontrollervoltage"] = charge_controller_voltage_value
     temporary_sensor_dictionary["chargecontrollercurrent"] = charge_controller_current_value
     
     # Temperature Values
@@ -280,8 +198,6 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     if gps_latitude_longitude[0] == GPS_NO_ERROR:
         temporary_sensor_dictionary["gps"] = [gps_latitude_longitude[1]]
         temporary_sensor_dictionary["gps"].append(gps_latitude_longitude[2])
-        #previous_latitude = gps_latitude_longitude[1]
-        #previous_longitude = gps_latitude_longitude[2]
     else:
         temporary_sensor_dictionary["gps"] = ["NULL"]
         temporary_sensor_dictionary["gps"].append("NULL")

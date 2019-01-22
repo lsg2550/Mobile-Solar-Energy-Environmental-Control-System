@@ -21,6 +21,9 @@ WIDTH = 640 # Max Width
 HEIGHT = 480 # Max Height
 FRAMERATE = 30 # Max Framerate
 
+def QuickCapture():
+    pass
+
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     # Set globals
     global PREVIOUS_MINUTE_DIRECTORY
@@ -182,6 +185,7 @@ def Main(programTime=None):
             # Capture intrusion thread
             if INTRUSION_THREAD == None or not INTRUSION_THREAD.isAlive():
                 INTRUSION_THREAD = Thread(target = CaptureIntrusion, args = (filename_safe_current_time, current_frame_name, 4, ))
+                INTRUSION_THREAD.setDaemon(True)
                 INTRUSION_THREAD.start()
                 
             # Clear Stream
