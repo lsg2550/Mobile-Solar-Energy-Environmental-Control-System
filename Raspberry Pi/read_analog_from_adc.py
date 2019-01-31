@@ -9,7 +9,6 @@ import spidev
 import serial
 import time
 import os
-import random
 
 # Initialize
 NOTIFICATION_THREAD = None
@@ -62,12 +61,6 @@ shunt_two_gain = 1 + (shunt_two_opamp_resistor_feedback / shunt_two_opamp_resist
 shunt_three_opamp_resistor_feedback = 45
 shunt_three_opamp_resistor_one = 0.994
 shunt_three_gain = 1 + (shunt_three_opamp_resistor_feedback / shunt_three_opamp_resistor_one)
-
-# Previous Temperature/Humidity/GPS Values
-previous_temperature_value_inner = 0
-previous_humidity_value_inner = 0
-previous_temperature_value_outer = 0
-previous_humidity_value_outer = 0
 
 # Serial Devices
 try: SERIAL_GPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
@@ -129,12 +122,7 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     global DHT11_SENSOR
     global GPS_NO_ERROR
     global GPS_COORD_INACCESSIBLE
-    global previous_temperature_value_inner
-    global previous_humidity_value_inner
-    global previous_temperature_value_outer
-    global previous_humidity_value_outer
     
-    # Thresholds
     # Battery Thresholds
     thresholdBVL = float(threshold_battery_voltage_lower)
     thresholdBVU = float(threshold_battery_voltage_upper)
@@ -157,24 +145,20 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     # Dictionary to hold {Sensor => Value}
     temporary_sensor_dictionary = {}
 
-    # Read Battery Voltage and Current
-    battery_voltage_value = MC.ConvertVolts(ReadADCChannel(battery_voltage), 2) # From Resistor Network - Circuit Diagram
-    battery_current_value = MC.ConvertAmps(ReadADCChannel(battery_current), 2) # From OpAmp
-
-    # Read Charge Controller Current
-    charge_controller_current_value = MC.ConvertAmps(ReadADCChannel(charge_con_current), 2) # From OpAmp
+    # Read Battery Voltage and Current - ADC CHannels 1 & 3
+    battery_voltage_value = MC.ConvertVolts(ReadADCChannel(battery_voltage), actual_five_voltage_rail, voltage_divider_batt_drop, 2) # From Voltage Divider #1
+    battery_current_value = MC.ConvertAmps(ReadADCChannel(battery_current), actual_five_voltage_rail, shunt_one_gain, 2) # From Shunt #1 OpAmp
     
-    # ADC Channel 4 and 5 - Solar Panel
-    solar_panel_voltage_value = MC.ConvertVolts(ReadADCChannel(solar_voltage), 2) # From Resistor Network - Circuit Diagram
-    solar_panel_current_value = MC.ConvertAmps(ReadADCChannel(solar_current), 2) # From OpAmp
+    # Read Solar Panel Voltage and Current - ADC Channels 2 & 4
+    solar_panel_voltage_value = MC.ConvertVolts(ReadADCChannel(solar_voltage), actual_five_voltage_rail, voltage_divider_pv_drop, 2) # From Voltage Divider #2
+    solar_panel_current_value = MC.ConvertAmps(ReadADCChannel(solar_current), actual_five_voltage_rail, shunt_two_gain, 2) # From Shunt #2 OpAmp
+
+    # Read Charge Controller Current - ADC Channels 5
+    charge_controller_current_value = MC.ConvertAmps(ReadADCChannel(charge_con_current), actual_five_voltage_rail, shunt_three_gain, 2) # From Shunt #3 OpAmp
 
     # Inner and Outer Temperature Sensors
     humidity_inner, temperature_inner = Adafruit_DHT.read(DHT11_SENSOR, DHT11_I)
     humidity_outer, temperature_outer = Adafruit_DHT.read(DHT11_SENSOR, DHT11_O)
-    if temperature_inner is not None: previous_temperature_value_inner = temperature_inner
-    if humidity_inner is not None: previous_humidity_value_inner = humidity_inner
-    if temperature_outer is not None: previous_temperature_value_outer = temperature_outer
-    if humidity_outer is not None: previous_humidity_value_outer = humidity_outer
 
     # GPS
     try: gps_latitude_longitude = ReadGPS()
@@ -186,7 +170,6 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
         NOTIFICATION_THREAD.setDaemon(True)
         NOTIFICATION_THREAD.start()
 
-    # ESSO Operations
     # Exhaust Operations
     try: 
         if temperature_inner >= thresholdTIU:  # For Hot Air -> Cold Air
@@ -197,13 +180,8 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
                 temporary_sensor_dictionary["exhaust"] = "off"
                 GPIO.output(EXHAUST, GPIO.LOW)
     except Exception as e:
-        if previous_temperature_value_inner >= thresholdTIU:  # For Hot Air -> Cold Air
-            if battery_voltage_value > thresholdBVL:
-                temporary_sensor_dictionary["exhaust"] = "on"
-                GPIO.output(EXHAUST, GPIO.HIGH)
-            else:
-                temporary_sensor_dictionary["exhaust"] = "off"
-                GPIO.output(EXHAUST, GPIO.LOW)
+        temporary_sensor_dictionary["exhaust"] = "off"
+        GPIO.output(EXHAUST, GPIO.LOW)
             
     # Populate tempDictionary with recorded values
     temporary_sensor_dictionary["batteryvoltage"] = battery_voltage_value
