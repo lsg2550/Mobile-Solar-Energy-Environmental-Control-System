@@ -35,6 +35,34 @@ DHT11_O = 17
 EXHAUST = 4
 GPIO.setup(EXHAUST, GPIO.OUT)
 
+# Onboard Parts
+actual_five_voltage_rail = 5.30
+
+# Battery Voltage Divider
+voltage_divider_batt_resistor_from_ground = 2.35
+voltage_divider_batt_resistor_from_positive = 9.93
+voltage_divider_batt_drop = voltage_divider_batt_resistor_from_ground / (voltage_divider_batt_resistor_from_ground + voltage_divider_batt_resistor_from_positive)
+
+# Solar Panel Voltage Divider
+voltage_divider_pv_resistor_from_ground = 2.35
+voltage_divider_pv_resistor_from_positive = 9.93
+voltage_divider_pv_drop = voltage_divider_pv_resistor_from_ground / (voltage_divider_pv_resistor_from_ground + voltage_divider_pv_resistor_from_positive)
+
+# Shunt #1 OpAmp
+shunt_one_opamp_resistor_feedback = 44.9
+shunt_one_opamp_resistor_one = 0.998
+shunt_one_gain = 1 + (shunt_one_opamp_resistor_feedback / shunt_one_opamp_resistor_one)
+
+# Shunt #2 OpAmp
+shunt_two_opamp_resistor_feedback = 45
+shunt_two_opamp_resistor_one = 0.994
+shunt_two_gain = 1 + (shunt_two_opamp_resistor_feedback / shunt_two_opamp_resistor_one)
+
+# Shunt #3 OpAmp
+shunt_three_opamp_resistor_feedback = 45
+shunt_three_opamp_resistor_one = 0.994
+shunt_three_gain = 1 + (shunt_three_opamp_resistor_feedback / shunt_three_opamp_resistor_one)
+
 # Previous Temperature/Humidity/GPS Values
 previous_temperature_value_inner = 0
 previous_humidity_value_inner = 0
@@ -44,6 +72,12 @@ previous_humidity_value_outer = 0
 # Serial Devices
 try: SERIAL_GPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
 except Exception as e: print(e)
+
+def ReadADCChannel(channel):
+    analog_to_digital_channel_read = spi.xfer2([1, (8 + channel) << 4, 0])
+    analog_to_digital_channel_data = ((analog_to_digital_channel_read[1] & 3) << 8) + analog_to_digital_channel_read[2]
+    return analog_to_digital_channel_data
+# ReadADCChannel end
 
 def ReadGPS():
     # Init
@@ -82,12 +116,6 @@ def ReadGPS():
             break
     return gps_status_latitude_longitude
 # ReadGPS end
-
-def ReadADCChannel(channel):
-    analog_to_digital_channel_read = spi.xfer2([1, (8 + channel) << 4, 0])
-    analog_to_digital_channel_data = ((analog_to_digital_channel_read[1] & 3) << 8) + analog_to_digital_channel_read[2]
-    return analog_to_digital_channel_data
-# ReadADCChannel end
 
 def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_voltage_upper=None,
                     threshold_battery_current_lower=None, threshold_battery_current_upper=None,
