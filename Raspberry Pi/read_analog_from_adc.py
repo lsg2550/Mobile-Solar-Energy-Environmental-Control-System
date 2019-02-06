@@ -48,17 +48,17 @@ voltage_divider_pv_resistor_from_positive = 9.93
 voltage_divider_pv_drop = voltage_divider_pv_resistor_from_ground / (voltage_divider_pv_resistor_from_ground + voltage_divider_pv_resistor_from_positive)
 
 # Shunt #1 OpAmp
-shunt_one_opamp_resistor_feedback = 44.9
+shunt_one_opamp_resistor_feedback = 67.0
 shunt_one_opamp_resistor_one = 0.998
 shunt_one_gain = 1 + (shunt_one_opamp_resistor_feedback / shunt_one_opamp_resistor_one)
 
 # Shunt #2 OpAmp
-shunt_two_opamp_resistor_feedback = 45
+shunt_two_opamp_resistor_feedback = 67.0
 shunt_two_opamp_resistor_one = 0.994
 shunt_two_gain = 1 + (shunt_two_opamp_resistor_feedback / shunt_two_opamp_resistor_one)
 
 # Shunt #3 OpAmp
-shunt_three_opamp_resistor_feedback = 45
+shunt_three_opamp_resistor_feedback = 67.0
 shunt_three_opamp_resistor_one = 0.994
 shunt_three_gain = 1 + (shunt_three_opamp_resistor_feedback / shunt_three_opamp_resistor_one)
 
@@ -145,7 +145,7 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     # Dictionary to hold {Sensor => Value}
     temporary_sensor_dictionary = {}
 
-    # Read Battery Voltage and Current - ADC CHannels 1 & 3
+    # Read Battery Voltage and Current - ADC Channels 1 & 3
     battery_voltage_value = MC.ConvertVolts(ReadADCChannel(battery_voltage), actual_five_voltage_rail, voltage_divider_batt_drop, 2) # From Voltage Divider #1
     battery_current_value = MC.ConvertAmps(ReadADCChannel(battery_current), actual_five_voltage_rail, shunt_one_gain, 2) # From Shunt #1 OpAmp
     
