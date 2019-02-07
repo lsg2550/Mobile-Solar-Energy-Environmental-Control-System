@@ -20,9 +20,28 @@ RPID = 0 # RaspberryPi Identification Number (rpid)
 WIDTH = 640 # Max Width
 HEIGHT = 480 # Max Height
 FRAMERATE = 30 # Max Framerate
+CAMERA = None # Camera
+RAW_CAPTURE = None # Capture Object
+QUICK_CAPTURE_IMAGE_NAME = "clarity.jpg" # Name of QuickCapture Image
+
+def InitializeCamera():
+    global CAMERA
+    global RAW_CAPTURE
+    
+    try:
+        CAMERA = PiCamera()
+        CAMERA.resolution = (WIDTH, HEIGHT)
+        CAMERA.framerate = FRAMERATE
+        RAW_CAPTURE = PiRGBArray(CAMERA, size=(WIDTH, HEIGHT))
+        time.sleep(0.1)
+    except Exception as e:
+        print("No recording device found...\n{}".format(e))
+        return
 
 def QuickCapture():
-    pass
+    global CAMERA
+    global QUICK_CAPTURE_IMAGE_NAME
+    CAMERA.capture(QUICK_CAPTURE_IMAGE_NAME)
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     # Set globals
@@ -123,17 +142,8 @@ def Main(programTime=None):
     global HEIGHT
     global WIDTH
     global RPID
-
-    # Initialize camera
-    try:
-        CAMERA = PiCamera()
-        CAMERA.resolution = (WIDTH, HEIGHT)
-        CAMERA.framerate = FRAMERATE
-        raw_capture = PiRGBArray(CAMERA, size=(WIDTH, HEIGHT))
-        time.sleep(0.1)
-    except Exception as e:
-        print("No recording device found...\n{}".format(e))
-        return
+    global CAMERA
+    global RAW_CAPTURE
 
     # Initialize/Synchronize program time
     START_TIME = time.time() if programTime == None else programTime
@@ -141,7 +151,7 @@ def Main(programTime=None):
     first_frame = None # This frame is used to compare against the next frame to determine changes (or motion) between the frames
 
     # Begin monitoring
-    for image in CAMERA.capture_continuous(raw_capture, format="bgr", use_video_port=True):
+    for image in CAMERA.capture_continuous(RAW_CAPTURE, format="bgr", use_video_port=True):
         # Read frame
         frame = image.array
         frame_text = "Clear"
@@ -154,7 +164,7 @@ def Main(programTime=None):
         # Initial run only - no previous frame to compare so set the converted frame to the firstFrame and continue to the next iteration of the loop
         if first_frame is None:
             first_frame = frame_gray
-            raw_capture.truncate(0)
+            RAW_CAPTURE.truncate(0)
             continue
 
         # Compute the difference between the first frame and the new frame - Perform image operations to find contours
@@ -189,7 +199,7 @@ def Main(programTime=None):
                 INTRUSION_THREAD.start()
                 
             # Clear Stream
-            raw_capture.truncate(0)
+            RAW_CAPTURE.truncate(0)
         # End contours for loop
 
         # Get timers and time (long) for minute directory check and image capture 
@@ -217,7 +227,7 @@ def Main(programTime=None):
             cv2.imwrite(current_frame_name_full_path, frame)
         
         # Clear Stream
-        raw_capture.truncate(0)
+        RAW_CAPTURE.truncate(0)
     # End while loop
 # Main() End
 
@@ -229,6 +239,7 @@ if __name__ == '__main__':
     except FileNotFoundError: pass
     finally: os.mkdir(CURRENT_MINUTE_DIRECTORY)
     if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY)
+    InitializeCamera()
     Main()
 else:
     try: shutil.rmtree(PREVIOUS_MINUTE_DIRECTORY)
@@ -237,4 +248,6 @@ else:
     try: shutil.rmtree(CURRENT_MINUTE_DIRECTORY)
     except FileNotFoundError: pass
     finally: os.mkdir(CURRENT_MINUTE_DIRECTORY)
-    if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY) 
+    if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY)
+    InitializeCamera()
+    

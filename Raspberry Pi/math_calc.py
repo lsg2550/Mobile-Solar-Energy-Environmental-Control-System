@@ -4,9 +4,12 @@ def ConvertVolts(data, actual_voltage, actual_drop, place): # Used by Voltage Di
     return volts
 
 def ConvertAmps(data, actual_voltage, actual_gain, place): # Used by Operational Amplifers
-    volts = (data / float(1023)) * (actual_voltage / actual_gain) * (100/0.75)
-    volts = round(volts, place)
-    return volts
+    volts_per_count = actual_voltage / 1023
+    amp_per_millivolt = 100 / 75
+    counts = volts_per_count * data
+    amps = (((counts * volts_per_count) / actual_gain) * 1023) * amp_per_millivolt # (data / float(1023)) * (actual_voltage / actual_gain) * (100/0.75) 
+    amps = round(volts, place)
+    return amps
 
 def CelciusToFahrenheit(temperature_celcius): 
     return ((temperature_celcius * 9/5) + 32)
