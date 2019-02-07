@@ -8,7 +8,7 @@ def ConvertAmps(data, actual_voltage, actual_gain, place): # Used by Operational
     amp_per_millivolt = 100 / 75
     counts = volts_per_count * data
     amps = (((counts * volts_per_count) / actual_gain) * 1023) * amp_per_millivolt # (data / float(1023)) * (actual_voltage / actual_gain) * (100/0.75) 
-    amps = round(volts, place)
+    amps = round(amps, place)
     return amps
 
 def CelciusToFahrenheit(temperature_celcius): 
