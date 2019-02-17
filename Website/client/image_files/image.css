@@ -1,16 +1,3 @@
-.title {
-	text-align: center;
-}
-
-.formdiv{
-	text-align: center;
-	padding-bottom: 5px;
-}
-
-form {
-	display: inline-block;
-}
-
 #status {
 	border: 0;
 	min-height: 100vh;

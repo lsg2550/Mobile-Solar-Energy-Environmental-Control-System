@@ -6,28 +6,31 @@
 
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Remote Site - Client Page</title>
-<link rel="stylesheet" href="client_files/client.css">
+    <title>Client's Selection Page</title>
+    <link rel="stylesheet" href="client.css">
 </head>
+
 <body>
-<h1 class="title">Remote Site - Mobile Solar Energy & Environmental Control System</h1>
-	<div class="formdiv">
-		<form action="vitals_files/vitals.php" method="post">
-		  <input type="submit" value="Control Panel">
-		</form>
-		<form action="client_files/listlogs.php" method="post" target="status">
-		  <input type="submit" value="List Logs">
-		</form>
-		<form action="image_files/image.php" method="post">
-		  <input type="submit" value="View Images">
-		</form>
-		<form action="../index_files/logout.php" method="post">
-		  <input type="submit" value="Log Out">
-		</form>
-	</div>
-<div id="status-div">
-  <iframe id="status" name="status"></iframe>
-</div>
+    <h1 class="title">Remote Site - Mobile Solar Energy & Environmental Control System</h1>
+    <div class="formdiv">
+        <form action="vitals_files/vitals.php" method="post">
+            <input type="submit" value="Control Panel">
+        </form>
+        <form action="stats_files/stats.php" method="post">
+            <input type="submit" value="View Statistics">
+        </form>
+        <form action="log_files/listlogs.php" method="post">
+            <input type="submit" value="View Logs">
+        </form>
+        <form action="image_files/image.php" method="post">
+            <input type="submit" value="View Images">
+        </form>
+        <form action="../index_files/logout.php" method="post">
+            <input type="submit" value="Log Out">
+        </form>
+    </div>
 </body>
+
 </html>

@@ -140,28 +140,44 @@
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <link rel="stylesheet" type="text/css" href="listlogs.css">
-    </head>
 
-    <body>            
-        <div class="displays">
-            <fieldset><legend>Current Status</legend>
-                <?php
+<head>
+    <title>Logs Page</title>
+    <link rel="stylesheet" type="text/css" href="listlogs.css">
+    <link rel="stylesheet" type="text/css" href="../client.css">
+</head>
+
+<body>
+    <h1 class="title">Remote Site - Mobile Solar Energy & Environmental Control System</h1>
+    <div class="formdiv">
+        <form action="../client.php" method="post">
+            <input type="submit" value="Client Page">
+        </form>
+        <form action="../../index_files/logout.php" method="post">
+            <input type="submit" value="Log Out">
+        </form>
+    </div>
+
+    <div class="displays">
+        <fieldset>
+            <legend>Current Status</legend>
+            <?php
                     foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, "<tr><th>Vital Name</th><th>Status</th><th>Timestamp</th></tr>", false); }
                     echo "</table>";
                     resetGlobals();
                 ?>
-            </fieldset>
-        </div>
-        <div class="displays">
-            <fieldset><legend>Log</legend>
-                <?php
+        </fieldset>
+    </div>
+    <div class="displays">
+        <fieldset>
+            <legend>Log</legend>
+            <?php
                     foreach ($arrayLog as $aL) { echo getData($aL, "<tr><th>Vital Name</th><th>TYP</th><th>RPiID</th><th>Vital Value</th><th>Timestamp</th></tr>", true); }
                     echo "</table>";
                     resetGlobals();
                 ?>
-            </fieldset>
-        </div>
-    </body>
+        </fieldset>
+    </div>
+</body>
+
 </html>

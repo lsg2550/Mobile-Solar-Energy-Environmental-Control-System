@@ -18,7 +18,7 @@
             if($initalRaspberryPi === false){ $vitalThresholdControlPanel .= "</table></fieldset><fieldset>"; } //Closes the table and fieldset from the previous RaspberryPi, then starts a new fieldset
             else { $initalRaspberryPi = false; } //Initial table will change this to false after it creates the first table header
 
-            $vitalThresholdControlPanel .= "<legend>Raspberry Pi - {$currentRaspberryPi}</legend><table><tr><th>Vital Name</th><th>Vital Lower</th><th>Vital Upper</th></tr>";
+            $vitalThresholdControlPanel .= "<legend>Raspberry Pi - {$currentRaspberryPi}</legend><table class='rpi-table'><tr><th>Vital Name</th><th>Vital Lower</th><th>Vital Upper</th></tr>";
         }
 
         //Generate Panel
@@ -35,8 +35,8 @@
         
         //Populate threshold row START
         $selectHTML .= "<td>{$vitalname}</td>";
-        $selectHTML .= "<td><input type='text' name='vitallower[]' value='{$vitallower}'></td>"; //Second Column - VLower Column
-        $selectHTML .= "<td><input type='text' name='vitalupper[]' value='{$vitalupper}'></td>"; //Third Column - VUpper Column
+        $selectHTML .= "<td><input type='text' name='vitallower[]' value='{$vitallower}' required></td>"; //Second Column - VLower Column
+        $selectHTML .= "<td><input type='text' name='vitalupper[]' value='{$vitalupper}' required></td>"; //Third Column - VUpper Column
         $selectHTML .= "<input type='hidden' name='vitalname[]' value='{$vitalname}'>";
         $selectHTML .= "<input type='hidden' name='rpid[]' value='{$rpid}'>";
         //Populate threshold row END

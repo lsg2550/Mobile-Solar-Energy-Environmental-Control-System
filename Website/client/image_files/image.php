@@ -30,29 +30,35 @@
 
 <!DOCTYPE html>
 <html>
+
 <head>
-<title>Remote Site - Client Page</title>
-<link rel="stylesheet" type="text/css" href="image.css">
-<script src="adjustimageframe.js"></script>
+    <title>Images Page</title>
+    <link rel="stylesheet" type="text/css" href="image.css">
+    <link rel="stylesheet" type="text/css" href="../client.css">
+    <script src="adjustimageframe.js"></script>
 </head>
+
 <body>
-<h1 class="title">Remote Site - Mobile Solar Energy & Environmental Control System</h1>
-	<div class="formdiv">
-		<form action="../client.php" method="post">
-		  <input type="submit" value="Client Page">
-		</form>
-		<form action="../../index_files/logout.php" method="post">
-		  <input type="submit" value="Log Out">
-		</form>
+    <h1 class="title">Remote Site - Mobile Solar Energy & Environmental Control System</h1>
+    <div class="formdiv">
+        <form action="../client.php" method="post">
+            <input type="submit" value="Client Page">
+        </form>
+        <form action="../../index_files/logout.php" method="post">
+            <input type="submit" value="Log Out">
+        </form>
 	</div>
-	<div id="imagecontainer">
-		<div id="imagelist">
-				<?php getImages(); ?>
-		</div>
-		<div id="imageviewer">
-			<iframe id="imagecurrent" name="imagecurrent" onload="adjustimageframe(this)" scrolling="no" frameborder="no" ></iframe>
-		</div>
-		<div id="imageclear"></div>
-	</div>
+	
+    <div id="imagecontainer">
+        <div id="imagelist">
+            <?php getImages(); ?>
+        </div>
+        <div id="imageviewer">
+            <iframe id="imagecurrent" name="imagecurrent" onload="adjustimageframe(this)" scrolling="no"
+                frameborder="no"></iframe>
+        </div>
+        <div id="imageclear"></div>
+    </div>
 </body>
+
 </html>

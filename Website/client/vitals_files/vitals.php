@@ -25,33 +25,38 @@
 
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Remote Site - Vital Control Panel</title>
-        <link rel="stylesheet" type="text/css" href="vitals.css">
-    </head>
-    <body>
-    <h1 class="title">Remote Site - Mobile Solar Energy & Environmental Control System</h1>
-        <div class="formdiv">
-            <form action="../client.php" method="post">
-                <input type="submit" value="Client Page">
-            </form>
-            <form action="../../index_files/logout.php" method="post">
-                <input type="submit" value="Log Out">
-            </form>
-        </div>
 
-        <div class="displays">
-            <form action="vitalsthreshold.php" method="post">
-                <fieldset><legend>Vital Threshold Control Panel:</legend>
-                    <?php
+<head>
+    <title>Remote Site - Vital Control Panel</title>
+    <link rel="stylesheet" type="text/css" href="vitals.css">
+    <link rel="stylesheet" type="text/css" href="../client.css">
+</head>
+
+<body>
+    <h1 class="title">Remote Site - Mobile Solar Energy & Environmental Control System</h1>
+    <div class="formdiv">
+        <form action="../client.php" method="post">
+            <input type="submit" value="Client Page">
+        </form>
+        <form action="../../index_files/logout.php" method="post">
+            <input type="submit" value="Log Out">
+        </form>
+    </div>
+
+    <div class="displays">
+        <form action="vitalsthreshold.php" method="post">
+            <fieldset>
+                <legend>Vital Threshold Control Panel:</legend>
+                <?php
                         echo "<fieldset>";
                         foreach ($arrayCurrentThreshold as $aCT) { echo generateVitalThresholdControlPanel($aCT); } //Generate Threshold Control Panel
                         echo "</table></fieldset>";
                         resetGlobals();
                     ?>
-                    <input type="submit" value="Commit Any Changes">
-                </fieldset>
-            </form>
-        </div>
-    </body>
+                <input type="submit" value="Commit Any Changes">
+            </fieldset>
+        </form>
+    </div>
+</body>
+
 </html>
