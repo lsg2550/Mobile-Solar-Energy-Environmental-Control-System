@@ -95,7 +95,7 @@ def Main():
     # Program Start Time
     START_TIME = time.time() # Initialize Program Start Time
     SEND_STATUS_THREAD = None # Thread for sending JSON
-    SEND_SIMAGE_THREAD = None # Thread for sending single status/clarity image
+    #SEND_SIMAGE_THREAD = None # Thread for sending single status/clarity image
     SEND_IMAGES_THREAD = None # Thread for sending multiple motion detection images
     
     # Start Camera Thread
@@ -180,10 +180,10 @@ def Main():
             SEND_IMAGES_THREAD.start()
 
         # Send a single image in new thread
-        if SEND_IMAGE_THREAD == None or not SEND_IMAGE_THREAD.isAlive():
-            SEND_IMAGE_THREAD = Thread(target=GetAndSendImage, args=())
-            SEND_IMAGE_THREAD.setDaemon(True)
-            SEND_IMAGE_THREAD.start()
+        #if SEND_IMAGE_THREAD == None or not SEND_IMAGE_THREAD.isAlive():
+        #    SEND_IMAGE_THREAD = Thread(target=GetAndSendImage, args=())
+        #    SEND_IMAGE_THREAD.setDaemon(True)
+        #    SEND_IMAGE_THREAD.start()
             
         # Wait for 60 seconds for the next read interval
         timer = (time.time() - START_TIME) % 60

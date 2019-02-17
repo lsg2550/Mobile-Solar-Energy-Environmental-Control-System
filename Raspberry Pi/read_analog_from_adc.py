@@ -35,7 +35,7 @@ EXHAUST = 4
 GPIO.setup(EXHAUST, GPIO.OUT)
 
 # Onboard Parts
-actual_five_voltage_rail = 5.30
+actual_five_voltage_rail = 4.77
 
 # Battery Voltage Divider
 voltage_divider_batt_resistor_from_ground = 2.35
@@ -48,17 +48,17 @@ voltage_divider_pv_resistor_from_positive = 9.93
 voltage_divider_pv_drop = voltage_divider_pv_resistor_from_ground / (voltage_divider_pv_resistor_from_ground + voltage_divider_pv_resistor_from_positive)
 
 # Shunt #1 OpAmp
-shunt_one_opamp_resistor_feedback = 67.0
-shunt_one_opamp_resistor_one = 0.998
+shunt_one_opamp_resistor_feedback = 44.9
+shunt_one_opamp_resistor_one = 0.994
 shunt_one_gain = 1 + (shunt_one_opamp_resistor_feedback / shunt_one_opamp_resistor_one)
 
 # Shunt #2 OpAmp
-shunt_two_opamp_resistor_feedback = 67.0
-shunt_two_opamp_resistor_one = 0.994
+shunt_two_opamp_resistor_feedback = 45.0
+shunt_two_opamp_resistor_one = 0.998
 shunt_two_gain = 1 + (shunt_two_opamp_resistor_feedback / shunt_two_opamp_resistor_one)
 
 # Shunt #3 OpAmp
-shunt_three_opamp_resistor_feedback = 67.0
+shunt_three_opamp_resistor_feedback = 45.0
 shunt_three_opamp_resistor_one = 0.994
 shunt_three_gain = 1 + (shunt_three_opamp_resistor_feedback / shunt_three_opamp_resistor_one)
 
