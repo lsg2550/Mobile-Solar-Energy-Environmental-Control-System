@@ -26,11 +26,13 @@ function createchart(chartID, chartType, chartName, dataLabels, data) {
                     scales: {
                         yAxes: [{
                             ticks: {
-                                fontSize: 10,
-                                maxRotation: 0,
-                                autoSkip: false,
-                                autoSkipPadding: 0
+                                fontSize: 10
                             }
+                        }],
+                        xAxes: [{
+                            maxRotation: 0,
+                            autoSkip: false,
+                            autoSkipPadding: 0
                         }]
                     },
                     maintainAspectRatio: false
@@ -55,9 +57,13 @@ function createchart(chartID, chartType, chartName, dataLabels, data) {
                         yAxes: [{
                             ticks: {
                                 beginAtZero: true,
-                                fontSize: 10,
-                                maxRotation: 0
+                                fontSize: 10
                             }
+                        }],
+                        xAxes: [{
+                            maxRotation: 0,
+                            autoSkip: false,
+                            autoSkipPadding: 0
                         }]
                     },
                     maintainAspectRatio: false
