@@ -9,8 +9,8 @@
 
     //POST
     $vital = $_POST["vital_select"];
-    $dateTimeStart = new DateTime($_POST["date_start"] . " " . $_POST["time_start"], new DateTimeZone("America/Chicago"));
-    $dateEnd = new DateTime($_POST["date_end"] . " " . $_POST["time_end"], new DateTimeZone("America/Chicago"));
+    $dateTimeStart = new DateTime($_POST["datetime_start"], new DateTimeZone("America/Chicago"));
+    $dateTimeEnd = new DateTime($_POST["datetime_end"], new DateTimeZone("America/Chicago"));
     $timeInterval = $_POST["time_interval"];
     $rpi = $_POST["rpi_select"];
 
@@ -50,26 +50,27 @@
     $resultLog = mysqli_query($conn, $sqlLog);
 
     //Store Log Query Results into $arrayLogs respective to their vital names
-    $arrayLogVitalOne = array();
-    $arrayLogVitalTwo = array();
+    $arrayLogVitalOne = array(); //This array will contain all the vital values during the given timestamps as before
+    $arrayLogVitalTwo = array(); //This array will contain all the vital values during the given timestamps as before
+    $arrayLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
     if(mysqli_num_rows($resultLog) > 0) { 
         while($row = mysqli_fetch_assoc($resultLog)) {
             $vitalName = $row['VN'];
             $vitalValue = $row['V1'];
             $vitalTS = new DateTime($row['TS'], new DateTimeZone("America/Chicago"));
-            $tempRow = [ $vitalValue, $vitalTS ];
+            $tempVital = $vitalValue;
+            $arrayLogTS[] = $vitalTS->format('Y-m-d H:i:s');
 
-            if($vitalName == $vitalOne) { $arrayLogVitalOne[] = $tempRow; } 
-            else { $arrayLogVitalTwo[] = $tempRow; }
+            if($vitalName == $vitalOne) { $arrayLogVitalOne[] = $tempVital; } 
+            else { $arrayLogVitalTwo[] = $tempVital; }
         }
     }
-
-    //Process arrayLog to get the following arrays of data
-    $arrayLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
-    $arrayLogVI = array(); //This array will contain all the vital values during the given timestamps as before
-    for ($i=0; $i < count($arrayLogVitalOne); $i++) { 
-        print_r($arrayLog);
-    }
     
-    echo $vital . "  " . $dateStart . "  " . $dateEnd . "  " . $timeStart . "  " . $timeEnd . "  " . $timeInterval . "  " . $rpi;
+    //echo $vital . "  " . $dateTimeStart->format('Y-m-d H:i:s') . "  " . $dateTimeEnd->format('Y-m-d H:i:s') . "  " . $timeInterval . "  " . $rpi;
+
+    //Output
+    echo "<canvas class='charts-canvas' id='primary-chart'></canvas>";
+    echo "<canvas class='charts-canvas' id='secondary-chart'></canvas>";
+    echo "<script>createchart('primary-chart', 'line', '{$vitalOne}'," .  json_encode($arrayLogTS) .",". json_encode($arrayLogVitalOne) . ")</script>";
+    echo "<script>createchart('secondary-chart', 'line', '{$vitalTwo}'," .  json_encode($arrayLogTS) .",". json_encode($arrayLogVitalTwo) . ")</script>";
 ?>

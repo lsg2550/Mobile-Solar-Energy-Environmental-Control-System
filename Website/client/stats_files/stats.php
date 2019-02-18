@@ -74,20 +74,6 @@
             <input type="datetime-local" class="datetime-range" id="datetime-start-select" name="datetime_start" required>
             <label for="datetime-end-select">Select End Date:</label>
             <input type="datetime-local" class="datetime-range" id="datetime-end-select" name="datetime_end" required>
-            <br />
-
-            <!-- Select Date -->
-            <label for="date-start-select">Select Start Date:</label>
-            <input type="date" class="date-range" id="date-start-select" name="date_start" required>
-            <label for="date-end-select">Select End Date:</label>
-            <input type="date" class="date-range" id="date-end-select" name="date_end" required>
-            <br />
-
-            <!-- Select Time -->
-            <label for="time-start-select">Select Start Time:</label>
-            <input type="time" class="time-range" id="time-start-select" name="time_start" required>
-            <label for="time-end-select">Select End Time:</label>
-            <input type="time" class="time-range" id="time-end-select" name="time_end" required>
 
             <!-- Select Time Interval -->
             <label for="time-interval">Select Time Interval:</label>
@@ -103,11 +89,6 @@
         </form>
     </div>
 
-    <div class="charts">
-        <canvas class="charts-canvas" id="primary-chart"></canvas>
-        <canvas class="charts-canvas" id="secondary-chart"></canvas>
-        <script>createchart("primary-chart", "line", "")</script>
-        <script>createchart("secondary-chart", "line", "")</script>
-    </div>
+    <div class="charts"></div>
 </body>
 </html>
