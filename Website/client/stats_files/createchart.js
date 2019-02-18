@@ -2,10 +2,14 @@ function createchart(chartID, chartType, chartName, dataLabels, data) {
     var ctx = document.getElementById(chartID).getContext("2d");
     var colorCodes = createRandomHex(1);
 
-    switch(chartType) {
+    //Debug
+    //console.log(dataLabels);
+    //console.log(data);
+
+    switch (chartType) {
         case "line":
-            var chartOptions = {
-                type: "LineAlt",
+            var lineChart = new Chart(ctx, {
+                type: chartType,
                 data: {
                     labels: dataLabels,
                     datasets: [{
@@ -18,17 +22,21 @@ function createchart(chartID, chartType, chartName, dataLabels, data) {
                 options: {
                     title: {
                         display: false
-                    }
-                },
-                endPoint: 200,
-                animation: false
-            };
-            var lineChart = new Chart(ctx).LineAlt(chartOptions, {
+                    },
+                    scales: {
+                        yAxes: [{
+                            ticks: {
+                                fontSize: 10
+                            }
+                        }]
+                    },
+                    maintainAspectRatio: false
+                }
             });
             break;
         case "bar":
-            var chartOptions = {
-                type: "BarAlt",
+            var barChart = new Chart(ctx, {
+                type: chartType,
                 data: {
                     labels: dataLabels,
                     datasets: [{
@@ -43,15 +51,14 @@ function createchart(chartID, chartType, chartName, dataLabels, data) {
                     scales: {
                         yAxes: [{
                             ticks: {
-                                beginAtZero:true
+                                beginAtZero: true,
+                                fontSize: 10
                             }
                         }]
                     },
-                    endPoint: 200,
-                    animation: false
+                    maintainAspectRatio: false
                 }
-            };
-            var barChart = new Chart(ctx, chartOptions);
+            });
             break;
         default:
             break;
@@ -62,40 +69,21 @@ function createRandomHex(sizeOfData) {
     var colorCodeArr = [];
 
     for (let index = 0; index < sizeOfData; index++) {
-      colorCodeArr.push("#" 
-      + Math.floor(Math.random() * 255).toString(16) 
-      + Math.floor(Math.random() * 255).toString(16) 
-      + Math.floor(Math.random() * 255).toString(16)
-      );
+        colorCodeArr.push("#"
+            + Math.floor(Math.random() * 255).toString(16)
+            + Math.floor(Math.random() * 255).toString(16)
+            + Math.floor(Math.random() * 255).toString(16)
+        );
     }
-  
+
     return colorCodeArr;
 }
 
-Chart.controllers.BarAlt = Chart.controllers.Bar.extend({
-    draw: function () {
-        this.scale.endPoint = this.options.endPoint;
-        Chart.types.Bar.prototype.draw.apply(this, arguments);
-    }
-});
-
-Chart.controllers.LineAlt = Chart.controllers.Line.extend({
-    draw: function () {
-        this.scale.endPoint = this.options.endPoint;
-        Chart.types.Line.prototype.draw.apply(this, arguments);
-    }
-});
-
-/*
-Try to manually set the width of the fisrt chart, 
-set the maintainaspectratio to false and place both charts inside a flex div.
-*/
-
-$(function() { 
-    $("#data-preview-select").on('submit', function(event) {
+$(function () {
+    $("#data-preview-select").on('submit', function (event) {
         event.preventDefault();
         var data = $("#data-preview-select :input").serializeArray();
-        $.post("statsprocess.php", data, function(x){
+        $.post("statsprocess.php", data, function (x) {
             $(".charts").html(x);
         });
     });

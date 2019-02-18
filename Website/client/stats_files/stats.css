@@ -1,23 +1,17 @@
 .charts {
-	float:left;
+	display: flex;
 	text-align: center;
 	height: 50%;
 	width: 50%;
 }
 
 .charts-canvas {
-	display: inline-block;
 	width: 350px;
-    height: 350px;
+	height: 350px;
 }
 
 #data-preview-select form {
 	border: 1px dotted black;
 	padding: 5px;
 	text-align: left
-}
-
-#data-preview-select input[type=submit] {
-	margin-left:50%;
-	margin-right:50%;
 }
