@@ -31,6 +31,10 @@
             <input type="submit" value="Log Out">
         </form>
     </div>
+
+    <div class="current-status">
+        
+    </div>
 </body>
 
 </html>

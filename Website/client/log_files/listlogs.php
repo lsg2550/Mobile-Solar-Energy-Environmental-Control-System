@@ -7,50 +7,10 @@
 
     //Database Queries
     $currentUser = $_SESSION["username"]; //Current User
-    $sqlCurrentStatus = "SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR='{$currentUser}';"; //Select all current status related to the current user
     $sqlLog = "SELECT V.VN, TYP, l.RPID, V1, V2, TS FROM log AS l NATURAL JOIN vitals AS V WHERE l.USR='{$currentUser}' ORDER BY l.RPID, l.TS DESC;"; //Select all logs related to the current user
 
     //Execute Queries
-    $resultCurrentStatus = mysqli_query($conn, $sqlCurrentStatus);
     $resultLog = mysqli_query($conn, $sqlLog);
-
-    //Store CurrentStatus Query Results into $arrayCurrentStatus
-    $arrayCurrentStatus = array(); 
-    if(mysqli_num_rows($resultCurrentStatus) > 0) {
-        while($row = mysqli_fetch_assoc($resultCurrentStatus)) {
-            $tempRow = "";
-            $tempVV = "";
-            switch ($row['VN']) {
-                case 'BatteryVoltage':
-                case 'SolarPanelVoltage':
-                    $tempVV = round($row['VV'], 2) . "V";
-                    break;
-                case 'BatteryCurrent':
-                case 'SolarPanelCurrent':
-                case 'ChargeControllerCurrent':
-                    $tempVV = round($row['VV'], 2) . "A";
-                    break;
-                case 'TemperatureInner':
-                case 'TemperatureOuter':
-                    $tempVV = round($row['VV'], 2) . "&deg;C";
-                    break;
-                case 'HumidityInner':
-                case 'HumidityOuter':
-                    $tempVV = round($row['VV'], 2) . "g/m<sup>3</sup>";
-                    break;
-                // case 'GPS':
-                //     $tempOne = (round($row['VV'], 2) > 0) ? round($row['VV'], 2) . '&deg;N' : round($row['VV'], 2) . '&deg;S';
-                //     $tempTwo = (round($row['VV'], 2) > 0) ? round($row['VV'], 2) . '&deg;E' : round($row['VV'], 2) . '&deg;W';
-                //     $tempVV = $tempOne . '&comma;' . $tempTwo; 
-                //     break;
-                default:
-                    $tempVV = $row['VV'];
-                    break;
-            }
-            $tempRow = "[ {$row['VN']}, {$tempVV}, {$row['RPID']}, {$row['TS']} ]";
-            $arrayCurrentStatus[] = $tempRow;
-        }
-    }
 
     //Store Log Query Results into $arrayLog
     $arrayLog = array();
@@ -158,16 +118,6 @@
         </form>
     </div>
 
-    <div class="displays">
-        <fieldset>
-            <legend>Current Status</legend>
-            <?php
-                    foreach ($arrayCurrentStatus as $aCS) { echo getData($aCS, "<tr><th>Vital Name</th><th>Status</th><th>Timestamp</th></tr>", false); }
-                    echo "</table>";
-                    resetGlobals();
-                ?>
-        </fieldset>
-    </div>
     <div class="displays">
         <fieldset>
             <legend>Log</legend>

@@ -4,3 +4,14 @@
 	height: 50%;
 	width: 50%;
 }
+
+#data-preview-select {
+	border: 1px solid black;
+	padding: 5px;
+	text-align: left;
+}
+
+#data-preview-select input[type=submit] {
+	/*margin-left:50%;
+	margin-right:50%;*/
+}

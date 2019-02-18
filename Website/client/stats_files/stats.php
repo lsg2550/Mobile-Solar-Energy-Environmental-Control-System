@@ -52,8 +52,12 @@
         </form>
     </div>
 
-    <div class="formdiv">
-        <form id="data-preview-select" method="post">
+    <div class="formdiv" id="data-preview-select">
+        <form id="data-preview-select" method="post">            
+            <!-- Select RPi -->
+            <label for="rpi-select">Select RPi:</label>
+            <?php generateRPISelect(); ?>
+
             <!-- Select Vital -->
             <label for="vital-select">Select Vital:</label>
             <select id="vital-select" name="vital_select" required>
@@ -63,12 +67,21 @@
                 <option value="humidity">Humidity</option> <!-- Inner/Outer -->
                 <option value="exhaust">Exhaust</option> <!-- Single -->
             </select>
+            <br />
+
+            <!-- Select DateTime -->
+            <label for="datetime-start-select">Select Start Date:</label>
+            <input type="datetime-local" class="datetime-range" id="datetime-start-select" name="datetime_start" required>
+            <label for="datetime-end-select">Select End Date:</label>
+            <input type="datetime-local" class="datetime-range" id="datetime-end-select" name="datetime_end" required>
+            <br />
 
             <!-- Select Date -->
             <label for="date-start-select">Select Start Date:</label>
             <input type="date" class="date-range" id="date-start-select" name="date_start" required>
             <label for="date-end-select">Select End Date:</label>
             <input type="date" class="date-range" id="date-end-select" name="date_end" required>
+            <br />
 
             <!-- Select Time -->
             <label for="time-start-select">Select Start Time:</label>
@@ -83,10 +96,7 @@
                 <option value="30">30 Minutes</option>
                 <option value="45">45 Minutes</option>
             </select>
-
-            <!-- Select RPi -->
-            <label for="rpi-select">Select RPi:</label>
-            <?php generateRPISelect(); ?>
+            <br />
 
             <!-- Submit -->
             <input type="submit">
