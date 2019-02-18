@@ -53,7 +53,28 @@
     </div>
 
     <div class="formdiv" id="data-preview-select">
-        <form id="data-preview-select" method="post">            
+        <form id="data-preview-select" method="post">
+            <!-- Select Date -->
+            <label for="date-start-select">Select Start Date:</label>
+            <input type="date" class="date-range" id="date-start-select" name="date_start" required>
+            <label for="date-end-select">Select End Date:</label>
+            <input type="date" class="date-range" id="date-end-select" name="date_end" required>
+
+            <!-- Select Time -->
+            <label for="time-start-select">Select Start Time:</label>
+            <input type="time" class="time-range" id="time-start-select" name="time_start" required>
+            <label for="time-end-select">Select End Time:</label>
+            <input type="time" class="time-range" id="time-end-select" name="time_end" required>
+
+            <!-- Select Time Interval -->
+            <label for="time-interval">Select Time Interval:</label>
+            <select id="time-interval" name="time_interval" required>
+                <option value="15">15 Minutes</option>
+                <option value="30">30 Minutes</option>
+                <option value="45">45 Minutes</option>
+            </select>
+            <br />
+            
             <!-- Select RPi -->
             <label for="rpi-select">Select RPi:</label>
             <?php generateRPISelect(); ?>
@@ -66,21 +87,6 @@
                 <option value="temperature">Temperature</option> <!-- Inner/Outer -->
                 <option value="humidity">Humidity</option> <!-- Inner/Outer -->
                 <option value="exhaust">Exhaust</option> <!-- Single -->
-            </select>
-            <br />
-
-            <!-- Select DateTime -->
-            <label for="datetime-start-select">Select Start Date:</label>
-            <input type="datetime-local" class="datetime-range" id="datetime-start-select" name="datetime_start" required>
-            <label for="datetime-end-select">Select End Date:</label>
-            <input type="datetime-local" class="datetime-range" id="datetime-end-select" name="datetime_end" required>
-
-            <!-- Select Time Interval -->
-            <label for="time-interval">Select Time Interval:</label>
-            <select id="time-interval" name="time_interval" required>
-                <option value="15">15 Minutes</option>
-                <option value="30">30 Minutes</option>
-                <option value="45">45 Minutes</option>
             </select>
             <br />
 

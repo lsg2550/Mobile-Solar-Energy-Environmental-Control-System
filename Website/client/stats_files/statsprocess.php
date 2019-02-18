@@ -8,9 +8,11 @@
     $currentUser = $_SESSION["username"]; //Current User
 
     //POST
-    $vital = $_POST["vital_select"];
-    $dateTimeStart = new DateTime($_POST["datetime_start"], new DateTimeZone("America/Chicago"));
-    $dateTimeEnd = new DateTime($_POST["datetime_end"], new DateTimeZone("America/Chicago"));
+    $vital = $_POST["vital_select"];    
+    $dateStart = new DateTime($_POST["date_start"], new DateTimeZone("America/Chicago"));
+    $dateEnd = new DateTime($_POST["date_end"], new DateTimeZone("America/Chicago"));
+    $timeStart = $_POST["time_start"];
+    $timeEnd = $_POST["time_end"];
     $timeInterval = $_POST["time_interval"];
     $rpi = $_POST["rpi_select"];
 
@@ -65,8 +67,6 @@
             else { $arrayLogVitalTwo[] = $tempVital; }
         }
     }
-    
-    //echo $vital . "  " . $dateTimeStart->format('Y-m-d H:i:s') . "  " . $dateTimeEnd->format('Y-m-d H:i:s') . "  " . $timeInterval . "  " . $rpi;
 
     //Output
     echo "<canvas class='charts-canvas' id='primary-chart'></canvas>";
