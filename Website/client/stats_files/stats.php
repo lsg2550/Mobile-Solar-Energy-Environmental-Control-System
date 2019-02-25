@@ -55,39 +55,42 @@
     <div class="formdiv" id="data-preview-select">
         <form id="data-preview-select" method="post">
             <!-- Select Date -->
-            <label for="date-start-select">Select Start Date:</label>
+            <label for="date-start-select">Start Date:</label>
             <input type="date" class="date-range" id="date-start-select" name="date_start" required>
-            <label for="date-end-select">Select End Date:</label>
+            <label for="date-end-select">End Date:</label>
             <input type="date" class="date-range" id="date-end-select" name="date_end" required>
 
             <!-- Select Time -->
-            <label for="time-start-select">Select Start Time:</label>
+            <label for="time-start-select">Start Time:</label>
             <input type="time" class="time-range" id="time-start-select" name="time_start" required>
-            <label for="time-end-select">Select End Time:</label>
+            <label for="time-end-select">End Time:</label>
             <input type="time" class="time-range" id="time-end-select" name="time_end" required>
 
             <!-- Select Time Interval -->
-            <label for="time-interval">Select Time Interval:</label>
+            <label for="time-interval">Time Interval:</label>
             <select id="time-interval" name="time_interval" required>
-                <option value="15">15 Minutes</option>
                 <option value="30">30 Minutes</option>
-                <option value="45">45 Minutes</option>
+                <option value="60">1 Hour</option>
+                <option value="90">1 Hour 30 Minutes</option>
+                <option value="120">2 Hour</option>
+                <option value="150">2 Hour 30 Minutes</option>
+                <option value="180">3 Hour</option>
             </select>
             <br />
-            
+
             <!-- Select RPi -->
-            <label for="rpi-select">Select RPi:</label>
+            <label for="rpi-select">RPi:</label>
             <?php generateRPISelect(); ?>
 
             <!-- Select Vital -->
-            <label for="vital-select">Select Vital:</label>
-            <select id="vital-select" name="vital_select" required>
-                <option value="battery">Battery</option>  <!-- Voltage/Current -->
-                <option value="solar">Solar</option> <!-- Voltage/Current -->
-                <option value="temperature">Temperature</option> <!-- Inner/Outer -->
-                <option value="humidity">Humidity</option> <!-- Inner/Outer -->
-                <option value="exhaust">Exhaust</option> <!-- Single -->
-            </select>
+            <label>Vitals:</label>
+            <label>Battery</label><input type="checkbox" name="vital1" value="battery" checked> <!-- Voltage/Current -->
+            <label>Solar Panel</label><input type="checkbox" name="vital2" value="solar" checked>
+            <!-- Voltage/Current -->
+            <label>Temperature</label><input type="checkbox" name="vital3" value="temperature" checked>
+            <!-- Inner/Outer -->
+            <label>Humidity</label><input type="checkbox" name="vital4" value="humidity" checked> <!-- Inner/Outer -->
+            <label>Exhaust</label><input type="checkbox" name="vital5" value="exhaust" checked> <!-- Single -->
             <br />
 
             <!-- Submit -->
@@ -95,6 +98,6 @@
         </form>
     </div>
 
-    <div class="charts"></div>
+    <div class="charts">
 </body>
 </html>
