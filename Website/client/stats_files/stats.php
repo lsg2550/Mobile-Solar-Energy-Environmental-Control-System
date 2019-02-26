@@ -56,19 +56,19 @@
         <form id="data-preview-select" method="post">
             <!-- Select Date -->
             <label for="date-start-select">Start Date:</label>
-            <input type="date" class="date-range" id="date-start-select" name="date_start" required>
+            <input type="date" class="date-range" id="date-start-select" name="date_start" >
             <label for="date-end-select">End Date:</label>
-            <input type="date" class="date-range" id="date-end-select" name="date_end" required>
+            <input type="date" class="date-range" id="date-end-select" name="date_end" >
 
             <!-- Select Time -->
             <label for="time-start-select">Start Time:</label>
-            <input type="time" class="time-range" id="time-start-select" name="time_start" required>
+            <input type="time" class="time-range" id="time-start-select" name="time_start" >
             <label for="time-end-select">End Time:</label>
-            <input type="time" class="time-range" id="time-end-select" name="time_end" required>
+            <input type="time" class="time-range" id="time-end-select" name="time_end" >
 
             <!-- Select Time Interval -->
             <label for="time-interval">Time Interval:</label>
-            <select id="time-interval" name="time_interval" required>
+            <select id="time-interval" name="time_interval" >
                 <option value="30">30 Minutes</option>
                 <option value="60">1 Hour</option>
                 <option value="90">1 Hour 30 Minutes</option>
@@ -94,7 +94,8 @@
             <br />
 
             <!-- Submit -->
-            <input type="submit">
+            <button input="submit" name="formaction" value="chart">Create Chart</button>
+            <button input="submit" name="formaction" value="csv">Download CSV</button>
         </form>
     </div>
 

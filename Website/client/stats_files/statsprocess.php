@@ -69,8 +69,30 @@
         $arrayLogVital[] = $tempLogVital;
         $arrayLogTS[] = $tempLogTS;
     }
-
+    
     //Output
-    echo "<canvas class='charts-canvas' id='primary-chart' style='width: content-box;'></canvas>";
-    echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTS[0]) . "," . json_encode(array_values(array_unique($arrayLogVitalName))) . "," . json_encode($arrayLogVital) . "," . count(array_filter($vitals)) . ")</script>";
-?>
+    if ($_POST["formaction"] == "chart"){    
+        echo "<canvas class='charts-canvas' id='primary-chart' style='width: content-box;'></canvas>";
+        echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTS[0]) . "," . json_encode(array_values(array_unique($arrayLogVitalName))) . "," . json_encode($arrayLogVital) . "," . count(array_filter($vitals)) . ")</script>";
+    } else if($_POST["formaction"] == "csv"){
+        $arrayLogTS = array_values($arrayLogTS);
+        $arrayLogVitalName = array_values($arrayLogVitalName);
+        $arrayLogVital = array_values($arrayLogVital);
+        
+        //Debug
+        print_r("<br/><br/><br/>");
+        print_r($arrayLogTS);
+        print_r("<br/><br/><br/>");
+        print_r($arrayLogVitalName);
+        print_r("<br/><br/><br/>");
+        print_r($arrayLogVital);
+
+        //Create CSV
+        //$statsCSV = fopen("logs.csv", "w");
+        //fputcsv($file, explode(',', $line));
+        //fclose($file);
+
+        //jQuery will then grab the file using its header function
+        //echo "logs.csv";
+    }
+    ?>

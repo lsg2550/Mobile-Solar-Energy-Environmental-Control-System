@@ -75,24 +75,19 @@
     $arrayLogVitalName = array_values($arrayLogVitalName);
     $arrayLogVital = array_values($arrayLogVital);
     
-    //Print to CSV
-
-    /*
-    $file = fopen("logs.csv", "w");
-    
-    combine each array first then loop through each in a foreach making 
-    fputcsv($file, explode(',', $line));
-
-    fclose($file);
-
-    echo "logs.csv";
-
-    jquery will then grab the file using its header function
-    */
+    //Debug
     print_r("<br/><br/><br/>");
     print_r($arrayLogTS);
     print_r("<br/><br/><br/>");
     print_r($arrayLogVitalName);
     print_r("<br/><br/><br/>");
-    print_r($arrayLogVital);  
+    print_r($arrayLogVital);
+
+    //Create CSV
+    //$statsCSV = fopen("logs.csv", "w");
+    //fputcsv($file, explode(',', $line));
+    //fclose($file);
+
+    //jQuery will then grab the file using its header function
+    //echo "logs.csv";
 ?>

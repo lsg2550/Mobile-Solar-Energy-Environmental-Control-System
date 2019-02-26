@@ -56,10 +56,18 @@ function processDatasets(dataLabels, dataValues, dataCount){
 
 $(function () {
     $("#data-preview-select").on('submit', function (event) {
+        //Prevent default event of changing webpage
         event.preventDefault();
-        var data = $("#data-preview-select :input").serializeArray();
-        //console.log(data);
-        $.post("statsprocess.php", data, function (x) {
+        
+        //Get form data and button data
+        var formData = $("#data-preview-select :input").serializeArray();        
+        $("button").click(function(event){ formData.push($(this).val()); });
+        
+        //Debug
+        console.log(formData);
+        
+        //Output
+        $.post("statsprocess.php", formData, function (x) {
             $(".charts").html(x);
         });
     });
