@@ -1,13 +1,15 @@
 .charts {
-	display: inline-block;
+	display: flex;
 	text-align: center;
-	height: 75%;
-	width: 75%;
+	height: 55%;
+	width: 55%;
 }
 
+/*
 .charts-canvas {
 	text-align: center;
 }
+*/
 
 #data-preview-select form {
 	border: 1px dotted black;

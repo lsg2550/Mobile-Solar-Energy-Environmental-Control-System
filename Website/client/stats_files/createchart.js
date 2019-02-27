@@ -13,10 +13,10 @@ function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, da
                 type: chartType,
                 data: {
                     labels: xAxisLabels,
-                    datasets: processDatasets(dataLabels, dataValues, dataCount)
+                    datasets: processDatasets(dataLabels, dataValues, dataCount, chartType)
                 },
                 options: {
-                    title: { display: false },
+                    title: { display: true, text: "Vital('s) Time Series" },
                     scales: {
                         xAxes: [{
                             ticks: { fontSize: 10, autoSkip: true, maxTicksLimit: 2, minRotation: 0, maxRotation: 0 },
@@ -26,25 +26,65 @@ function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, da
                 }
             });
             break;
+        case "doughnut":
+            var doughnutChart = new Chart(ctx, {
+                type: chartType,
+                data: {
+                    labels: dataLabels,
+                    datasets: processDatasets(dataLabels, dataValues, dataCount, chartType)
+                },
+                options: {
+                    title: { display: true, text: "Sensor('s) Quality Ratio"},
+                    cutoutPercentage: 50
+                }
+            });
+            break;
         default:
             break;
     }
 }
 
-function createRandomHex() {
-    return "#" + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16);
+function createRandomHex(returnAmount = -1) {
+    if (returnAmount == -1) {
+        return "#" + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16);
+    }
+
+    var hexColorCodeArray = [];
+    for (let index = 0; index < returnAmount; index++) {
+        hexColorCodeArray.push("#" + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16) + Math.floor(Math.random() * 255).toString(16));
+    }
+
+    return hexColorCodeArray;
 }
 
-function processDatasets(dataLabels, dataValues, dataCount) {
+function processDatasets(dataLabels, dataValues, dataCount, chartType) {
     var data = [];
+    var hexColorCode = createRandomHex();
 
-    for (let index = 0; index < dataCount; index++) {
-        data.push({
-            label: dataLabels[index],
-            data: dataValues[index],
-            borderColor: createRandomHex(),
-            fill: false
-        });
+    switch (chartType) {
+        case "line":
+            for (let index = 0; index < dataCount; index++) {
+                hexColorCode = createRandomHex();
+                data.push({
+                    label: dataLabels[index],
+                    data: dataValues[index],
+                    borderColor: hexColorCode,
+                    backgroundColor: hexColorCode,
+                    fill: false
+                });
+            }
+            break;
+        case "doughnut":
+            hexColorCode = createRandomHex(dataCount);
+            data.push({
+                label: dataLabels,
+                data: dataValues,
+                borderColor: hexColorCode,
+                backgroundColor: hexColorCode,
+            });
+            break;
+        default:
+            break;
     }
 
     console.log(data);

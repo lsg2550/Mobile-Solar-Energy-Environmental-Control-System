@@ -13,4 +13,16 @@
         //Returns array of data
         return $stringSplit;
     }
+
+    function convert2DArrayto1DArray($inputArray) {
+        $outputArray = array();
+
+        foreach (array_values($inputArray) as $key => $value) {
+            foreach ($value as $innerkey => $innervalue) {
+                $outputArray[$innerkey] = $innervalue;
+            }
+        }
+
+        return $outputArray;
+    }
 ?>

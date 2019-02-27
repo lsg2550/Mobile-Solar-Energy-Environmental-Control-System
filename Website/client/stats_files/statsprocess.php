@@ -2,6 +2,7 @@
 //Require
 require "../../index_files/sessionstart.php";
 require "../../index_files/sessioncheck.php";
+require "../../index_files/operations.php";
 require "../../index_files/connect.php";
 
 //Session
@@ -133,13 +134,17 @@ if ($_POST["formaction"] == "chart") {
             }
         }
 
-        $optimalTemperatureRatio[] = [ $arrayLogVitalNameUnique[$rowIdx] => ((count($rowArray) - $optimalCounter)/count($rowArray)) ];
+        $optimalTemperatureRatio[] = ((count($rowArray) - $optimalCounter)/count($rowArray)) != 1 ? [ $arrayLogVitalNameUnique[$rowIdx] => ((count($rowArray) - $optimalCounter)/count($rowArray)) ] : doNothing();
         $arrayLogVital[$rowIdx] = $rowArray;
     }
 
-    print_r($optimalTemperatureRatio);
+    //Optimal temperature/humidity ratio processing 
+    $optimalTemperatureRatio = convert2DArrayto1DArray(array_values(array_filter($optimalTemperatureRatio)));
+
     echo "<canvas class='charts-canvas' id='primary-chart' style='width: content-box;'></canvas>";
     echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTS[0]) . "," . json_encode(array_values($arrayLogVitalNameUnique)) . "," . json_encode($arrayLogVital) . "," . count(array_values($arrayLogVitalNameUnique)) . ")</script>";
+    echo "<canvas class='charts-canvas' id='secondary-chart' style='width:content-box;'></canvas>";
+    echo "<script>createchart('secondary-chart', 'doughnut',"  . "null" . "," . json_encode(array_keys($optimalTemperatureRatio)) . "," . json_encode(array_values($optimalTemperatureRatio)) . "," . count($optimalTemperatureRatio) . ")</script>";
 } else if ($_POST["formaction"] == "csv") {
     $arrayLogTS = array_values($arrayLogTS);
     $arrayLogVitalName = array_values($arrayLogVitalName);
@@ -166,4 +171,6 @@ if ($_POST["formaction"] == "chart") {
     //jQuery will then grab the file using its header function
     echo $csvFolderName . $csvFileName;
 }
+
+function doNothing() {;}
 ?>
