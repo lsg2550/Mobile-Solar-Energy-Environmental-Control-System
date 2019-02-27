@@ -74,59 +74,72 @@ foreach ($arrayVitals as $rowidx => $columnidx) {
 //Output
 if ($_POST["formaction"] == "chart") {
     //Now that the data has been retrieved from the database, we will process it for readability
-    $arrayLogVitalName = array_unique($arrayLogVitalName);
-    foreach ($arrayLogVitalName as $rowIdx => $rowValue) {
-        switch ($arrayLogVitalName[$rowIdx]) {
+
+    //Create readable names
+    $arrayLogVitalNameUnique = array_unique($arrayLogVitalName);
+    foreach ($arrayLogVitalNameUnique as $rowIdx => $rowValue) {
+        switch ($arrayLogVitalNameUnique[$rowIdx]) {
             case 'BatteryVoltage':
-                $arrayLogVitalName[$rowIdx] = "Battery Voltage";
+                $arrayLogVitalNameUnique[$rowIdx] = "Battery Voltage";
                 break;
             case 'BatteryCurrent':
-                $arrayLogVitalName[$rowIdx] = "Battery Current";
+                $arrayLogVitalNameUnique[$rowIdx] = "Battery Current";
                 break;
             case 'SolarPanelVoltage':
-                $arrayLogVitalName[$rowIdx] = "PV Voltage";
+                $arrayLogVitalNameUnique[$rowIdx] = "PV Voltage";
                 break;
             case 'SolarPanelCurrent':
-                $arrayLogVitalName[$rowIdx] = "PV Current";
+                $arrayLogVitalNameUnique[$rowIdx] = "PV Current";
                 break;
             case 'TemperatureInner':
-                $arrayLogVitalName[$rowIdx] = "Inside Temperature";
+                $arrayLogVitalNameUnique[$rowIdx] = "Inside Temperature";
                 break;
             case 'TemperatureOuter':
-                $arrayLogVitalName[$rowIdx] = "Outside Temperature";
+                $arrayLogVitalNameUnique[$rowIdx] = "Outside Temperature";
                 break;
             case 'HumidityInner':
-                $arrayLogVitalName[$rowIdx] = "Inside Humidity";
+                $arrayLogVitalNameUnique[$rowIdx] = "Inside Humidity";
                 break;
             case 'HumidityOuter':
-                $arrayLogVitalName[$rowIdx] = "Outside Humidity";
+                $arrayLogVitalNameUnique[$rowIdx] = "Outside Humidity";
                 break;
             default:
                 break;
         }
     }
+    $arrayLogVitalNameUnique = array_values($arrayLogVitalNameUnique);
 
+    //Fix data
+    $optimalTemperatureRatio = array();
     foreach ($arrayLogVital as $rowIdx => $rowArray) {
+        $optimalCounter = 0;
+
         foreach ($rowArray as $innerRowIdx => $innerValue) {
+            //For Temperature I/O and Humidity I/O
             if ($rowArray[$innerRowIdx] == "NULL") {
                 if ($interpolate == "no") {
                     $rowArray[$innerRowIdx] = "null";
                 } else {
                     $rowArray[$innerRowIdx] = isset($rowArray[$innerRowIdx - 1]) ? $rowArray[$innerRowIdx - 1] : null;
                 }
+                $optimalCounter++;
             }
 
+            //For Exhaust - Converting On/Off to 1/0
             if ($rowArray[$innerRowIdx] == "on") {
                 $rowArray[$innerRowIdx] = 1;
             } else if ($rowArray[$innerRowIdx] == "off") {
                 $rowArray[$innerRowIdx] = 0;
             }
         }
+
+        $optimalTemperatureRatio[] = [ $arrayLogVitalNameUnique[$rowIdx] => ((count($rowArray) - $optimalCounter)/count($rowArray)) ];
         $arrayLogVital[$rowIdx] = $rowArray;
     }
 
+    print_r($optimalTemperatureRatio);
     echo "<canvas class='charts-canvas' id='primary-chart' style='width: content-box;'></canvas>";
-    echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTS[0]) . "," . json_encode(array_values($arrayLogVitalName)) . "," . json_encode($arrayLogVital) . "," . count(array_values($arrayLogVitalName)) . ")</script>";
+    echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTS[0]) . "," . json_encode(array_values($arrayLogVitalNameUnique)) . "," . json_encode($arrayLogVital) . "," . count(array_values($arrayLogVitalNameUnique)) . ")</script>";
 } else if ($_POST["formaction"] == "csv") {
     $arrayLogTS = array_values($arrayLogTS);
     $arrayLogVitalName = array_values($arrayLogVitalName);

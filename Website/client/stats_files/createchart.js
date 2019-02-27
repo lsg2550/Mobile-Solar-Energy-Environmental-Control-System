@@ -19,10 +19,10 @@ function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, da
                     title: { display: false },
                     scales: {
                         xAxes: [{
-                            ticks: { fontSize: 10, autoSkip: false, minRotation: 90, maxRotation: 90 },
+                            ticks: { fontSize: 10, autoSkip: true, maxTicksLimit: 2, minRotation: 0, maxRotation: 0 },
                         }]
                     },
-                    //maintainAspectRatio: false
+                    maintainAspectRatio: false
                 }
             });
             break;
