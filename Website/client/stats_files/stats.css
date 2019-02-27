@@ -1,19 +1,21 @@
 .charts {
-	display: flex;
+	display: inline-block;
 	text-align: center;
-	height: 50%;
-	width: 50%;
+	height: 75%;
+	width: 75%;
 }
 
-/*
 .charts-canvas {
-	width: 350px;
-	height: 350px;
+	text-align: center;
 }
-*/
 
 #data-preview-select form {
 	border: 1px dotted black;
 	padding: 5px;
-	text-align: left
+	text-align: left;
+}
+
+#data-preview-select input[type="submit"] {
+	display:inline-block;
+	text-align: center;
 }

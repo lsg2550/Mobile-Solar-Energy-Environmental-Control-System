@@ -85,20 +85,23 @@
             <!-- Select Vital -->
             <label>Vitals:</label>
             <label>Battery</label><input type="checkbox" name="vital1" value="battery" checked> <!-- Voltage/Current -->
-            <label>Solar Panel</label><input type="checkbox" name="vital2" value="solar" checked>
-            <!-- Voltage/Current -->
-            <label>Temperature</label><input type="checkbox" name="vital3" value="temperature" checked>
-            <!-- Inner/Outer -->
+            <label>PV</label><input type="checkbox" name="vital2" value="solar" checked> <!-- Voltage/Current -->
+            <label>Temperature</label><input type="checkbox" name="vital3" value="temperature" checked> <!-- Inner/Outer -->
             <label>Humidity</label><input type="checkbox" name="vital4" value="humidity" checked> <!-- Inner/Outer -->
             <label>Exhaust</label><input type="checkbox" name="vital5" value="exhaust" checked> <!-- Single -->
+
+            <!-- Select Chart/CSV Configuration -->
+            <label>Settings:</label>
+            <label>Interpolate Missing Data</label><input type="checkbox" name="interpolate_data" value="interpolate" checked> 
             <br />
 
             <!-- Submit -->
-            <button input="submit" name="formaction" value="chart">Create Chart</button>
-            <button input="submit" name="formaction" value="csv">Download CSV</button>
+            <button input="submit" class="formsubmit" id="createchart" name="formaction" value="chart">Create Chart</button>
+            <button input="submit" class="formsubmit" id="downloadcsv" name="formaction" value="csv">Download CSV</button>
         </form>
     </div>
 
     <div class="charts">
+    </div>
 </body>
 </html>
