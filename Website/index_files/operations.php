@@ -25,4 +25,6 @@
 
         return $outputArray;
     }
+    
+    function doNothing() {;}
 ?>

@@ -17,7 +17,7 @@
 	text-align: left;
 }
 
-#data-preview-select input[type="submit"] {
+#data-preview-select button {
 	display:inline-block;
 	text-align: center;
 }
