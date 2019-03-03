@@ -43,7 +43,7 @@
 <head>
     <title>Statistics Page</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.3/Chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
     <script src="createchart.js"></script>
     <link rel="stylesheet" type="text/css" href="stats.css">
     <link rel="stylesheet" type="text/css" href="../client.css">

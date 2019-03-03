@@ -1,11 +1,12 @@
-function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, dataCount) {
+function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, dataCount, dataInterval = null) {
     var ctx = document.getElementById(chartID).getContext("2d");
 
     //Debug
-    // console.log(xAxisLabels);
-    // console.log(dataLabels);
-    // console.log(dataValues);
-    // console.log(dataCount);
+    console.log(xAxisLabels);
+    console.log(dataLabels);
+    console.log(dataValues);
+    console.log(dataCount);
+    console.log(dataInterval);
 
     switch (chartType) {
         case "line":
@@ -19,10 +20,24 @@ function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, da
                     title: { display: true, text: "Vital('s) Time Series" },
                     scales: {
                         xAxes: [{
-                            ticks: { fontSize: 10, autoSkip: true, maxTicksLimit: 2, minRotation: 0, maxRotation: 0 },
+                            type: 'time',
+                            distribution: 'linear',
+                            bounds: 'ticks',
+                            autoSkip: true,
+                            time: {
+                                unit: 'minute',
+                                unitStepSize: dataInterval,
+                                displayFormats: { minute: 'MMM D, YYYY h:mm:ss a' }
+                            },
+                            ticks: {
+                                fontSize: 10, 
+                                minRotation: 0, 
+                                maxRotation: 0,
+                                source: 'data'
+                            }
                         }]
                     },
-                    maintainAspectRatio: false
+                    maintainAspectRatio: false,
                 }
             });
             break;
@@ -97,13 +112,13 @@ function updateSensorSuccessRate(sensorData) {
         document.getElementById("succ-read-ratio-outer").innerHTML = "N/A";
     } else {
         //Debug
-        console.log(sensorData);
+        // console.log(sensorData);
         document.getElementById("succ-read-ratio-inner").innerHTML = Math.round(sensorData["Inside Temperature"] * 100) + "%";
-        document.getElementById("succ-read-ratio-outer").innerHTML = Math.round(sensorData["Inside Temperature"] * 100) + "%";
+        document.getElementById("succ-read-ratio-outer").innerHTML = Math.round(sensorData["Outside Temperature"] * 100) + "%";
     }
 }
 
-function doesCSVEXist(url){
+function doesCSVEXist(url) {
     $.ajax({
         type: "HEAD",
         url: url,
@@ -134,7 +149,7 @@ $(function () {
 
         //Output
         $.post("statsprocess.php", formData, function (x) {
-            console.log(x);
+            // console.log(x);
             $(".charts").html(x);
         });
     });
@@ -162,7 +177,7 @@ $(function () {
         formData.push({ name: "formaction", value: buttonSelection });
 
         //Debug
-        console.log(formData);
+        // console.log(formData);
 
         //Output
         $.post("statsprocess.php", formData, function (x) {
@@ -170,7 +185,7 @@ $(function () {
                 // console.log(x);
                 $(".charts").html(x);
             } else if (isCSV) {
-                console.log(window.location.protocol + "//" + window.location.host + "/" + x);
+                // console.log(window.location.protocol + "//" + window.location.host + "/" + x);
                 var url = window.location.protocol + "//" + window.location.host + "/" + x;
                 doesCSVEXist(url);
             }

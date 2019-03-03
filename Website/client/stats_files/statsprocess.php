@@ -14,7 +14,6 @@ $dateStart = $_POST["date_start"]; //Starting date of logs/timestamps
 $dateEnd = $_POST["date_end"]; //Ending date of logs/timestamps
 $timeStart = date("H:i:s", strtotime($_POST["time_start"])); //Starting time of logs/timestamps
 $timeEnd = date("H:i:s", strtotime($_POST["time_end"])); //Ending time of logs/timestamps
-$timeInterval = $_POST["time_interval"]; //TBD
 $rpi = $_POST["rpi_select"]; //The RaspberryPi the user selected
 $chartOrCSV = !isset($_POST["formaction"]) ? "chart" : $_POST["formaction"]; //if formaction is not set, we let it be "chart" by default (assuming this is just the page wanting charts on load, otherwise let chartorcsv be whatever the user requested
 
@@ -52,6 +51,7 @@ foreach ($vitals as $var) {
 }
 
 //Database Queries
+$arrayLogVitals = array();
 $arrayLogVitalName = array(); //This array will contain all the vital names
 $arrayLogVital = array(); //This array will contain all the vital values during the given timestamps as before
 $arrayLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
@@ -73,13 +73,15 @@ foreach ($arrayVitals as $rowidx => $columnidx) {
         $timeFromVitalTS = date("H:i:s", strtotime($vitalTS->format('Y-m-d H:i:s'))); //Convert $vitalTS (datetime object) to a date object extracting time - for comparison against $timestart and $timeend
         if ($timeFromVitalTS >= $timeStart && $timeFromVitalTS <= $timeEnd) { 
             $arrayLogVitalName[] = $row['VN'];
-            $tempLogVital[] = $row['V1'];
-            $tempLogTS[] = $vitalTS->format('Y-m-d H:i:s'); 
+            $arrayLogVital[] = $row['V1'];
+            $arrayLogTS[] = $vitalTS->format('Y-m-d H:i:s'); 
+            // $tempLogVital[] = $row['V1'];
+            // $tempLogTS[] = $vitalTS->format('Y-m-d H:i:s'); 
         }
     }
 
-    $arrayLogVital[] = $tempLogVital;
-    $arrayLogTS[] = $tempLogTS;
+    // $arrayLogVital[] = $tempLogVital;
+    // $arrayLogTS[] = $tempLogTS;
 }
 
 if (empty($arrayLogTS) || empty($arrayLogVital) || empty($arrayLogVitalName)) { outputError("Sorry! No data was found for the corresponding date and time!"); } //If nothing was found from the DB, then tell the user that nothing was found
@@ -92,8 +94,12 @@ if ($chartOrCSV == "chart") {
 }
 
 function outputCharts($arrayLogVitalName, $arrayLogVital, $arrayLogTS) {
+    //Pre-process Data
+    $arrayLogTSUnix = convertDateTimeToTimeStamp($arrayLogTS);
+
     //POST
     $interpolate = isset($_POST["interpolate_data"]) ? $_POST["interpolate_data"] : 'no';
+    $timeInterval = $_POST["time_interval"]; //TBD
 
     //Clean-up vital names
     $arrayLogVitalNameUnique = array_unique($arrayLogVitalName);
@@ -130,6 +136,11 @@ function outputCharts($arrayLogVitalName, $arrayLogVital, $arrayLogTS) {
     $arrayLogVitalNameUnique = array_values($arrayLogVitalNameUnique);
 
     //Processes data
+    print_r($arrayLogVitalName);
+    print("<br/>");
+    print_r($arrayLogVital);
+    print("<br/>");
+    print_r($arrayLogTSUnix);
     $optimalTemperatureRatio = array();
     foreach ($arrayLogVital as $rowIdx => $rowArray) {
         $optimalCounter = 0;
@@ -156,7 +167,7 @@ function outputCharts($arrayLogVitalName, $arrayLogVital, $arrayLogTS) {
 
     // style='width: content-box;' style='width:content-box;'
     echo "<canvas class='charts-canvas' id='primary-chart'></canvas>";
-    echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTS[0]) . "," . json_encode(array_values($arrayLogVitalNameUnique)) . "," . json_encode($arrayLogVital) . "," . count(array_values($arrayLogVitalNameUnique)) . ")</script>";
+    echo "<script>createchart('primary-chart', 'line'," . json_encode(array_values(array_unique($arrayLogTSUnix))) . "," . json_encode(array_values($arrayLogVitalNameUnique)) . "," . json_encode($arrayLogVital) . "," . count(array_values($arrayLogVitalNameUnique)) . "," . $timeInterval . ")</script>";
     outputSensorSuccessRatio($optimalTemperatureRatio);
 }
 
@@ -196,5 +207,17 @@ function outputError($message){
     echo "<h2 style='display: inline-block; text-align: center;'>{$message}</h2>";
     outputSensorSuccessRatio(NULL);
     exit();
+}
+
+function convertDateTimeToTimeStamp($arrOrSingleTimeStamp) {
+    $convertedDateTimeArray = array();
+
+    foreach ($arrOrSingleTimeStamp as $rowIdx => $rowArray) {
+        foreach ($rowArray as $innerRowIdx => $innerRowValue) {
+            $convertedDateTimeArray[] = date_timestamp_get(new DateTime($innerRowValue, new DateTimeZone("America/Chicago"))) * 1000;
+        }
+    }
+
+    return $convertedDateTimeArray;
 }
 ?>
