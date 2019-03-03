@@ -2,10 +2,10 @@ function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, da
     var ctx = document.getElementById(chartID).getContext("2d");
 
     //Debug
-    console.log(xAxisLabels);
-    console.log(dataLabels);
-    console.log(dataValues);
-    console.log(dataCount);
+    // console.log(xAxisLabels);
+    // console.log(dataLabels);
+    // console.log(dataValues);
+    // console.log(dataCount);
 
     switch (chartType) {
         case "line":
@@ -34,7 +34,7 @@ function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, da
                     datasets: processDatasets(dataLabels, dataValues, dataCount, chartType)
                 },
                 options: {
-                    title: { display: true, text: "Sensor('s) Quality Ratio"},
+                    title: { display: true, text: "Sensor('s) Quality Ratio" },
                     cutoutPercentage: 50
                 }
             });
@@ -87,8 +87,33 @@ function processDatasets(dataLabels, dataValues, dataCount, chartType) {
             break;
     }
 
-    console.log(data);
+    //console.log(data);
     return data;
+}
+
+function updateSensorSuccessRate(sensorData) {
+    if (sensorData == -1) {
+        document.getElementById("succ-read-ratio-inner").innerHTML = "N/A";
+        document.getElementById("succ-read-ratio-outer").innerHTML = "N/A";
+    } else {
+        //Debug
+        console.log(sensorData);
+        document.getElementById("succ-read-ratio-inner").innerHTML = Math.round(sensorData["Inside Temperature"] * 100) + "%";
+        document.getElementById("succ-read-ratio-outer").innerHTML = Math.round(sensorData["Inside Temperature"] * 100) + "%";
+    }
+}
+
+function doesCSVEXist(url){
+    $.ajax({
+        type: "HEAD",
+        url: url,
+        success: function (response) {
+            window.location = url;
+        },
+        error: function (response) {
+            alert(response);
+        }
+    });
 }
 
 $(function () {
@@ -96,6 +121,25 @@ $(function () {
     var isCharts = false;
     var isCSV = false;
 
+    //On page load
+    $(window).on("load", function (event) {
+        //Prevent default event of changing webpage
+        event.preventDefault();
+
+        //Get form data and button data
+        var formData = $("#data-preview-select :input").serializeArray();
+
+        //Debug
+        // console.log(formData);
+
+        //Output
+        $.post("statsprocess.php", formData, function (x) {
+            console.log(x);
+            $(".charts").html(x);
+        });
+    });
+
+    //Get the value of the button clicked - User either wants charts to display or to download a csv
     $(document).on('click', ':submit', function (event) {
         buttonSelection = $(this).val();
 
@@ -108,12 +152,13 @@ $(function () {
         }
     });
 
-    $("#data-preview-select").on('submit', function (event) {
+    //Grab all input, including button value, and submit to php for processing and output
+    $("#data-preview-select-form").on('submit', function (event) {
         //Prevent default event of changing webpage
         event.preventDefault();
 
         //Get form data and button data
-        var formData = $("#data-preview-select :input").serializeArray();
+        var formData = $("#data-preview-select-form :input").serializeArray();
         formData.push({ name: "formaction", value: buttonSelection });
 
         //Debug
@@ -122,11 +167,12 @@ $(function () {
         //Output
         $.post("statsprocess.php", formData, function (x) {
             if (isCharts) {
-                console.log(x);
+                // console.log(x);
                 $(".charts").html(x);
             } else if (isCSV) {
                 console.log(window.location.protocol + "//" + window.location.host + "/" + x);
-                window.location.href = window.location.protocol + "//" + window.location.host + "/" + x;
+                var url = window.location.protocol + "//" + window.location.host + "/" + x;
+                doesCSVEXist(url);
             }
         });
     });

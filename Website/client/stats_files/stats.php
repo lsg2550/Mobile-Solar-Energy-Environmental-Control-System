@@ -3,6 +3,15 @@
     require("../../index_files/sessionstart.php");
     require("../../index_files/sessioncheck.php");
 
+    function getYesterdaysDate() {
+        $yesterdayDate = date("Y-m-d", time() - 60 * 60 * 24);
+
+        echo "<label for='date-start-select'>Start Date:</label>";
+        echo "<input type='date' class='date-range' id='date-start-select' name='date_start' value='{$yesterdayDate}' required>";
+        echo "<label for='date-end-select'>End Date:</label>";
+        echo "<input type='date' class='date-range' id='date-end-select' name='date_end' value='{$yesterdayDate}' required>";
+    }
+
     function generateRPISelect() {
         require_once("../../index_files/connect.php");
 
@@ -58,19 +67,16 @@
                 <tr>
                     <td class="fieldset-in-form-td">
                         <fieldset class="fieldset-in-form" id="data-preview-select-data">
-                        <legend>Data Selection</legend>
-                        <!-- Select Date -->
-                        <label for="date-start-select">Start Date:</label>
-                            <input type="date" class="date-range" id="date-start-select" name="date_start" >
-                            <label for="date-end-select">End Date:</label>
-                            <input type="date" class="date-range" id="date-end-select" name="date_end" >
+                            <legend>Data Selection</legend>
+                            <!-- Select Date -->
+                            <?php getYesterdaysDate() ?>
                             <br />
 
                             <!-- Select Time -->
                             <label for="time-start-select">Start Time:</label>
-                            <input type="time" class="time-range" id="time-start-select" name="time_start" >
+                            <input type="time" class="time-range" id="time-start-select" name="time_start" value="08:00" required>
                             <label for="time-end-select">End Time:</label>
-                            <input type="time" class="time-range" id="time-end-select" name="time_end" >
+                            <input type="time" class="time-range" id="time-end-select" name="time_end" value="17:00" required>
 
                             <!-- Select Time Interval -->
                             <label for="time-interval">Time Interval:</label>
@@ -107,9 +113,9 @@
                             <legend>Temperature & Humidity Sensors</legend>
                             <label>Fill-In Missing Data:</label><input type="checkbox" name="interpolate_data" value="interpolate" checked> 
                             <br />
-                            <label>Successful Read Ratio (Inside Sensor):</label>
+                            <label>Successful Read Ratio (Inside Sensor): </label><label class="succ-read-ratio" id="succ-read-ratio-inner"></label>
                             <br />
-                            <label>Successful Read Ratio (Outside Sensor):</label> 
+                            <label>Successful Read Ratio (Outside Sensor): </label><label class="succ-read-ratio" id="succ-read-ratio-outer"></label>
                         </fieldset>
                     </td>
                 </tr>
