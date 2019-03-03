@@ -1,21 +1,24 @@
 .charts {
 	display: inline-block;
 	text-align: center;
-	height: 75%;
-	width: 75%;
 }
 
-.charts-canvas {
-	text-align: center;
-}
-
-#data-preview-select form {
-	border: 1px dotted black;
-	padding: 5px;
+#data-preview-select-form {
 	text-align: left;
+	margin: auto;
 }
 
-#data-preview-select input[type="submit"] {
+#data-preview-select-form input[type="submit"] {
 	display:inline-block;
 	text-align: center;
+}
+
+.fieldset-in-form {
+    display: inline-block;
+    box-sizing: border-box;
+	height: 100%;
+}
+
+.fieldset-in-form-td {
+	height: 0;
 }

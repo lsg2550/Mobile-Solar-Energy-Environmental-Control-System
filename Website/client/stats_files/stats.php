@@ -53,51 +53,67 @@
     </div>
 
     <div class="formdiv" id="data-preview-select">
-        <form id="data-preview-select" method="post">
-            <!-- Select Date -->
-            <label for="date-start-select">Start Date:</label>
-            <input type="date" class="date-range" id="date-start-select" name="date_start" >
-            <label for="date-end-select">End Date:</label>
-            <input type="date" class="date-range" id="date-end-select" name="date_end" >
+        <form id="data-preview-select-form" method="post">
+            <table >
+                <tr>
+                    <td class="fieldset-in-form-td">
+                        <fieldset class="fieldset-in-form" id="data-preview-select-data">
+                        <legend>Data Selection</legend>
+                        <!-- Select Date -->
+                        <label for="date-start-select">Start Date:</label>
+                            <input type="date" class="date-range" id="date-start-select" name="date_start" >
+                            <label for="date-end-select">End Date:</label>
+                            <input type="date" class="date-range" id="date-end-select" name="date_end" >
+                            <br />
 
-            <!-- Select Time -->
-            <label for="time-start-select">Start Time:</label>
-            <input type="time" class="time-range" id="time-start-select" name="time_start" >
-            <label for="time-end-select">End Time:</label>
-            <input type="time" class="time-range" id="time-end-select" name="time_end" >
+                            <!-- Select Time -->
+                            <label for="time-start-select">Start Time:</label>
+                            <input type="time" class="time-range" id="time-start-select" name="time_start" >
+                            <label for="time-end-select">End Time:</label>
+                            <input type="time" class="time-range" id="time-end-select" name="time_end" >
 
-            <!-- Select Time Interval -->
-            <label for="time-interval">Time Interval:</label>
-            <select id="time-interval" name="time_interval" >
-                <option value="30">30 Minutes</option>
-                <option value="60">1 Hour</option>
-                <option value="90">1 Hour 30 Minutes</option>
-                <option value="120">2 Hour</option>
-                <option value="150">2 Hour 30 Minutes</option>
-                <option value="180">3 Hour</option>
-            </select>
-            <br />
+                            <!-- Select Time Interval -->
+                            <label for="time-interval">Time Interval:</label>
+                            <select id="time-interval" name="time_interval" >
+                                <option value="30">30 Minutes</option>
+                                <option value="60">1 Hour</option>
+                                <option value="90">1 Hour 30 Minutes</option>
+                                <option value="120">2 Hour</option>
+                                <option value="150">2 Hour 30 Minutes</option>
+                                <option value="180">3 Hour</option>
+                            </select>
+                            <br />
 
-            <!-- Select RPi -->
-            <label for="rpi-select">RPi:</label>
-            <?php generateRPISelect(); ?>
+                            <!-- Select RPi -->
+                            <label for="rpi-select">RPi:</label>
+                            <?php generateRPISelect(); ?>
 
-            <!-- Select Vital -->
-            <label>Vitals:</label>
-            <label>Battery</label><input type="checkbox" name="vital1" value="battery" checked> <!-- Voltage/Current -->
-            <label>PV</label><input type="checkbox" name="vital2" value="solar" checked> <!-- Voltage/Current -->
-            <label>Temperature</label><input type="checkbox" name="vital3" value="temperature" checked> <!-- Inner/Outer -->
-            <label>Humidity</label><input type="checkbox" name="vital4" value="humidity" checked> <!-- Inner/Outer -->
-            <label>Exhaust</label><input type="checkbox" name="vital5" value="exhaust" checked> <!-- Single -->
+                            <!-- Select Vital -->
+                            <label>Vitals:</label>
+                            <label>Battery</label><input type="checkbox" name="vital1" value="battery" checked> <!-- Voltage/Current -->
+                            <label>PV</label><input type="checkbox" name="vital2" value="solar" checked> <!-- Voltage/Current -->
+                            <label>Temperature</label><input type="checkbox" name="vital3" value="temperature" checked> <!-- Inner/Outer -->
+                            <label>Humidity</label><input type="checkbox" name="vital4" value="humidity" checked> <!-- Inner/Outer -->
+                            <label>Exhaust</label><input type="checkbox" name="vital5" value="exhaust" checked> <!-- Single -->
+                            <br />
 
-            <!-- Select Chart/CSV Configuration -->
-            <label>Settings:</label>
-            <label>Interpolate Missing Data</label><input type="checkbox" name="interpolate_data" value="interpolate" checked> 
-            <br />
-
-            <!-- Submit -->
-            <button input="submit" class="formsubmit" id="createchart" name="formaction" value="chart">Create Chart</button>
-            <button input="submit" class="formsubmit" id="downloadcsv" name="formaction" value="csv">Download CSV</button>
+                            <!-- Submit -->
+                            <button input="submit" class="formsubmit" id="createchart" name="formaction" value="chart">Create Chart</button>
+                            <button input="submit" class="formsubmit" id="downloadcsv" name="formaction" value="csv">Download CSV</button>
+                        </fieldset>
+                    </td>
+                    <td class="fieldset-in-form-td">
+                        <fieldset class="fieldset-in-form" id="data-preview-select-sensors"> <!-- Temp/Humidity Sensor Configuration & Information-->
+                            <legend>Temperature & Humidity Sensors</legend>
+                            <label>Fill-In Missing Data:</label><input type="checkbox" name="interpolate_data" value="interpolate" checked> 
+                            <br />
+                            <label>Successful Read Ratio (Inside Sensor):</label>
+                            <br />
+                            <label>Successful Read Ratio (Outside Sensor):</label> 
+                        </fieldset>
+                    </td>
+                </tr>
+            </table>
         </form>
     </div>
 
