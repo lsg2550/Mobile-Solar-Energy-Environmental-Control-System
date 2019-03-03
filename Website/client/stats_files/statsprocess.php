@@ -2,6 +2,7 @@
 //Require
 require "../../index_files/sessionstart.php";
 require "../../index_files/sessioncheck.php";
+require "../../index_files/operations.php";
 require "../../index_files/connect.php";
 
 //Session
@@ -16,6 +17,9 @@ $timeEnd = $_POST["time_end"];
 $timeInterval = $_POST["time_interval"];
 $rpi = $_POST["rpi_select"];
 $interpolate = isset($_POST["interpolate_data"]) ? $_POST["interpolate_data"] : 'no';
+
+//Check if any vitals were selected
+if (array_filter($vitals) == empty($vitals)){ return; }
 
 //Get the correct vital name
 $arrayVitals = array();
@@ -53,7 +57,13 @@ $arrayLogVitalName = array(); //This array will contain all the vital names
 $arrayLogVital = array(); //This array will contain all the vital values during the given timestamps as before
 $arrayLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
 foreach ($arrayVitals as $rowidx => $columnidx) {
-    $sqlLog = "SELECT V.VN, V1, TS FROM log AS l NATURAL JOIN vitals AS V WHERE l.USR='{$currentUser}' AND l.RPID='{$rpi}' AND TYP='ST' AND V.VN='{$arrayVitals[$rowidx][0]}' ORDER BY l.TS ASC;"; //Select all logs related to the current user &
+    $sqlLog = "SELECT V.VN, V1, TS FROM log AS l NATURAL JOIN vitals AS V 
+        WHERE l.USR='{$currentUser}' 
+        AND l.RPID='{$rpi}' 
+        AND TYP='ST' 
+        AND V.VN='{$arrayVitals[$rowidx][0]}' 
+        AND BETWEEN '' AND ''
+        ORDER BY l.TS ASC;"; //Select all logs related to the current user &
     $resultLog = mysqli_query($conn, $sqlLog);
 
     $tempLogVital = array(); //This array will contain all the vital values during the given timestamps as before
@@ -63,7 +73,7 @@ foreach ($arrayVitals as $rowidx => $columnidx) {
             $arrayLogVitalName[] = $row['VN'];
             $tempLogVital[] = $row['V1'];
             $vitalTS = new DateTime($row['TS'], new DateTimeZone("America/Chicago"));
-            $tempLogTS[] = $vitalTS->format('Y-m-d H:i');
+            $tempLogTS[] = $vitalTS->format('Y-m-d H:i:S');
         }
     }
 
@@ -73,8 +83,6 @@ foreach ($arrayVitals as $rowidx => $columnidx) {
 
 //Output
 if ($_POST["formaction"] == "chart") {
-    //Now that the data has been retrieved from the database, we will process it for readability
-
     //Create readable names
     $arrayLogVitalNameUnique = array_unique($arrayLogVitalName);
     foreach ($arrayLogVitalNameUnique as $rowIdx => $rowValue) {
@@ -133,13 +141,20 @@ if ($_POST["formaction"] == "chart") {
             }
         }
 
-        $optimalTemperatureRatio[] = [ $arrayLogVitalNameUnique[$rowIdx] => ((count($rowArray) - $optimalCounter)/count($rowArray)) ];
+        $optimalTemperatureRatio[] = ((count($rowArray) - $optimalCounter)/count($rowArray)) != 1 ? [ $arrayLogVitalNameUnique[$rowIdx] => ((count($rowArray) - $optimalCounter)/count($rowArray)) ] : doNothing();
         $arrayLogVital[$rowIdx] = $rowArray;
     }
 
-    print_r($optimalTemperatureRatio);
-    echo "<canvas class='charts-canvas' id='primary-chart' style='width: content-box;'></canvas>";
+    //Optimal temperature/humidity ratio processing 
+    $optimalTemperatureRatio = convert2DArrayto1DArray(array_values(array_filter($optimalTemperatureRatio)));
+
+    // style='width: content-box;' style='width:content-box;'
+    echo "<canvas class='charts-canvas' id='primary-chart'></canvas>";
     echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTS[0]) . "," . json_encode(array_values($arrayLogVitalNameUnique)) . "," . json_encode($arrayLogVital) . "," . count(array_values($arrayLogVitalNameUnique)) . ")</script>";
+    if(!empty(array_filter($optimalTemperatureRatio))){
+        echo "<canvas class='charts-canvas' id='secondary-chart'></canvas>";
+        echo "<script>createchart('secondary-chart', 'doughnut',"  . "null" . "," . json_encode(array_keys($optimalTemperatureRatio)) . "," . json_encode(array_values($optimalTemperatureRatio)) . "," . count($optimalTemperatureRatio) . ")</script>";    
+    }
 } else if ($_POST["formaction"] == "csv") {
     $arrayLogTS = array_values($arrayLogTS);
     $arrayLogVitalName = array_values($arrayLogVitalName);

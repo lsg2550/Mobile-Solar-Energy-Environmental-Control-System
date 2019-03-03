@@ -1,5 +1,5 @@
 .charts {
-	display: inline-block;
+	display: flex;
 	text-align: center;
 }
 
