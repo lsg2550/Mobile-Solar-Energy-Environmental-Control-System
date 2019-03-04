@@ -105,28 +105,36 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
     foreach ($arrayLogVitals as $vitalName => $vitalValueArr) {
         switch($vitalName){
             case 'BatteryVoltage':
-                $arrayLogVitals[$vitalName] = $arrayLogVitals["Battery Voltage"];
+                $arrayLogVitals["Battery Voltage"] = $arrayLogVitals[$vitalName];
+                
                 break;
             case 'BatteryCurrent':
-                $arrayLogVitals[$vitalName] = $arrayLogVitals["Battery Current"];
+                $arrayLogVitals["Battery Current"] = $arrayLogVitals[$vitalName];
+
                 break;
             case 'SolarPanelVoltage':
-                $arrayLogVitals[$vitalName] = $arrayLogVitals["PV Voltage"];
+                $arrayLogVitals["PV Voltage"] = $arrayLogVitals[$vitalName];
+
                 break;
             case 'SolarPanelCurrent':
-                $arrayLogVitals[$vitalName] = $arrayLogVitals["PV Current"];
+                $arrayLogVitals["PV Current"] = $arrayLogVitals[$vitalName];
+
                 break;
             case 'TemperatureInner':
-                $arrayLogVitals[$vitalName] = $arrayLogVitals["Inside Temperature"];
+                $arrayLogVitals["Inside Temperature"] = $arrayLogVitals[$vitalName];
+
                 break;
             case 'TemperatureOuter':
-                $arrayLogVitals[$vitalName] = $arrayLogVitals["Outside Temperature"];
+                $arrayLogVitals["Outside Temperature"] = $arrayLogVitals[$vitalName];
+
                 break;
             case 'HumidityInner':
-                $arrayLogVitals[$vitalName] = $arrayLogVitals["Inside Humidity"];
+                $arrayLogVitals["Inside Humidity"] = $arrayLogVitals[$vitalName];
+
                 break;
             case 'HumidityOuter':
-                $arrayLogVitals[$vitalName] = $arrayLogVitals["Outside Humidity"];
+                $arrayLogVitals["Outside Humidity"] = $arrayLogVitals[$vitalName];
+
                 break;
             default:
                 break;
@@ -378,7 +386,7 @@ function getKeyAmount($array, $keyToLookFor){
 
     echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTSUnix) . "," . json_encode($arrayLogVitalNameCleanedUp) . "," . json_encode($arrayLogVital) . "," . count($arrayLogVitalNameCleanedUp) . "," . $timeInterval . ")</script>";
 
-    
+
 function replace_key_function($array, $key1, $key2)
 {
     $keys = array_keys($array);
