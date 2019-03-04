@@ -24,52 +24,47 @@ $arrayVitals = array();
 foreach ($vitals as $var) {
     switch ($var) {
         case 'battery':
-            $arrayVitals[] = ["BatteryVoltage"];
-            $arrayVitals[] = ["BatteryCurrent"];
+            $arrayVitals["BatteryVoltage"] = "BatteryVoltage";
+            $arrayVitals["BatteryCurrent"] = "BatteryCurrent";
             break;
         case 'solar':
-            $arrayVitals[] = ["SolarPanelVoltage"];
-            $arrayVitals[] = ["SolarPanelCurrent"];
+            $arrayVitals["SolarPanelVoltage"] = "SolarPanelVoltage";
+            $arrayVitals["SolarPanelCurrent"] = "SolarPanelCurrent";
             break;
         case 'temperature':
-            $arrayVitals[] = ["TemperatureInner"];
-            $arrayVitals[] = ["TemperatureOuter"];
+            $arrayVitals["TemperatureInner"] = "TemperatureInner";
+            $arrayVitals["TemperatureOuter"] = "TemperatureOuter";
             break;
         case 'humidity':
-            $arrayVitals[] = ["HumidityInner"];
-            $arrayVitals[] = ["HumidityOuter"];
+            $arrayVitals["HumidityInner"] = "HumidityInner";
+            $arrayVitals["HumidityOuter"] = "HumidityOuter";
             break;
         case 'clarity':
-            $arrayVitals[] = ["Clarity"];
+            $arrayVitals["Clarity"] = "Clarity";
             break;
         case 'exhaust':
-            $arrayVitals[] = ["Exhaust"];
+            $arrayVitals["Exhaust"] = "Exhaust";
             break;
         default:
             break;
     }
 }
+debug($arrayVitals); //Debug
 
 //Database Queries
-$arrayLogVitalName = array(); //This array will contain all the vital names
-$arrayLogVital = array(); //This array will contain all the vital values during the given timestamps as before
+$arrayLogVitals = array(); //This array will contain the vital names as keys that point to an array of the vital name's values
 $arrayLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
 
-//For Chart
-if($chartOrCSV == "chart") { 
-    $arrayLogVitalforChart = array();
-    $arrayLogTSforChart = array();
-}
-
-foreach ($arrayVitals as $rowidx => $columnidx) {
+foreach ($arrayVitals as $vitalname) {
     $sqlLog = "SELECT V.VN, V1, DATE(TS) as DStamp, TIME(TS) as TStamp FROM log AS l NATURAL JOIN vitals AS V
         WHERE l.USR='{$currentUser}'
         AND l.RPID='{$rpi}'
         AND TYP='ST'
-        AND V.VN='{$arrayVitals[$rowidx][0]}'
+        AND V.VN='{$vitalname}'
         AND TS BETWEEN '{$dateStart}' AND '{$dateEnd}'
         ORDER BY TS ASC;";
     $resultLog = mysqli_query($conn, $sqlLog);
+
     if (!$resultLog || mysqli_num_rows($resultLog) == 0) { continue; } //If resultlog returned an error or no rows, continue to the next vital
 
     $tempLogVital = array(); //This array will contain all the vital values during the given timestamps as before
@@ -78,75 +73,68 @@ foreach ($arrayVitals as $rowidx => $columnidx) {
         $vitalTS = new DateTime($row['DStamp'] . $row['TStamp'], new DateTimeZone("America/Chicago"));
         $timeFromVitalTS = date("H:i:s", strtotime($vitalTS->format('Y-m-d H:i:s'))); //Convert $vitalTS (datetime object) to a date object extracting time - for comparison against $timestart and $timeend
         if ($timeFromVitalTS >= $timeStart && $timeFromVitalTS <= $timeEnd) { 
-            $arrayLogVitalName[] = $row['VN'];
-            $arrayLogVital[] = $row['V1'];
-            $arrayLogTS[] = $vitalTS->format('Y-m-d H:i:s'); 
-
-            //For Chart
-            if($chartOrCSV == "chart") { 
-                $tempLogVital[] = $row['V1'];
-                $tempLogTS[] = $vitalTS->format('Y-m-d H:i:s'); 
-            }
+            $arrayLogVitals[$row['VN']][] = $row['V1'];
+            $arrayLogTS[$row['VN']][] = $vitalTS->format('Y-m-d H:i:s');
         }
     }
-
-    //For Chart
-    if($chartOrCSV == "chart") { 
-        $arrayLogVitalforChart[] = $tempLogVital;
-        $arrayLogTSforChart[] = $tempLogTS;
-    }
 }
+
+//Debug
+debug($arrayLogVitals);
+debug($arrayLogTS);
 
 if (empty($arrayLogTS) && empty($arrayLogVital) && empty($arrayLogVitalName)) { outputError("Sorry! No data was found for the corresponding date and time!"); } //If nothing was found from the DB, then tell the user that nothing was found
 
 //Output
 if ($chartOrCSV == "chart") {  
-    outputCharts($arrayLogVitalName, $arrayLogVital, $arrayLogTS, $arrayLogVitalforChart, $arrayLogTSforChart);
+    outputCharts($arrayLogVitals, $arrayLogTS);
 } else if ($chartOrCSV == "csv") { 
     outputCSV($arrayLogVitalName, $arrayLogVital, $arrayLogTS);
 }
 
-function outputCharts($arrayLogVitalName, $arrayLogVital, $arrayLogTS, $arrayLogVitalforChart, $arrayLogTSforChart) {
+function outputCharts($arrayLogVitals, $arrayLogTS) {
     //POST
     $interpolate = isset($_POST["interpolate_data"]) ? $_POST["interpolate_data"] : 'no';
     $timeInterval = $_POST["time_interval"]; //Determines step-size in chart creation
 
     //Pre-process Data
     $arrayLogTSUnix = convertDateTimeToTimeStamp($arrayLogTS);
+    debug($arrayLogTSUnix); //Debug
 
     //Clean-up vital names
-    $arrayLogVitalNameCleanedUp = $arrayLogVitalName;
-    foreach ($arrayLogVitalNameCleanedUp as $rowIdx => $rowValue) {
-        switch ($arrayLogVitalNameCleanedUp[$rowIdx]) {
+    foreach ($arrayLogVitals as $vitalName => $vitalValueArr) {
+        switch($vitalName){
             case 'BatteryVoltage':
-                $arrayLogVitalNameCleanedUp[$rowIdx] = "Battery Voltage";
+                $arrayLogVitals[$vitalName] = $arrayLogVitals["Battery Voltage"];
                 break;
             case 'BatteryCurrent':
-                $arrayLogVitalNameCleanedUp[$rowIdx] = "Battery Current";
+                $arrayLogVitals[$vitalName] = $arrayLogVitals["Battery Current"];
                 break;
             case 'SolarPanelVoltage':
-                $arrayLogVitalNameCleanedUp[$rowIdx] = "PV Voltage";
+                $arrayLogVitals[$vitalName] = $arrayLogVitals["PV Voltage"];
                 break;
             case 'SolarPanelCurrent':
-                $arrayLogVitalNameCleanedUp[$rowIdx] = "PV Current";
+                $arrayLogVitals[$vitalName] = $arrayLogVitals["PV Current"];
                 break;
             case 'TemperatureInner':
-                $arrayLogVitalNameCleanedUp[$rowIdx] = "Inside Temperature";
+                $arrayLogVitals[$vitalName] = $arrayLogVitals["Inside Temperature"];
                 break;
             case 'TemperatureOuter':
-                $arrayLogVitalNameCleanedUp[$rowIdx] = "Outside Temperature";
+                $arrayLogVitals[$vitalName] = $arrayLogVitals["Outside Temperature"];
                 break;
             case 'HumidityInner':
-                $arrayLogVitalNameCleanedUp[$rowIdx] = "Inside Humidity";
+                $arrayLogVitals[$vitalName] = $arrayLogVitals["Inside Humidity"];
                 break;
             case 'HumidityOuter':
-                $arrayLogVitalNameCleanedUp[$rowIdx] = "Outside Humidity";
+                $arrayLogVitals[$vitalName] = $arrayLogVitals["Outside Humidity"];
                 break;
             default:
                 break;
         }
     }
-    $arrayLogVitalNameCleanedUp = array_values(array_unique($arrayLogVitalNameCleanedUp));
+    debug($arrayLogVitals); //Debug
+    return;
+
 
     //Fix data
     $optimalTemperatureRatio = array();
@@ -179,6 +167,12 @@ function outputCharts($arrayLogVitalName, $arrayLogVital, $arrayLogTS, $arrayLog
     echo "<canvas class='charts-canvas' id='primary-chart'></canvas>";
     echo "<script>createchart('primary-chart', 'line'," . json_encode(array_values(array_unique($arrayLogTSUnix))) . "," . json_encode($arrayLogVitalNameCleanedUp) . "," . json_encode($arrayLogVital) . "," . count(array_values($arrayLogVitalNameCleanedUp)) . ")</script>";
     outputSensorSuccessRatio($optimalTemperatureRatio);
+}
+
+function debug($message){
+    print_r("<br/><br/>");
+    print_r($message);
+    print_r("<br/><br/>");
 }
 
 function outputCSV($arrayLogVitalName, $arrayLogVital, $arrayLogTS) {
@@ -217,8 +211,10 @@ function outputError($message){
 function convertDateTimeToTimeStamp($arrOrSingleTimeStamp) {
     $convertedDateTimeArray = array();
 
-    foreach ($arrOrSingleTimeStamp as $rowIdx => $rowValue) {
-        $convertedDateTimeArray[] = date_timestamp_get(new DateTime($rowValue, new DateTimeZone("America/Chicago"))) * 1000;
+    foreach ($arrOrSingleTimeStamp as $vitalName => $vitalValueArr) {
+        foreach ($vitalValueArr as $vitalValue) {
+            $convertedDateTimeArray[$vitalName][] = date_timestamp_get(new DateTime($vitalValue, new DateTimeZone("America/Chicago"))) * 1000;
+        }
     }
 
     return $convertedDateTimeArray;
@@ -381,5 +377,19 @@ function getKeyAmount($array, $keyToLookFor){
     $optimalTemperatureRatio = [ "InnerSensor" => ($innerKeyCount - $optimalInnerCounter) / $innerKeyCount, "OuterSensor" => ($outerKeyCount - $optimalOuterCounter) / $outerKeyCount ];
 
     echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTSUnix) . "," . json_encode($arrayLogVitalNameCleanedUp) . "," . json_encode($arrayLogVital) . "," . count($arrayLogVitalNameCleanedUp) . "," . $timeInterval . ")</script>";
-*/
+
+    
+function replace_key_function($array, $key1, $key2)
+{
+    $keys = array_keys($array);
+    $index = array_search($key1, $keys);
+
+    if ($index !== false) {
+        $keys[$index] = $key2;
+        $array = array_combine($keys, $array);
+    }
+
+    return $array;
+}
+    */
 ?>
