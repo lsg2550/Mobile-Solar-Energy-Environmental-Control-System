@@ -49,7 +49,7 @@ foreach ($vitals as $var) {
             break;
     }
 }
-debug($arrayVitals); //Debug
+// debug($arrayVitals); //Debug
 
 //Database Queries
 $arrayLogVitals = array(); //This array will contain the vital names as keys that point to an array of the vital name's values
@@ -67,8 +67,6 @@ foreach ($arrayVitals as $vitalname) {
 
     if (!$resultLog || mysqli_num_rows($resultLog) == 0) { continue; } //If resultlog returned an error or no rows, continue to the next vital
 
-    $tempLogVital = array(); //This array will contain all the vital values during the given timestamps as before
-    $tempLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
     while ($row = mysqli_fetch_assoc($resultLog)) {
         $vitalTS = new DateTime($row['DStamp'] . $row['TStamp'], new DateTimeZone("America/Chicago"));
         $timeFromVitalTS = date("H:i:s", strtotime($vitalTS->format('Y-m-d H:i:s'))); //Convert $vitalTS (datetime object) to a date object extracting time - for comparison against $timestart and $timeend
@@ -80,8 +78,8 @@ foreach ($arrayVitals as $vitalname) {
 }
 
 //Debug
-debug($arrayLogVitals);
-debug($arrayLogTS);
+// debug($arrayLogVitals);
+// debug($arrayLogTS);
 
 if (empty($arrayLogTS) && empty($arrayLogVital) && empty($arrayLogVitalName)) { outputError("Sorry! No data was found for the corresponding date and time!"); } //If nothing was found from the DB, then tell the user that nothing was found
 
@@ -94,86 +92,97 @@ if ($chartOrCSV == "chart") {
 
 function outputCharts($arrayLogVitals, $arrayLogTS) {
     //POST
-    $interpolate = isset($_POST["interpolate_data"]) ? $_POST["interpolate_data"] : 'no';
+    $interpolate = isset($_POST["interpolate_data"]) ? TRUE : FALSE;
     $timeInterval = $_POST["time_interval"]; //Determines step-size in chart creation
 
     //Pre-process Data
     $arrayLogTSUnix = convertDateTimeToTimeStamp($arrayLogTS);
-    debug($arrayLogTSUnix); //Debug
+    // debug($arrayLogTSUnix); //Debug
 
     //Clean-up vital names
     foreach ($arrayLogVitals as $vitalName => $vitalValueArr) {
         switch($vitalName){
             case 'BatteryVoltage':
                 $arrayLogVitals["Battery Voltage"] = $arrayLogVitals[$vitalName];
-                
+                unset($arrayLogVitals[$vitalName]);
                 break;
             case 'BatteryCurrent':
                 $arrayLogVitals["Battery Current"] = $arrayLogVitals[$vitalName];
-
+                unset($arrayLogVitals[$vitalName]);
                 break;
             case 'SolarPanelVoltage':
                 $arrayLogVitals["PV Voltage"] = $arrayLogVitals[$vitalName];
-
+                unset($arrayLogVitals[$vitalName]);
                 break;
             case 'SolarPanelCurrent':
                 $arrayLogVitals["PV Current"] = $arrayLogVitals[$vitalName];
-
+                unset($arrayLogVitals[$vitalName]);
                 break;
             case 'TemperatureInner':
                 $arrayLogVitals["Inside Temperature"] = $arrayLogVitals[$vitalName];
-
+                unset($arrayLogVitals[$vitalName]);
                 break;
             case 'TemperatureOuter':
                 $arrayLogVitals["Outside Temperature"] = $arrayLogVitals[$vitalName];
-
+                unset($arrayLogVitals[$vitalName]);
                 break;
             case 'HumidityInner':
                 $arrayLogVitals["Inside Humidity"] = $arrayLogVitals[$vitalName];
-
+                unset($arrayLogVitals[$vitalName]);
                 break;
             case 'HumidityOuter':
                 $arrayLogVitals["Outside Humidity"] = $arrayLogVitals[$vitalName];
-
+                unset($arrayLogVitals[$vitalName]);
                 break;
             default:
                 break;
         }
     }
-    debug($arrayLogVitals); //Debug
-    return;
-
+    // debug($arrayLogVitals); //Debug
 
     //Fix data
-    $optimalTemperatureRatio = array();
-    foreach ($arrayLogVitalforChart as $rowIdx => $rowArray) {
-        $optimalCounter = 0;
-        foreach ($rowArray as $innerRowIdx => $innerValue) {
-            //For Temperature I/O and Humidity I/O
-            if ($rowArray[$innerRowIdx] == "NULL") {
-                if ($interpolate == "no") {
-                    $rowArray[$innerRowIdx] = "null";
-                } else {
-                    $rowArray[$innerRowIdx] = isset($rowArray[$innerRowIdx - 1]) ? $rowArray[$innerRowIdx - 1] : null;
+    $optimalTemperatureRatio = array("InnerSensor" => 0, "OuterSensor" => 0);
+    foreach ($arrayLogVitals as $vitalName => &$vitalValueArr) {
+        if ($interpolate) {
+            if ($vitalName == "Inside Temperature") {
+                foreach ($vitalValueArr as $vitalValueIdx => &$vitalValue) {
+                    if (strtolower($vitalValue) == "null" || isset($vitalValue)) {
+                        $vitalValue = (isset($vitalValueArr[$vitalValueIdx - 1])) ? $vitalValueArr[$vitalValueIdx - 1] : $vitalValueArr[$vitalValueIdx + 1];
+                        $optimalTemperatureRatio["InnerSensor"]++;
+                    }
                 }
-                $optimalCounter++;
             }
-            //For Exhaust - Converting On/Off to 1/0
-            if ($rowArray[$innerRowIdx] == "on") {
-                $rowArray[$innerRowIdx] = 1;
-            } else if ($rowArray[$innerRowIdx] == "off") {
-                $rowArray[$innerRowIdx] = 0;
+
+            if ($vitalName == "Outside Temperature") {
+                foreach ($vitalValueArr as $vitalValueIdx => &$vitalValue) {
+                    if (strtolower($vitalValue) == "null" || isset($vitalValue)) {
+                        $vitalValue = (isset($vitalValueArr[$vitalValueIdx - 1])) ? $vitalValueArr[$vitalValueIdx - 1] : $vitalValueArr[$vitalValueIdx + 1];
+                        $optimalTemperatureRatio["OuterSensor"]++;
+                    }
+                }
             }
         }
-        $optimalTemperatureRatio[] = ((count($rowArray) - $optimalCounter)/count($rowArray)) != 1 ? [ $arrayLogVitalNameCleanedUp[$rowIdx] => ((count($rowArray) - $optimalCounter)/count($rowArray)) ] : doNothing();
-        $arrayLogVital[$rowIdx] = $rowArray;
-    }
-    //Optimal temperature/humidity ratio processing 
-    $optimalTemperatureRatio = convert2DArrayto1DArray(array_values(array_filter($optimalTemperatureRatio)));
 
-    
+        if ($vitalName == "Exhaust") {
+            foreach ($vitalValueArr as &$vitalValue) {
+                $vitalValue = (strtolower($vitalValue) == "off") ? 0 : 1; //Off = 0; On = 1;
+            }
+        }
+    }
+    // debug($arrayLogVitals); //Debug
+
+    //Calculate Inside and Outside Sensor Successful Read Ratio
+    $innerKeyCount = (count($arrayLogVitals["Inside Temperature"]) - $optimalTemperatureRatio["InnerSensor"]) / count($arrayLogVitals["Inside Temperature"]);
+    $outerKeyCount = (count($arrayLogVitals["Outside Temperature"]) - $optimalTemperatureRatio["OuterSensor"]) / count($arrayLogVitals["Outside Temperature"]);
+    $optimalTemperatureRatio = [ "InnerSensor" => $innerKeyCount, "OuterSensor" => $outerKeyCount ];
+    // debug($optimalTemperatureRatio); //Debug
+
+    //Debug
+    // debug(array_values($arrayLogVitals));
+    // debug(array_keys($arrayLogVitals));
+
     echo "<canvas class='charts-canvas' id='primary-chart'></canvas>";
-    echo "<script>createchart('primary-chart', 'line'," . json_encode(array_values(array_unique($arrayLogTSUnix))) . "," . json_encode($arrayLogVitalNameCleanedUp) . "," . json_encode($arrayLogVital) . "," . count(array_values($arrayLogVitalNameCleanedUp)) . ")</script>";
+    echo "<script>createchart('primary-chart', 'line'," . json_encode(array_values($arrayLogTSUnix)[0]) . "," . json_encode(array_keys($arrayLogVitals)) . "," . json_encode(array_values($arrayLogVitals)) . "," . count(array_keys($arrayLogVitals)) . ")</script>";
     outputSensorSuccessRatio($optimalTemperatureRatio);
 }
 
@@ -237,167 +246,4 @@ function getKeyAmount($array, $keyToLookFor){
 
     return $keyAmount;
 }
-
-
-
-
-/*
-//Processes data
-    $optimalTemperatureRatio = array();
-    $optimalInnerCounter = 0;
-    $optimalOuterCounter = 0;
-    $timeoutCount = 10;
-
-    foreach ($arrayLogVital as $rowIdx => $rowValue) {
-        if($arrayLogVitalName[$rowIdx] == "TemperatureInner") { //The sensor for temperature also checks for humidity, so whenever temperature can't be recorded, humidity can't be recorded either
-            if($arrayLogVital[$rowIdx] == "NULL" && $interpolate != "no") {
-                $gotValue = FALSE;
-
-                for ($i=0; $i < $timeoutCount; $i++) {  //Check 5 steps back
-                    if($arrayLogVitalName[$rowIdx - $i] == "TemperatureInner" && isset($arrayLogVital[$rowIdx - $i])) {
-                        $arrayLogVital[$rowIdx] = $arrayLogVital[$rowIdx - $i];
-                        $gotValue = true;
-                        break;
-                    }
-                }
-
-                if($gotValue == FALSE) {
-                    for ($i=0; $i < $timeoutCount; $i++) { //Check 5 steps forward
-                        if($arrayLogVitalName[$rowIdx + $i] == "TemperatureInner" && isset($arrayLogVital[$rowIdx + $i])) {
-                            $arrayLogVital[$rowIdx] = $arrayLogVital[$rowIdx + $i];
-                            $gotValue = true;
-                            break;
-                        }
-                    }
-                }
-
-                if($gotValue == FALSE) {
-                    print_r("THIRD ATTEMPT");
-                    print_r($arrayLogVital[$rowIdx]);
-                    print_r("<br/>");
-                    $arrayLogVital[$rowIdx] = null;
-                }
-
-                $optimalInnerCounter++;
-            } elseif ($arrayLogVital[$rowIdx] == "NULL" && $interpolate == "no") {
-                $arrayLogVital[$rowIdx] = null;
-            }
-        }
-
-        if($arrayLogVitalName[$rowIdx] == "TemperatureOuter") { //The sensor for temperature also checks for humidity, so whenever temperature can't be recorded, humidity can't be recorded either
-            if($arrayLogVital[$rowIdx] == "NULL" && $interpolate != "no") {
-                $gotValue = false;
-
-                for ($i=0; $i < $timeoutCount; $i++) {  //Check 5 steps back
-                    if($arrayLogVitalName[$rowIdx - $i] == "TemperatureOuter" && isset($arrayLogVital[$rowIdx - $i])) {
-                        $arrayLogVital[$rowIdx] = $arrayLogVital[$rowIdx - $i];
-                        $gotValue = true;
-                        break;
-                    }
-                }
-
-                if(!$gotValue) {
-                    for ($i=0; $i < $timeoutCount; $i++) { //Check 5 steps forward
-                        if($arrayLogVitalName[$rowIdx + $i] == "TemperatureOuter" && isset($arrayLogVital[$rowIdx + $i])) {
-                            $arrayLogVital[$rowIdx] = $arrayLogVital[$rowIdx + $i];
-                            $gotValue = true;
-                            break;
-                        }
-                    }
-                }
-
-                if(!$gotValue) {
-                    $arrayLogVital[$rowIdx] = null;
-                }
-
-                $optimalOuterCounter++;
-            } elseif ($arrayLogVital[$rowIdx] == "NULL" && $interpolate == "no") {
-                $arrayLogVital[$rowIdx] = null;
-            }
-        }
-
-        if($arrayLogVitalName[$rowIdx] == "HumidityInner") { //The sensor for temperature also checks for humidity, so whenever temperature can't be recorded, humidity can't be recorded either
-            if($arrayLogVital[$rowIdx] == "NULL" && $interpolate != "no") { 
-                $gotValue = false;
-
-                for ($i=0; $i < $timeoutCount; $i++) {  //Check 5 steps back
-                    if($arrayLogVitalName[$rowIdx - $i] == "HumidityInner" && isset($arrayLogVital[$rowIdx - $i])) {
-                        $arrayLogVital[$rowIdx] = $arrayLogVital[$rowIdx - $i];
-                        $gotValue = true;
-                        break;
-                    }
-                }
-
-                if(!$gotValue) {
-                    for ($i=0; $i < $timeoutCount; $i++) { //Check 5 steps forward
-                        if($arrayLogVitalName[$rowIdx + $i] == "HumidityInner" && isset($arrayLogVital[$rowIdx + $i])) {
-                            $arrayLogVital[$rowIdx] = $arrayLogVital[$rowIdx + $i];
-                            $gotValue = true;
-                            break;
-                        }
-                    }
-                }
-
-                if(!$gotValue){
-                    $arrayLogVital[$rowIdx] = null;
-                }
-            } elseif ($arrayLogVital[$rowIdx] == "NULL" && $interpolate == "no") {
-                $arrayLogVital[$rowIdx] = null;
-            }
-        }
-
-        if($arrayLogVitalName[$rowIdx] == "HumidityOuter") { //The sensor for temperature also checks for humidity, so whenever temperature can't be recorded, humidity can't be recorded either
-            if($arrayLogVital[$rowIdx] == "NULL" && $interpolate != "no") {
-                $gotValue = false;
-
-                for ($i=0; $i < $timeoutCount; $i++) {  //Check 5 steps back
-                    if($arrayLogVitalName[$rowIdx - $i] == "HumidityOuter" && isset($arrayLogVital[$rowIdx - $i])) {
-                        $arrayLogVital[$rowIdx] = $arrayLogVital[$rowIdx - $i];
-                        $gotValue = true;
-                        break;
-                    }
-                }
-
-                if(!$gotValue) {
-                    for ($i=0; $i < $timeoutCount; $i++) { //Check 5 steps forward
-                        if($arrayLogVitalName[$rowIdx + $i] == "HumidityOuter" && isset($arrayLogVital[$rowIdx + $i])) {
-                            $arrayLogVital[$rowIdx] = $arrayLogVital[$rowIdx + $i];
-                            $gotValue = true;
-                            break;
-                        }
-                    }
-                }
-
-                if(!$gotValue) {
-                    $arrayLogVital[$rowIdx] = null;
-                }
-            } elseif ($arrayLogVital[$rowIdx] == "NULL" && $interpolate == "no") {
-                $arrayLogVital[$rowIdx] = null;
-            }
-        }
-
-        if($arrayLogVitalName[$rowIdx] == "Exhaust") {
-            $arrayLogVital[$rowIdx] = ($arrayLogVital[$rowIdx] == "on") ? 1 : 0;
-        }
-    }
-    $innerKeyCount = getKeyAmount($arrayLogVitalName, "TemperatureInner");
-    $outerKeyCount = getKeyAmount($arrayLogVitalName, "TemperatureOuter");
-    $optimalTemperatureRatio = [ "InnerSensor" => ($innerKeyCount - $optimalInnerCounter) / $innerKeyCount, "OuterSensor" => ($outerKeyCount - $optimalOuterCounter) / $outerKeyCount ];
-
-    echo "<script>createchart('primary-chart', 'line'," . json_encode($arrayLogTSUnix) . "," . json_encode($arrayLogVitalNameCleanedUp) . "," . json_encode($arrayLogVital) . "," . count($arrayLogVitalNameCleanedUp) . "," . $timeInterval . ")</script>";
-
-
-function replace_key_function($array, $key1, $key2)
-{
-    $keys = array_keys($array);
-    $index = array_search($key1, $keys);
-
-    if ($index !== false) {
-        $keys[$index] = $key2;
-        $array = array_combine($keys, $array);
-    }
-
-    return $array;
-}
-    */
 ?>
