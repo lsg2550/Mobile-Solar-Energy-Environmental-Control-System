@@ -9,7 +9,9 @@
         $TYP = "ST";
 
         //Init - Get Username
-        $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
+        $sqlGetUser = "SELECT owner 
+                        FROM rpi 
+                        WHERE rpiID = {$_GET["rpid"]}";
         $resultsGetUser = mysqli_query($conn, $sqlGetUser);
         $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
@@ -37,17 +39,21 @@
                     }
 
                     //Get VID
-                    $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$VN}' AND RPID='{$RPID}' AND USR='{$USR}';";
+                    $sqlGetVID = "SELECT VID 
+                                    FROM vitals 
+                                    WHERE VN='{$VN}' AND RPID='{$RPID}' AND USR='{$USR}';";
                     $resultGetVID = mysqli_query($conn, $sqlGetVID);
                     $VID = mysqli_fetch_assoc($resultGetVID)['VID'];
 
                     //Update DB
-                    $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
-                    try {
-                        $sqlUpdateCurrentStatus = "UPDATE status SET VV='{$VV}', TS='{$TS}' WHERE VID='{$VID}' AND USR='{$USR}' AND RPID='{$RPID}';";
-                    } catch (Exception $e) {
-                        $sqlUpdateCurrentStatus = "INSERT INTO status (VID, VV, TS, USR, RPID) VALUES ('{$VID}', '{$VV}', '{$TS}', '{$VID}', '{$USR}', '{$RPID}');";
-                    }
+                    $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) 
+                                            VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
+
+                    $sqlUpdateCurrentStatus = "INSERT INTO status (VID, V1, V2, TS, USR, RPID) 
+                                            VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$USR}', '{$RPID}') 
+                                            ON DUPLICATE KEY UPDATE V1='{$V1}', V2='{$V2}', TS='{$TS}' 
+                                            WHERE VID='{$VID}' AND USR='{$USR}' AND RPID='{$RPID}';";
+
                     $resultInsertIntoLog = mysqli_query($conn, $sqlInsertIntoLog);
                     $resultUpdateCurrentStatus = mysqli_query($conn, $sqlUpdateCurrentStatus);
             }

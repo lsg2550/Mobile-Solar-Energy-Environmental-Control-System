@@ -9,6 +9,8 @@
 
 <head>
     <title>Client's Selection Page</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="client.js"></script>
     <link rel="stylesheet" href="client.css">
 </head>
 
@@ -32,8 +34,7 @@
         </form>
     </div>
 
-    <div class="current-status">
-        
+    <div class="current-status" id="current-status-id">
     </div>
 </body>
 

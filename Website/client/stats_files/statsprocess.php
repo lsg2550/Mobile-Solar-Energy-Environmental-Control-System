@@ -134,6 +134,11 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
                 $arrayLogVitals["Outside Humidity"] = $arrayLogVitals[$vitalName];
                 unset($arrayLogVitals[$vitalName]);
                 break;
+            case 'Exhaust':
+                $temporaryExhaust = $arrayLogVitals[$vitalName];
+                unset($arrayLogVitals[$vitalName]);
+                $arrayLogVitals["Exhaust"] = $temporaryExhaust;
+                break;
             default:
                 break;
         }
@@ -144,18 +149,18 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
     $optimalTemperatureRatio = array("InnerSensor" => 0, "OuterSensor" => 0);
     foreach ($arrayLogVitals as $vitalName => &$vitalValueArr) {
         if ($interpolate) {
-            if ($vitalName == "Inside Temperature") {
+            if ($vitalName == "Inside Temperature" || $vitalName == "Inside Humidity") {
                 foreach ($vitalValueArr as $vitalValueIdx => &$vitalValue) {
-                    if (strtolower($vitalValue) == "null" || isset($vitalValue)) {
+                    if (strtolower($vitalValue) == "null" || !isset($vitalValue)) {
                         $vitalValue = (isset($vitalValueArr[$vitalValueIdx - 1])) ? $vitalValueArr[$vitalValueIdx - 1] : $vitalValueArr[$vitalValueIdx + 1];
                         $optimalTemperatureRatio["InnerSensor"]++;
                     }
                 }
             }
 
-            if ($vitalName == "Outside Temperature") {
+            if ($vitalName == "Outside Temperature" || $vitalName == "Outside Humidity") {
                 foreach ($vitalValueArr as $vitalValueIdx => &$vitalValue) {
-                    if (strtolower($vitalValue) == "null" || isset($vitalValue)) {
+                    if (strtolower($vitalValue) == "null" || !isset($vitalValue)) {
                         $vitalValue = (isset($vitalValueArr[$vitalValueIdx - 1])) ? $vitalValueArr[$vitalValueIdx - 1] : $vitalValueArr[$vitalValueIdx + 1];
                         $optimalTemperatureRatio["OuterSensor"]++;
                     }
@@ -172,24 +177,15 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
     // debug($arrayLogVitals); //Debug
 
     //Calculate Inside and Outside Sensor Successful Read Ratio
-    $innerKeyCount = (count($arrayLogVitals["Inside Temperature"]) - $optimalTemperatureRatio["InnerSensor"]) / count($arrayLogVitals["Inside Temperature"]);
-    $outerKeyCount = (count($arrayLogVitals["Outside Temperature"]) - $optimalTemperatureRatio["OuterSensor"]) / count($arrayLogVitals["Outside Temperature"]);
-    $optimalTemperatureRatio = [ "InnerSensor" => $innerKeyCount, "OuterSensor" => $outerKeyCount ];
+    $innerKeyCount = count($arrayLogVitals["Inside Temperature"]) + count($arrayLogVitals["Inside Humidity"]);
+    $outerKeyCount = count($arrayLogVitals["Outside Temperature"]) + count($arrayLogVitals["Outside Humidity"]);
+    $optimalTemperatureRatio = [ "InnerSensor" => (($innerKeyCount - $optimalTemperatureRatio["InnerSensor"]) / $innerKeyCount),
+                                 "OuterSensor" => (($outerKeyCount - $optimalTemperatureRatio["OuterSensor"]) / $outerKeyCount) ];
     // debug($optimalTemperatureRatio); //Debug
 
-    //Debug
-    // debug(array_values($arrayLogVitals));
-    // debug(array_keys($arrayLogVitals));
-
     echo "<canvas class='charts-canvas' id='primary-chart'></canvas>";
-    echo "<script>createchart('primary-chart', 'line'," . json_encode(array_values($arrayLogTSUnix)[0]) . "," . json_encode(array_keys($arrayLogVitals)) . "," . json_encode(array_values($arrayLogVitals)) . "," . count(array_keys($arrayLogVitals)) . ")</script>";
+    echo "<script>createchart('primary-chart', 'line'," . json_encode(array_values($arrayLogTSUnix)[0]) . "," . json_encode(array_keys($arrayLogVitals)) . "," . json_encode(array_values($arrayLogVitals)) . "," . count(array_keys($arrayLogVitals)) . "," . $timeInterval . ")</script>";
     outputSensorSuccessRatio($optimalTemperatureRatio);
-}
-
-function debug($message){
-    print_r("<br/><br/>");
-    print_r($message);
-    print_r("<br/><br/>");
 }
 
 function outputCSV($arrayLogVitalName, $arrayLogVital, $arrayLogTS) {
@@ -235,15 +231,5 @@ function convertDateTimeToTimeStamp($arrOrSingleTimeStamp) {
     }
 
     return $convertedDateTimeArray;
-}
-
-function getKeyAmount($array, $keyToLookFor){
-    $keyAmount = 0;
-
-    foreach ($array as $key => $value) {
-        if($value == $keyToLookFor) { $keyAmount++; }
-    }
-
-    return $keyAmount;
 }
 ?>

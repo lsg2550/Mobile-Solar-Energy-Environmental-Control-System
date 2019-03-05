@@ -40,5 +40,11 @@ function transposeArray($inputArray){
     return array_map(null, ...$inputArray);
 }
 
+function debug($message){
+    print_r("<br/><br/>");
+    print_r($message);
+    print_r("<br/><br/>");
+}
+
 function doNothing() {;}
 ?>
