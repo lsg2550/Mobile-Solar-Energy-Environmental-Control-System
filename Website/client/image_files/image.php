@@ -1,31 +1,30 @@
 <?php
-    //Require
-    require("../../index_files/sessionstart.php");
-    require("../../index_files/sessioncheck.php");
-    require("../../index_files/connect.php");
-	require("../../index_files/operations.php");
-		
-	function getImages() {
-		global $conn;
+//Require
+require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
+require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
+require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
+require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
+    
+function getImages() {
+    global $conn;
 
-		//Get the names of all detection folders
-		$detectFoldersPath = "../../detectdir/";
-		$detectFoldersNames = array_diff(scandir($detectFoldersPath), array('.', '..'));
+    //Get the names of all detection folders
+    $detectFoldersPath = $_SERVER["DOCUMENT_ROOT"] . "/detectdir/";
+    $detectFoldersNames = array_diff(scandir($detectFoldersPath), array('.', '..'));
 
-		//Iterate through each detection folder 
-		foreach ($detectFoldersNames as $detectFolderName) {
-
-			$detectFolderNameFullPath = array_diff(scandir($detectFoldersPath . $detectFolderName), array('.', '..'));
-			echo "<table id='imagelisttable'>";
-			echo "<caption><b>{$detectFolderName}</b></caption>";
-			echo "<tr><th>Image Name</th><th>Click to View</th></tr>";
-			foreach ($detectFolderNameFullPath as $detectImageName) {
-				$detectImageNameFullPath = preg_replace("/\s+/", "%20", $detectFoldersPath . $detectFolderName . "/" . $detectImageName);
-				echo "<tr><td>{$detectImageName}</td><td><a href={$detectImageNameFullPath} target='imagecurrent'>Click Here!</a></td></tr>";
-			}
-			echo "</table>";
-		}
-	}
+    //Iterate through each detection folder 
+    foreach ($detectFoldersNames as $detectFolderName) {
+        $detectFolderNameFullPath = array_diff(scandir($detectFoldersPath . $detectFolderName), array('.', '..'));
+        echo "<table id='imagelisttable'>";
+        echo "<caption><b>{$detectFolderName}</b></caption>";
+        echo "<tr><th>Image Name</th><th>Click to View</th></tr>";
+        foreach ($detectFolderNameFullPath as $detectImageName) {
+            $detectImageNameFullPath = preg_replace("/\s+/", "%20", $detectFoldersPath . $detectFolderName . "/" . $detectImageName);
+            echo "<tr><td>{$detectImageName}</td><td><a href={$detectImageNameFullPath} target='imagecurrent'>Click Here!</a></td></tr>";
+        }
+        echo "</table>";
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -33,8 +32,8 @@
 
 <head>
     <title>Images Page</title>
+    <link rel="stylesheet" type="text/css" href="../navigator.css">
     <link rel="stylesheet" type="text/css" href="image.css">
-    <link rel="stylesheet" type="text/css" href="../client.css">
     <script src="adjustimageframe.js"></script>
 </head>
 
@@ -47,16 +46,17 @@
         <form action="../../index_files/logout.php" method="post">
             <input type="submit" value="Log Out">
         </form>
-	</div>
-	
+    </div>
+
     <div id="imagecontainer">
         <div id="imagelist">
             <?php getImages(); ?>
         </div>
+
         <div id="imageviewer">
-            <iframe id="imagecurrent" name="imagecurrent" onload="adjustimageframe(this)" scrolling="no"
-                frameborder="no"></iframe>
+            <iframe id="imagecurrent" name="imagecurrent" onload="adjustimageframe(this)" scrolling="no" frameborder="no"></iframe>
         </div>
+
         <div id="imageclear"></div>
     </div>
 </body>

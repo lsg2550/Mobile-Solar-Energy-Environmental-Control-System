@@ -40,10 +40,50 @@ function transposeArray($inputArray){
     return array_map(null, ...$inputArray);
 }
 
+//ONLY USED FOR PHP WHERE DATABASE TRANSACTIONS ARE REQUIRED AND CAN'T BE DEBUGGED PROPERLY ON THE CMS
 function debug($message){
     print_r("<br/><br/>");
     print_r($message);
     print_r("<br/><br/>");
+}
+
+//getTimeStamp - Gets the timestamp of the current status to display it on the HTML page
+function getTimeStamp($stringToReplace) {
+    $stringSplit = splitDataIntoArray($stringToReplace); //Remove extra characters and place data into array
+    return end($stringSplit); //Return timestamp for currentstatus fieldset
+}
+
+//getData - Generate and format HTML tables to display CurrentStatus and Log results, respectively
+function getData($stringsToReplace, $tableHeader, $printAll) {
+    //Initialize
+    $currentRaspberryPi = "-1"; 
+    $initalRaspberryPi = true; 
+    $displayHTML = ""; //Display HTML
+
+    foreach ($stringsToReplace as $stringToReplace) {
+        $stringSplit = splitDataIntoArray($stringToReplace); //Remove extra characters and place data into array
+    
+        if ($stringSplit[2] !== $currentRaspberryPi) { //$stringSplit[2] will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
+            $currentRaspberryPi = $stringSplit[2];
+    
+            if ($initalRaspberryPi == false) {$displayHTML .= "</table>";} //Closes the table from the previous RaspberryPi
+            else { $initalRaspberryPi = false;} //Initial table will change this to false after it creates the first table header
+    
+            $displayHTML .= ($printAll) ? "<table id='log-table'>{$tableHeader}" : "<table id='current-status-table'>{$tableHeader}" ;
+        }
+    
+        //Generate HTML currentstatus/log tables
+        $displayHTML .= "<tr>";
+        for ($i = 0; $i < count($stringSplit); $i++) {
+            if ($i === 2 && !$printAll) {continue;}
+            $displayHTML .= "<td>{$stringSplit[$i]}</td>";
+        }
+        $displayHTML .= "</tr>";
+    }
+
+    //Return table(s)
+    $displayHTML .= "</table>";
+    return $displayHTML;
 }
 
 function doNothing() {;}

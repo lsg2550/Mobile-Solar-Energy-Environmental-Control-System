@@ -1,9 +1,9 @@
 <?php
     //Require
-    require("../../index_files/sessionstart.php");
-    require("../../index_files/sessioncheck.php");
-    require("../../index_files/connect.php");
-    require("../../index_files/operations.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
     require("generatecontrolpanel.php");
 
     //Database Queries

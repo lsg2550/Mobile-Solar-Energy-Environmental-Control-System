@@ -1,31 +1,34 @@
 .displays {
 	text-align: center;
+	width: 100%;
 }
 
-fieldset {
-	text-align: left;
+#log-fieldset {
+	text-align: center;
 	display: inline-block;
+	border: none;
+	width: 75%;
 }
 
-table {
-	border: 1px solid black;
+#log-table {
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+	border-left: 1px dashed black;
+	border-right: 1px dashed black;
 	border-collapse: separate;
 	border-spacing: 10px 0px;
 	text-align: center;
+	width: 100%;
 }
 
-th {
+#log-table th {
 	border-bottom: 1px solid black;
 }
 
-td {
-	text-align: left;
-}
-
-td:nth-child(odd), th:nth-child(odd) {
+#log-table td:nth-child(odd), #log-table th:nth-child(odd) {
 	background: lightgrey;
 }
 
-td:nth-child(even) {
+#log-table td:nth-child(even), #log-table td:nth-child(3) {
 	text-align: center;
 }

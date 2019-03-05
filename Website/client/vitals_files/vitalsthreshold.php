@@ -1,9 +1,9 @@
 <?php
     //Require
     ob_start();
-    require("../../index_files/sessionstart.php");
-    require("../../index_files/sessioncheck.php");
-    require("../../index_files/connect.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 
     //TODO: Filter $_POST 
     //This php code will update the 'vitals' table for the respective raspberry pi and its user

@@ -1,42 +1,42 @@
 <?php
-    //Require
-    require("../../index_files/sessionstart.php");
-    require("../../index_files/sessioncheck.php");
+//Require
+require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
+require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
 
-    function getYesterdaysDate() {
-        $yesterdayDate = date("Y-m-d", time() - 60 * 60 * 24);
+function getYesterdaysDate() {
+    $yesterdayDate = date("Y-m-d", time() - 60 * 60 * 24);
 
-        echo "<label for='date-start-select'>Start Date:</label>";
-        echo "<input type='date' class='date-range' id='date-start-select' name='date_start' value='{$yesterdayDate}' required>";
-        echo "<label for='date-end-select'>End Date:</label>";
-        echo "<input type='date' class='date-range' id='date-end-select' name='date_end' value='{$yesterdayDate}' required>";
+    echo "<label for='date-start-select'>Start Date:</label>";
+    echo "<input type='date' class='date-range' id='date-start-select' name='date_start' value='{$yesterdayDate}' required>";
+    echo "<label for='date-end-select'>End Date:</label>";
+    echo "<input type='date' class='date-range' id='date-end-select' name='date_end' value='{$yesterdayDate}' required>";
+}
+
+function generateRPISelect() {
+    require_once("../../index_files/connect.php");
+
+    //Database Queries
+    $currentUser = $_SESSION['username']; //Get Current User Name
+    $sqlRPis = "SELECT rpiID FROM rpi WHERE owner='{$currentUser}';"; // Select all RPis belonging to the current user
+
+    //Execute Queries
+    $resultRPis = mysqli_query($conn, $sqlRPis);
+
+    //Store RPis into an array of RPis
+    $arrayRPis = array(); 
+    if(mysqli_num_rows($resultRPis) > 0) {
+        while($row = mysqli_fetch_assoc($resultRPis)) {
+            $arrayRPis[] = $row['rpiID'];
+        }
     }
 
-    function generateRPISelect() {
-        require_once("../../index_files/connect.php");
-
-        //Database Queries
-        $currentUser = $_SESSION['username']; //Get Current User Name
-        $sqlRPis = "SELECT rpiID FROM rpi WHERE owner='{$currentUser}';"; // Select all RPis belonging to the current user
-
-        //Execute Queries
-        $resultRPis = mysqli_query($conn, $sqlRPis);
-
-        //Store RPis into an array of RPis
-        $arrayRPis = array(); 
-        if(mysqli_num_rows($resultRPis) > 0) {
-            while($row = mysqli_fetch_assoc($resultRPis)) {
-                $arrayRPis[] = $row['rpiID'];
-            }
-        }
-
-        # Create the HTML dropdown menu
-        echo "<select id='rpi-select' name='rpi_select' required>";
-        for ($i=0; $i < count($arrayRPis); $i++) { 
-            echo "<option value='{$arrayRPis[$i]}'>{$arrayRPis[$i]}</option>";
-        }
-        echo "</select>";
+    # Create the HTML dropdown menu
+    echo "<select id='rpi-select' name='rpi_select' required>";
+    for ($i=0; $i < count($arrayRPis); $i++) { 
+        echo "<option value='{$arrayRPis[$i]}'>{$arrayRPis[$i]}</option>";
     }
+    echo "</select>";
+}
 ?>
 
 <html>
@@ -46,7 +46,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.4.0/Chart.bundle.min.js"></script>
     <script src="createchart.js"></script>
     <link rel="stylesheet" type="text/css" href="stats.css">
-    <link rel="stylesheet" type="text/css" href="../client.css">
+    <link rel="stylesheet" type="text/css" href="../navigator.css">
 </head>
 
 <body>
