@@ -54,7 +54,7 @@ function getImages() {
         </div>
 
         <div id="imageviewer">
-            <iframe id="imagecurrent" name="imagecurrent" onload="adjustimageframe(this)" scrolling="no" frameborder="no"></iframe>
+            <iframe id="imagecurrent" name="imagecurrent" onload="resizeIframe(this)" scrolling="no" frameborder="no"></iframe>
         </div>
 
         <div id="imageclear"></div>

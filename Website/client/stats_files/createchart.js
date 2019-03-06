@@ -126,7 +126,7 @@ function doesCSVEXist(url) {
             window.location = url;
         },
         error: function (response) {
-            alert(response);
+            //alert(response);
         }
     });
 }

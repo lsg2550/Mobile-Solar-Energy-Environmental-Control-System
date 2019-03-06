@@ -87,7 +87,7 @@ if (empty($arrayLogTS) && empty($arrayLogVital) && empty($arrayLogVitalName)) { 
 if ($chartOrCSV == "chart") {  
     outputCharts($arrayLogVitals, $arrayLogTS);
 } else if ($chartOrCSV == "csv") { 
-    outputCSV($arrayLogVitalName, $arrayLogVital, $arrayLogTS);
+    outputCSV($arrayLogVitals, $arrayLogTS);
 }
 
 function outputCharts($arrayLogVitals, $arrayLogTS) {
@@ -185,10 +185,11 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
 
     echo "<canvas class='charts-canvas' id='primary-chart'></canvas>";
     echo "<script>createchart('primary-chart', 'line'," . json_encode(array_values($arrayLogTSUnix)[0]) . "," . json_encode(array_keys($arrayLogVitals)) . "," . json_encode(array_values($arrayLogVitals)) . "," . count(array_keys($arrayLogVitals)) . "," . $timeInterval . ")</script>";
-    outputSensorSuccessRatio($optimalTemperatureRatio);
+    if (!isset($optimalTemperatureRatio) || empty(array_filter($optimalTemperatureRatio))) { echo "<script>updateSensorSuccessRate(" . -1 . ")</script>"; } 
+    else { echo "<script>updateSensorSuccessRate(" . json_encode($optimalTemperatureRatio) . ")</script>"; }
 }
 
-function outputCSV($arrayLogVitalName, $arrayLogVital, $arrayLogTS) {
+function outputCSV($arrayLogVitals, $arrayLogTS) {
     //global
     global $currentUser;
 
@@ -197,28 +198,22 @@ function outputCSV($arrayLogVitalName, $arrayLogVital, $arrayLogTS) {
     $csvFolderName = "/clientcsv/";
     $csvFileName = substr(hash("md5", $currentUser), 0, 8) . "_logs.csv";
     $csvFile = fopen($csvServerRoot . $csvFolderName . $csvFileName, "w");
-    for ($i=0; $i < count($arrayLogVitalName); $i++) { 
-        $csvLine = [$arrayLogVitalName[$i], $arrayLogTS[$i], $arrayLogVital[$i]];
-        fputcsv($csvFile, $csvLine);
+
+    foreach ($arrayLogVitals as $vitalName => $vitalArray) {
+        foreach ($vitalArray as $vitalValueIndex => $vitalValue) {
+            $csvLine = [$vitalName, $arrayLogTS[$vitalName][$vitalValueIndex], $vitalValue];
+            fputcsv($csvFile, $csvLine);
+        }
     }
+
+    //Close file
     fclose($csvFile);
 
-    //jQuery will then grab the file using its header function
+    //Echo location of file for jQuery
     echo $csvFolderName . $csvFileName;
 }
 
 function outputSensorSuccessRatio($optimalTemperatureRatio) {
-    if (!isset($optimalTemperatureRatio) || empty(array_filter($optimalTemperatureRatio))) {
-        echo "<script>updateSensorSuccessRate(" . -1 . ")</script>";
-    } else {
-        echo "<script>updateSensorSuccessRate(" . json_encode($optimalTemperatureRatio) . ")</script>";
-    }
-}
-
-function outputError($message){
-    echo "<h2 style='display: inline-block; text-align: center;'>{$message}</h2>";
-    outputSensorSuccessRatio(NULL);
-    exit();
 }
 
 function convertDateTimeToTimeStamp($arrOrSingleTimeStamp) {
@@ -231,5 +226,11 @@ function convertDateTimeToTimeStamp($arrOrSingleTimeStamp) {
     }
 
     return $convertedDateTimeArray;
+}
+
+function outputError($message){
+    echo "<h2 style='display: inline-block; text-align: center;'>{$message}</h2>";
+    outputSensorSuccessRatio(NULL);
+    exit();
 }
 ?>
