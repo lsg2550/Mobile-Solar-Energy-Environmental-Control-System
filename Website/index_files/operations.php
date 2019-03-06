@@ -75,7 +75,7 @@ function getData($stringsToReplace, $tableHeader, $printAll) {
         //Generate HTML currentstatus/log tables
         $displayHTML .= "<tr>";
         for ($i = 0; $i < count($stringSplit); $i++) {
-            if ($i === 2 && !$printAll) {continue;}
+            // if ($i === 2 && !$printAll) {continue;}
             $displayHTML .= "<td>{$stringSplit[$i]}</td>";
         }
         $displayHTML .= "</tr>";

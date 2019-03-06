@@ -1,12 +1,28 @@
-.title {
+.displays {
 	text-align: center;
+	width: 100%;
 }
 
-.formdiv{
+#current-status-fieldset {
 	text-align: center;
-	padding-bottom: 5px;
-}
-
-form {
 	display: inline-block;
+	border: none;
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+	width: 75%;
+}
+
+#current-status-table {
+	border-collapse: separate;
+	border-spacing: 10px 0px;
+	text-align: center;
+	width: 100%;
+}
+
+#current-status-table th {
+	border-bottom: 1px solid black;
+}
+
+#current-status-table td:nth-child(odd), #current-status-table th:nth-child(odd) {
+	background: lightgrey;
 }

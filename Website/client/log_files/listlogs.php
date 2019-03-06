@@ -97,6 +97,6 @@ if (mysqli_num_rows($resultLog) > 0) {
             </div>
         </fieldset>
     </div>
-    </div>
 </body>
+
 </html>

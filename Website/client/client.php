@@ -58,6 +58,9 @@ if (mysqli_num_rows($resultCurrentStatus) > 0) {
                 $tempTwo = (round($row['V2'], 2) > 0) ? round($row['V2'], 2) . '&deg;E' : round($row['V2'], 2) . '&deg;W';
                 $tempVOne = $tempOne . '&comma;' . $tempTwo;
                 break;
+            case 'SolarPanel':
+                $row['VN'] = "PV";
+                break;
             default:
                 $tempVOne = $row['V1'];
                 break;
@@ -73,6 +76,7 @@ if (mysqli_num_rows($resultCurrentStatus) > 0) {
 <head>
     <title>Client's Selection Page</title>
     <link rel="stylesheet" href="client.css">
+    <link rel="stylesheet" href="navigator.css">
 </head>
 
 <body>
@@ -95,8 +99,13 @@ if (mysqli_num_rows($resultCurrentStatus) > 0) {
         </form>
     </div>
 
-    <div class="current-status" id="current-status-id">
-        <?php echo getData($arrayCurrentStatus, "<tr><th>Vital Name</th><th>Status</th><th>Timestamp</th></tr>", false); ?>
+    <div class="displays">
+        <fieldset id="current-status-fieldset">
+            <legend>Current Status</legend>
+            <div id="current-status-div">
+                <?php echo getData($arrayCurrentStatus, "<tr><th>Vital Name</th><th>Status</th><th>RPiID</th><th>Timestamp</th></tr>", false); ?>
+            </div>
+        </fieldset>
     </div>
 </body>
 
