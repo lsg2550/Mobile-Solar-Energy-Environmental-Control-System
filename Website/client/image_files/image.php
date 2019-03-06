@@ -9,7 +9,8 @@ function getImages() {
     global $conn;
 
     //Get the names of all detection folders
-    $detectFoldersPath = $_SERVER["DOCUMENT_ROOT"] . "/detectdir/";
+    //$detectFoldersPath = $_SERVER["DOCUMENT_ROOT"] . "/detectdir/";
+    $detectFoldersPath = "../../detectdir/";
     $detectFoldersNames = array_diff(scandir($detectFoldersPath), array('.', '..'));
 
     //Iterate through each detection folder 
