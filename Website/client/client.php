@@ -60,6 +60,7 @@ if (mysqli_num_rows($resultCurrentStatus) > 0) {
                 break;
             case 'SolarPanel':
                 $row['VN'] = "PV";
+                $tempVOne = $row['V1'];
                 break;
             default:
                 $tempVOne = $row['V1'];
