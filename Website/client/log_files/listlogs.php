@@ -73,7 +73,7 @@ if (mysqli_num_rows($resultLog) > 0) {
 <html>
 
 <head>
-    <title>Logs Page</title>
+    <title>Logs</title>
     <link rel="stylesheet" type="text/css" href="listlogs.css">
     <link rel="stylesheet" type="text/css" href="../navigator.css">
 </head>

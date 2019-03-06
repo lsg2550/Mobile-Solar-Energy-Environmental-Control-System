@@ -31,7 +31,7 @@ function getImages() {
 <html>
 
 <head>
-    <title>Images Page</title>
+    <title>Detection Images</title>
     <link rel="stylesheet" type="text/css" href="../navigator.css">
     <link rel="stylesheet" type="text/css" href="image.css">
     <script src="adjustimageframe.js"></script>

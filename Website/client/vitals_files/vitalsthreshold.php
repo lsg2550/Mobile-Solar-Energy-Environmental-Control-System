@@ -1,11 +1,9 @@
 <?php
     //Require
-    ob_start();
     require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
     require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
     require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 
-    //TODO: Filter $_POST 
     //This php code will update the 'vitals' table for the respective raspberry pi and its user
     $currentUser = $_SESSION['username']; //Get Current User Name
     $amtOfRPis = count(array_unique($_POST['rpid'])); //Get the amount of RPis to edit
@@ -42,7 +40,7 @@
             $resultSqlLog = mysqli_query($conn, $sqlLog);
         }
     }
-
-    header("Refresh:0; url=vitals.php");
-    ob_end_flush();
+    
+    //Output
+    echo "ok";
 ?>

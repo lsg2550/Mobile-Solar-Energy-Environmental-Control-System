@@ -1,10 +1,31 @@
 .displays {
 	text-align: center;
+	width: 100%;
 }
 
-.rpi-table table, th, td{
-	border: 1px solid black;
+#control-panel-fieldset {
+	border: 0;
+	border-top: 1px solid black;
+	border-bottom: 1px solid black;
+}
+
+.rpi-fieldset {
+	border: 0;
+	text-align: center;
+}
+
+.rpi-table {
 	border-collapse: separate;
 	border-spacing: 10px 0px;
+	text-align: center;
+	margin: auto;
+}
+
+.rpi-table th {
+	text-align: center;
+	border-bottom: 1px solid black;
+}
+
+.rpi-table td {
 	text-align: left;
 }
