@@ -29,7 +29,7 @@
 <head>
     <title>Remote Site - Vital Control Panel</title>
     <link rel="stylesheet" type="text/css" href="vitals.css">
-    <link rel="stylesheet" type="text/css" href="../client.css">
+    <link rel="stylesheet" type="text/css" href="../navigator.css">
 </head>
 
 <body>
