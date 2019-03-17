@@ -29,7 +29,7 @@
                     //Vital Name & Vital Values
                     $VN = $key;
                     $V1 = $VV = $value;
-                    $V2 = "";
+                    $V2 = null;
 
                     if($VN == "gps") {
                         $value = str_replace(array('"', '[', ']', '"'), '', $value);
@@ -49,10 +49,8 @@
                     $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) 
                                             VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
 
-                    $sqlUpdateCurrentStatus = "INSERT INTO status (VID, V1, V2, TS, USR, RPID) 
-                                            VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$USR}', '{$RPID}') 
-                                            ON DUPLICATE KEY UPDATE V1='{$V1}', V2='{$V2}', TS='{$TS}' 
-                                            WHERE VID='{$VID}' AND USR='{$USR}' AND RPID='{$RPID}';";
+                    $sqlUpdateCurrentStatus = "REPLACE INTO status (VID, V1, V2, TS, USR, RPID)
+                                                VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$USR}', '{$RPID}');";
 
                     $resultInsertIntoLog = mysqli_query($conn, $sqlInsertIntoLog);
                     $resultUpdateCurrentStatus = mysqli_query($conn, $sqlUpdateCurrentStatus);

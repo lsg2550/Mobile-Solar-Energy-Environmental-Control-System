@@ -38,13 +38,13 @@ GPIO.setup(EXHAUST, GPIO.OUT)
 actual_five_voltage_rail = 4.77
 
 # Battery Voltage Divider
-voltage_divider_batt_resistor_from_ground = 2.35
-voltage_divider_batt_resistor_from_positive = 9.93
+voltage_divider_batt_resistor_from_ground = 4.6
+voltage_divider_batt_resistor_from_positive = 32.5
 voltage_divider_batt_drop = voltage_divider_batt_resistor_from_ground / (voltage_divider_batt_resistor_from_ground + voltage_divider_batt_resistor_from_positive)
 
 # Solar Panel Voltage Divider
-voltage_divider_pv_resistor_from_ground = 2.35
-voltage_divider_pv_resistor_from_positive = 9.93
+voltage_divider_pv_resistor_from_ground = 4.6
+voltage_divider_pv_resistor_from_positive = 32.6
 voltage_divider_pv_drop = voltage_divider_pv_resistor_from_ground / (voltage_divider_pv_resistor_from_ground + voltage_divider_pv_resistor_from_positive)
 
 # Shunt #1 OpAmp
