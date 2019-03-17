@@ -884,7 +884,7 @@ nbproject/
 build.xml
 manifest.mf
 !/MP/JavaServer/src/log/
-**/connect.php
+db.json
 connecttoftp.py
 connect_to_ftp.py
 SentStorage
