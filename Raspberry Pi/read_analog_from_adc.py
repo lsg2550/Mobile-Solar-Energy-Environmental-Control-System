@@ -29,8 +29,8 @@ charge_con_current = 5 # Charge Controller - Current
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
 GPIO.cleanup()
-DHT11_I = 22
-DHT11_O = 17
+DHT11_I = 23
+DHT11_O = 24
 EXHAUST = 4
 GPIO.setup(EXHAUST, GPIO.OUT)
 

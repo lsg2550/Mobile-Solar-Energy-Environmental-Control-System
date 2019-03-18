@@ -250,4 +250,3 @@ else:
     finally: os.mkdir(CURRENT_MINUTE_DIRECTORY)
     if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY)
     InitializeCamera()
-    
