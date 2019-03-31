@@ -132,6 +132,10 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
             timeout_counter += 1
             if timeout_counter == timeout_max: break
 
+def CalcClarity(frameName, frame):
+    ret, frameThreshold = cv2.threshold(frame, 128, 255, cv2.THRESH_BINARY)
+    
+
 def Main(programTime=None):
     # Set globals
     global PREVIOUS_MINUTE_DIRECTORY
