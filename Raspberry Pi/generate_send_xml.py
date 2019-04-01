@@ -67,35 +67,32 @@ def GetAndSendImages(): # Send Images to Server
     print("Images background thread done!")
 # GetAndSendImages() end
 
-def GetAndSendImage(): # Send Image to Server
-    MD.QuickCapture() # Take a Quick Capture
-    try: 
-        detection_directory_contents = sorted(os.listdir(MD.DETECTION_DIRECTORY))
-        for stored_frames in detection_directory_contents:
-            if detection_directory_contents[-1] == stored_frames: break # Skip the last folder in case it is still being filled with images
-            temporary_file_full_path = os.path.join(MD.DETECTION_DIRECTORY, stored_frames)
+def GetAndSendClarity(): # Send Clarity Image to Server
+    MD.ClarityCapture() # Take a Clarity Capture
 
-            for root, subfolders, files in sorted(os.walk(temporary_file_full_path)): 
-                CTF.SendImages(root, files)
-                
-                pi_payload["capture"] = stored_frames
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pi_payload, timeout=5)
-                print(server_confirmation.text.strip())
-                pi_payload.pop("capture")
+    try:
+        for clarity_frame in sorted(os.listdir(MD.CLARITY_DIRECTORY)):
+            temporary_file_full_path = os.path.join(MD.CLARITY_DIRECTORY, clarity_frame)
+            CTF.SendClarity(temporary_file_full_path)
+            
+            pi_payload["capture"] = clarity_frame
+            server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pi_payload, timeout=5)
+            print(server_confirmation.text.strip())
+            pi_payload.pop("capture")
 
-                if server_confirmation.text.strip() == "OK":
-                    print("File and clarity status confirmed received!")
-                    shutil.rmtree(root) # Delete Capture Folder
-                else: break # Server did not receive or process the images correctly
+            if server_confirmation.text.strip() == "OK":
+                print("File and clarity status confirmed received!")
+                os.remove(temporary_file_full_path) # Delete Clarity Image
+            else: break # Server did not receive or process the images correctly
     except Exception as e: print("Could not connect to server...\nImage was not sent...\nError Received:{}".format(e))
     print("Clarity Image background thread done!")
-# GetAndSendImages() end
+# GetAndSendClarity() end
 
 def Main():
     # Program Start Time
     START_TIME = time.time() # Initialize Program Start Time
     SEND_STATUS_THREAD = None # Thread for sending JSON
-    #SEND_SIMAGE_THREAD = None # Thread for sending single status/clarity image
+    SEND_CLARITY_THREAD = None # Thread for sending single status/clarity image
     SEND_IMAGES_THREAD = None # Thread for sending multiple motion detection images
     
     # Start Camera Thread
@@ -180,10 +177,10 @@ def Main():
             SEND_IMAGES_THREAD.start()
 
         # Send a single image in new thread
-        #if SEND_IMAGE_THREAD == None or not SEND_IMAGE_THREAD.isAlive():
-        #    SEND_IMAGE_THREAD = Thread(target=GetAndSendImage, args=())
-        #    SEND_IMAGE_THREAD.setDaemon(True)
-        #    SEND_IMAGE_THREAD.start()
+        if SEND_CLARITY_THREAD == None or not SEND_CLARITY_THREAD.isAlive():
+           SEND_CLARITY_THREAD = Thread(target=GetAndSendClarity, args=())
+           SEND_CLARITY_THREAD.setDaemon(True)
+           SEND_CLARITY_THREAD.start()
             
         # Wait for 60 seconds for the next read interval
         timer = (time.time() - START_TIME) % 60

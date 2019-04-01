@@ -3,7 +3,8 @@ from picamera.array import PiRGBArray # PiCamera Module - Specifically the type 
 from picamera import PiCamera # PiCamera Module
 from threading import Thread # Threading
 from datetime import datetime # DateTime
-from pytz import timezone # Timezone'
+from pytz import timezone # Timezone
+import global_var # Variables used across the program 
 import numpy # Matrix Operations for Image Processing
 import shutil # File Operations
 import imutils # Image Utilities
@@ -13,17 +14,17 @@ import os # System Calls
 import re # Regex
 
 # Previous/Current Minute Directories & Detect Directories
-PREVIOUS_MINUTE_DIRECTORY = "PrevMinuteDir/"
-CURRENT_MINUTE_DIRECTORY = "CurrMinuteDir/"
-DETECTION_DIRECTORY = "detectdir/"
+PREVIOUS_MINUTE_DIRECTORY = global_var.HOME_PATH + "PrevMinuteDir/"
+CURRENT_MINUTE_DIRECTORY = global_var.HOME_PATH + "CurrMinuteDir/"
+DETECTION_DIRECTORY = global_var.HOME_PATH + "detectdir/"
+CLARITY_DIRECTORY = global_var.HOME_PATH + "claritydir/"
 DATE_AND_TIME_FORMAT = "%Y-%m-%d %H:%M:%S" # Date & time format for file names and image embedding
-RPID = 0 # RaspberryPi Identification Number (rpid)
 WIDTH = 640 # Max Width
 HEIGHT = 480 # Max Height
 FRAMERATE = 30 # Max Framerate
 CAMERA = None # Camera
 RAW_CAPTURE = None # Capture Object
-CLARITY_CAPTURE_IMAGE_NAME = "clarity_[ts]_[val]" + ".jpg" # Name of Clarity Image
+CLARITY_CAPTURE_IMAGE_NAME = "clarity_[ts]_[val].jpg" # Name of Clarity Image
 CLARITY_CAPTURE = None # Clarity Capture Object
 
 def InitializeCamera():
@@ -64,7 +65,7 @@ def ClarityCapture():
     filename_safe_current_time = current_time.replace(":", "-")
     CLARITY_CAPTURE_IMAGE_NAME = CLARITY_CAPTURE_IMAGE_NAME.replace("ts", filename_safe_current_time)
     CLARITY_CAPTURE_IMAGE_NAME = CLARITY_CAPTURE_IMAGE_NAME.replace("val", str(clear_ratio))
-    cv2.imwrite(CLARITY_CAPTURE_IMAGE_NAME, frame_threshold)
+    cv2.imwrite(CLARITY_DIRECTORY + CLARITY_CAPTURE_IMAGE_NAME, frame_threshold)
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     # Set globals
@@ -75,7 +76,6 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     global FRAMERATE
     global HEIGHT
     global WIDTH
-    global RPID
 
     # Create a detection directory for this instance of motion detected
     detection_and_filename_path = DETECTION_DIRECTORY + filenameSafeCurrentTime 
@@ -132,7 +132,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         if len(string_minute) == 1: string_minute = "0" + string_minute
         if len(string_second) == 1: string_second = "0" + string_second
         get_seconds_and_clock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}$', string_hour + "-" + string_minute + "-" + string_second, filenameSafeCurrentTime) 
-        frame_full_path = CURRENT_MINUTE_DIRECTORY + str(RPID) + " - capture (" + get_seconds_and_clock + ").jpg"
+        frame_full_path = CURRENT_MINUTE_DIRECTORY + str(global_var.RPID) + " - capture (" + get_seconds_and_clock + ").jpg"
         # print(frame_full_path)
 
         # Move image to detection directory
@@ -164,7 +164,6 @@ def Main(programTime=None):
     global FRAMERATE
     global HEIGHT
     global WIDTH
-    global RPID
     global CAMERA
     global RAW_CAPTURE
 
@@ -214,7 +213,7 @@ def Main(programTime=None):
 
             # Write image
             filename_safe_current_time = current_time.replace(":", "-")
-            current_frame_name = str(RPID) + " - capture (" + filename_safe_current_time + ").jpg"
+            current_frame_name = str(global_var.RPID) + " - capture (" + filename_safe_current_time + ").jpg"
             current_frame_name_full_path = CURRENT_MINUTE_DIRECTORY + current_frame_name
             cv2.imwrite(current_frame_name_full_path, frame)
             
@@ -248,7 +247,7 @@ def Main(programTime=None):
         if total_timer_second < 1 and total_timer_second >= 0.9:
             current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
             filename_safe_current_time = current_time.replace(":", "-")
-            current_frame_name = str(RPID) + " - capture (" + filename_safe_current_time + ").jpg"
+            current_frame_name = str(global_var.RPID) + " - capture (" + filename_safe_current_time + ").jpg"
             current_frame_name_full_path = CURRENT_MINUTE_DIRECTORY + current_frame_name
             cv2.imwrite(current_frame_name_full_path, frame)
         
@@ -265,6 +264,7 @@ if __name__ == '__main__':
     except FileNotFoundError: pass
     finally: os.mkdir(CURRENT_MINUTE_DIRECTORY)
     if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY)
+    if not os.path.isdir(CLARITY_DIRECTORY): os.mkdir(CLARITY_DIRECTORY)
     InitializeCamera()
     Main()
 else:
@@ -275,4 +275,5 @@ else:
     except FileNotFoundError: pass
     finally: os.mkdir(CURRENT_MINUTE_DIRECTORY)
     if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY)
+    if not os.path.isdir(CLARITY_DIRECTORY): os.mkdir(CLARITY_DIRECTORY)
     InitializeCamera()
