@@ -22,35 +22,37 @@ DATE_AND_TIME_FORMAT = "%Y-%m-%d %H:%M:%S" # Date & time format for file names a
 WIDTH = 640 # Max Width
 HEIGHT = 480 # Max Height
 FRAMERATE = 30 # Max Framerate
-CAMERA = None # Camera
+RAW_CAMERA = None # Camera
 RAW_CAPTURE = None # Capture Object
-CLARITY_CAPTURE_IMAGE_NAME = "clarity_[ts]_[val].jpg" # Name of Clarity Image
+CLARITY_CAMERA = None # Camera
 CLARITY_CAPTURE = None # Clarity Capture Object
+CLARITY_CAPTURE_IMAGE_NAME = "clarity_[ts]_[val].jpg" # Name of Clarity Image
 
 def InitializeCamera():
-    global CAMERA
+    global RAW_CAMERA
     global RAW_CAPTURE
     global CLARITY_CAPTURE
     
     try:
-        CAMERA = PiCamera()
-        CAMERA.resolution = (WIDTH, HEIGHT)
-        CAMERA.framerate = FRAMERATE
-        RAW_CAPTURE = PiRGBArray(CAMERA, size=(WIDTH, HEIGHT))
-        CLARITY_CAPTURE = PiRGBArray(CAMERA, size=(WIDTH, HEIGHT))
+        RAW_CAMERA = PiCamera()
+        RAW_CAMERA.resolution = (WIDTH, HEIGHT)
+        RAW_CAMERA.framerate = FRAMERATE
+        RAW_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
+        CLARITY_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
         time.sleep(0.1)
     except Exception as e:
         print("No recording device found...\n{}".format(e))
         return
 
 def ClarityCapture():
-    global CAMERA
+    global RAW_CAMERA
     global CLARITY_CAPTURE
     global CLARITY_CAPTURE_IMAGE_NAME
     
     # Capture Image and Threshold it
-    CAMERA.capture(CLARITY_CAPTURE, format="bgr")
-    frame_capture_array = CLARITY_CAPTURE.array
+    RAW_CAMERA.wait_recording(0.5)
+    RAW_CAMERA.capture(RAW_CAPTURE, format="bgr", use_video_port=True)
+    frame_capture_array = RAW_CAPTURE.array
     frame_capture_gray = cv2.cvtColor(frame_capture_array, cv2.COLOR_BGR2GRAY)
     ret, frame_threshold = cv2.threshold(frame_capture_gray, 128, 255, cv2.THRESH_BINARY)
     
@@ -164,7 +166,7 @@ def Main(programTime=None):
     global FRAMERATE
     global HEIGHT
     global WIDTH
-    global CAMERA
+    global RAW_CAMERA
     global RAW_CAPTURE
 
     # Initialize/Synchronize program time
@@ -172,11 +174,8 @@ def Main(programTime=None):
     INTRUSION_THREAD = None # Thread for creating detection directories when motion is detected
     first_frame = None # This frame is used to compare against the next frame to determine changes (or motion) between the frames
 
-    ClarityCapture()
-    input("Waiting...")
-
     # Begin monitoring
-    for image in CAMERA.capture_continuous(RAW_CAPTURE, format="bgr", use_video_port=True):
+    for image in RAW_CAMERA.capture_continuous(RAW_CAPTURE, format="bgr", use_video_port=True):
         # Read frame
         frame = image.array
         frame_text = "Clear"
