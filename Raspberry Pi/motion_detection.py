@@ -22,7 +22,8 @@ HEIGHT = 480 # Max Height
 FRAMERATE = 30 # Max Framerate
 CAMERA = None # Camera
 RAW_CAPTURE = None # Capture Object
-QUICK_CAPTURE_IMAGE_NAME = "clarity.jpg" # Name of QuickCapture Image
+CLARITY_CAPTURE_IMAGE_NAME = "clarity_ts_val" + ".jpg" # Name of Clarity Image
+CLARITY_CAPTURE = None # Clarity Capture Object
 
 def InitializeCamera():
     global CAMERA
@@ -38,10 +39,23 @@ def InitializeCamera():
         print("No recording device found...\n{}".format(e))
         return
 
-def QuickCapture():
+def ClarityCapture():
     global CAMERA
-    global QUICK_CAPTURE_IMAGE_NAME
-    CAMERA.capture(QUICK_CAPTURE_IMAGE_NAME)
+    global CLARITY_CAPTURE
+    global CLARITY_CAPTURE_IMAGE_NAME
+    
+    # Capture Image and Threshold it
+    CAMERA.capture(CLARITY_CAPTURE, format="bgr")
+    ret, frame_threshold = cv2.threshold(CLARITY_CAPTURE, 128, 255, cv2.THRESH_BINARY)    
+    
+    # Calculate non-zero values (intention is that a clear sky will be brighter in color than a (dark/light) cloud)
+    non_zero_count = cv2.countNonZero(frame_threshold)
+    frame_size_total = frame_threshold.shape[0] + frame_threshold.shape[1]
+    zero_count = frame_size_total - non_zero_count
+    ratio = 100 * (zero_count / float(frame_size_total))
+
+    # Write image out
+    cv2.imwrite(CLARITY_CAPTURE_IMAGE_NAME + str(ratio), frame_threshold)
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     # Set globals
@@ -131,10 +145,6 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         else: 
             timeout_counter += 1
             if timeout_counter == timeout_max: break
-
-def CalcClarity(frameName, frame):
-    ret, frameThreshold = cv2.threshold(frame, 128, 255, cv2.THRESH_BINARY)
-    
 
 def Main(programTime=None):
     # Set globals
