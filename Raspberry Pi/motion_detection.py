@@ -3,7 +3,8 @@ from picamera.array import PiRGBArray # PiCamera Module - Specifically the type 
 from picamera import PiCamera # PiCamera Module
 from threading import Thread # Threading
 from datetime import datetime # DateTime
-from pytz import timezone # Timezone
+from pytz import timezone # Timezone'
+import numpy # Matrix Operations for Image Processing
 import shutil # File Operations
 import imutils # Image Utilities
 import time # Time
@@ -22,18 +23,20 @@ HEIGHT = 480 # Max Height
 FRAMERATE = 30 # Max Framerate
 CAMERA = None # Camera
 RAW_CAPTURE = None # Capture Object
-CLARITY_CAPTURE_IMAGE_NAME = "clarity_ts_val" + ".jpg" # Name of Clarity Image
+CLARITY_CAPTURE_IMAGE_NAME = "clarity_[ts]_[val]" + ".jpg" # Name of Clarity Image
 CLARITY_CAPTURE = None # Clarity Capture Object
 
 def InitializeCamera():
     global CAMERA
     global RAW_CAPTURE
+    global CLARITY_CAPTURE
     
     try:
         CAMERA = PiCamera()
         CAMERA.resolution = (WIDTH, HEIGHT)
         CAMERA.framerate = FRAMERATE
         RAW_CAPTURE = PiRGBArray(CAMERA, size=(WIDTH, HEIGHT))
+        CLARITY_CAPTURE = PiRGBArray(CAMERA, size=(WIDTH, HEIGHT))
         time.sleep(0.1)
     except Exception as e:
         print("No recording device found...\n{}".format(e))
@@ -46,16 +49,22 @@ def ClarityCapture():
     
     # Capture Image and Threshold it
     CAMERA.capture(CLARITY_CAPTURE, format="bgr")
-    ret, frame_threshold = cv2.threshold(CLARITY_CAPTURE, 128, 255, cv2.THRESH_BINARY)    
+    frame_capture_array = CLARITY_CAPTURE.array
+    frame_capture_gray = cv2.cvtColor(frame_capture_array, cv2.COLOR_BGR2GRAY)
+    ret, frame_threshold = cv2.threshold(frame_capture_gray, 128, 255, cv2.THRESH_BINARY)
     
-    # Calculate non-zero values (intention is that a clear sky will be brighter in color than a (dark/light) cloud)
+    # Calculate non-zero ratio (intention/assumption is that a clear sky will be brighter in color than a (dark/light) cloud or objects it picks up)
+    # Perhaps in the future, someone can implement an even more detailed image processing code to identify objects and ignore their presenc
     non_zero_count = cv2.countNonZero(frame_threshold)
-    frame_size_total = frame_threshold.shape[0] + frame_threshold.shape[1]
-    zero_count = frame_size_total - non_zero_count
-    ratio = 100 * (zero_count / float(frame_size_total))
+    frame_size_total = frame_threshold.shape[0] * frame_threshold.shape[1]
+    clear_ratio = 100 * (non_zero_count / float(frame_size_total))
 
     # Write image out
-    cv2.imwrite(CLARITY_CAPTURE_IMAGE_NAME + str(ratio), frame_threshold)
+    current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
+    filename_safe_current_time = current_time.replace(":", "-")
+    CLARITY_CAPTURE_IMAGE_NAME = CLARITY_CAPTURE_IMAGE_NAME.replace("ts", filename_safe_current_time)
+    CLARITY_CAPTURE_IMAGE_NAME = CLARITY_CAPTURE_IMAGE_NAME.replace("val", str(clear_ratio))
+    cv2.imwrite(CLARITY_CAPTURE_IMAGE_NAME, frame_threshold)
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     # Set globals
@@ -163,6 +172,9 @@ def Main(programTime=None):
     START_TIME = time.time() if programTime == None else programTime
     INTRUSION_THREAD = None # Thread for creating detection directories when motion is detected
     first_frame = None # This frame is used to compare against the next frame to determine changes (or motion) between the frames
+
+    ClarityCapture()
+    input("Waiting...")
 
     # Begin monitoring
     for image in CAMERA.capture_continuous(RAW_CAPTURE, format="bgr", use_video_port=True):
