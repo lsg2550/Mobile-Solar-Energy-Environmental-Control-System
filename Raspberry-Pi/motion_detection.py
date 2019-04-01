@@ -50,7 +50,7 @@ def ClarityCapture():
     global CLARITY_CAPTURE_IMAGE_NAME
     
     # Capture Image and Threshold it
-    RAW_CAMERA.wait_recording(0.5)
+    RAW_CAMERA.wait_recording(timeout=0.5,splitter_port=0)
     RAW_CAMERA.capture(RAW_CAPTURE, format="bgr", use_video_port=True)
     frame_capture_array = RAW_CAPTURE.array
     frame_capture_gray = cv2.cvtColor(frame_capture_array, cv2.COLOR_BGR2GRAY)
