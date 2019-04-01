@@ -14,10 +14,10 @@ import os # System Calls
 import re # Regex
 
 # Previous/Current Minute Directories & Detect Directories
-PREVIOUS_MINUTE_DIRECTORY = global_var.HOME_PATH + "PrevMinuteDir/"
-CURRENT_MINUTE_DIRECTORY = global_var.HOME_PATH + "CurrMinuteDir/"
-DETECTION_DIRECTORY = global_var.HOME_PATH + "detectdir/"
-CLARITY_DIRECTORY = global_var.HOME_PATH + "claritydir/"
+PREVIOUS_MINUTE_DIRECTORY = "PrevMinuteDir/"
+CURRENT_MINUTE_DIRECTORY = "CurrMinuteDir/"
+DETECTION_DIRECTORY = "detectdir/"
+CLARITY_DIRECTORY = "claritydir/"
 DATE_AND_TIME_FORMAT = "%Y-%m-%d %H:%M:%S" # Date & time format for file names and image embedding
 WIDTH = 640 # Max Width
 HEIGHT = 480 # Max Height
@@ -38,7 +38,7 @@ def InitializeCamera():
         RAW_CAMERA.resolution = (WIDTH, HEIGHT)
         RAW_CAMERA.framerate = FRAMERATE
         RAW_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
-        CLARITY_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
+        #CLARITY_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
         time.sleep(0.1)
     except Exception as e:
         print("No recording device found...\n{}".format(e))
@@ -46,12 +46,12 @@ def InitializeCamera():
 
 def ClarityCapture():
     global RAW_CAMERA
+    global RAW_CAPTURE
     global CLARITY_CAPTURE
     global CLARITY_CAPTURE_IMAGE_NAME
     
     # Capture Image and Threshold it
-    RAW_CAMERA.wait_recording(timeout=0.5,splitter_port=0)
-    RAW_CAMERA.capture(RAW_CAPTURE, format="bgr", use_video_port=True)
+    #RAW_CAMERA.capture(RAW_CAPTURE, format="bgr")
     frame_capture_array = RAW_CAPTURE.array
     frame_capture_gray = cv2.cvtColor(frame_capture_array, cv2.COLOR_BGR2GRAY)
     ret, frame_threshold = cv2.threshold(frame_capture_gray, 128, 255, cv2.THRESH_BINARY)

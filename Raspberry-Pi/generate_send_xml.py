@@ -76,7 +76,7 @@ def GetAndSendClarity(): # Send Clarity Image to Server
             CTF.SendClarity(temporary_file_full_path)
             
             pi_payload["capture"] = clarity_frame
-            server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pi_payload, timeout=5)
+            server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piclarityconfirm.php", params=pi_payload, timeout=5)
             print(server_confirmation.text.strip())
             pi_payload.pop("capture")
 
