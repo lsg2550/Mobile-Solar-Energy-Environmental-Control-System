@@ -24,21 +24,18 @@ HEIGHT = 480 # Max Height
 FRAMERATE = 30 # Max Framerate
 RAW_CAMERA = None # Camera
 RAW_CAPTURE = None # Capture Object
-CLARITY_CAMERA = None # Camera
 CLARITY_CAPTURE = None # Clarity Capture Object
 CLARITY_CAPTURE_IMAGE_NAME = "clarity_[ts]_[val].jpg" # Name of Clarity Image
 
 def InitializeCamera():
     global RAW_CAMERA
     global RAW_CAPTURE
-    global CLARITY_CAPTURE
     
     try:
         RAW_CAMERA = PiCamera()
         RAW_CAMERA.resolution = (WIDTH, HEIGHT)
         RAW_CAMERA.framerate = FRAMERATE
         RAW_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
-        #CLARITY_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
         time.sleep(0.1)
     except Exception as e:
         print("No recording device found...\n{}".format(e))
@@ -51,8 +48,7 @@ def ClarityCapture():
     global CLARITY_CAPTURE_IMAGE_NAME
     
     # Capture Image and Threshold it
-    #RAW_CAMERA.capture(RAW_CAPTURE, format="bgr")
-    frame_capture_array = RAW_CAPTURE.array
+    frame_capture_array = CLARITY_CAPTURE
     frame_capture_gray = cv2.cvtColor(frame_capture_array, cv2.COLOR_BGR2GRAY)
     ret, frame_threshold = cv2.threshold(frame_capture_gray, 128, 255, cv2.THRESH_BINARY)
     
@@ -168,6 +164,7 @@ def Main(programTime=None):
     global WIDTH
     global RAW_CAMERA
     global RAW_CAPTURE
+    global CLARITY_CAPTURE
 
     # Initialize/Synchronize program time
     START_TIME = time.time() if programTime == None else programTime
@@ -178,6 +175,7 @@ def Main(programTime=None):
     for image in RAW_CAMERA.capture_continuous(RAW_CAPTURE, format="bgr", use_video_port=True):
         # Read frame
         frame = image.array
+        CLARITY_CAPTURE = image.array
         frame_text = "Clear"
 
         # Convert frame to specified size and perform color and blur operations for comparisons
@@ -253,7 +251,7 @@ def Main(programTime=None):
         # Clear Stream
         RAW_CAPTURE.truncate(0)
     # End while loop
-# Main() End
+# Main() End0
 
 if __name__ == '__main__':
     try: shutil.rmtree(PREVIOUS_MINUTE_DIRECTORY)
