@@ -15,4 +15,8 @@
     "temperatureinnerupper":40,
     "temperatureouterlower":20,
     "temperatureouterupper":40,
+    "humidityinnerlower":25,
+    "humidityinnerupper":55,
+    "humidityouterlower":0,
+    "humidityouterupper":100
 }
