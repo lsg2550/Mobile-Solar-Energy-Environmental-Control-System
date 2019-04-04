@@ -175,7 +175,7 @@ def Main(programTime=None):
     for image in RAW_CAMERA.capture_continuous(RAW_CAPTURE, format="bgr", use_video_port=True):
         # Read frame
         frame = image.array
-        CLARITY_CAPTURE = image.array
+        CLARITY_CAPTURE = frame.copy()
         frame_text = "Clear"
 
         # Convert frame to specified size and perform color and blur operations for comparisons
