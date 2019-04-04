@@ -10,7 +10,7 @@
         require("connect.php");
 
         // Initialize variables
-        $RASPBERRY_PI_THRESHOLD_DIRECTORY = "../../rpixmlthresholds/";
+        $RASPBERRY_PI_THRESHOLD_DIRECTORY = "../../rpixmlsthresholds/";
         $RASPBERRY_PI_ID = $_GET["rpid"]; //TODO: Filter rpid
 
         // Generate threshold dictionary
