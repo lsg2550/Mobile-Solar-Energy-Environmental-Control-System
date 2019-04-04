@@ -13,19 +13,23 @@ import cv2 # OpenCV
 import os # System Calls
 import re # Regex
 
-# Previous/Current Minute Directories & Detect Directories
-PREVIOUS_MINUTE_DIRECTORY = "PrevMinuteDir/"
-CURRENT_MINUTE_DIRECTORY = "CurrMinuteDir/"
+# Initialize directories and variables
+PREVIOUS_MINUTE_DIRECTORY = "prevminutedir/"
+CURRENT_MINUTE_DIRECTORY = "currminutedir/"
 DETECTION_DIRECTORY = "detectdir/"
 CLARITY_DIRECTORY = "claritydir/"
 DATE_AND_TIME_FORMAT = "%Y-%m-%d %H:%M:%S" # Date & time format for file names and image embedding
-WIDTH = 640 # Max Width
-HEIGHT = 480 # Max Height
-FRAMERATE = 30 # Max Framerate
+
+# Camera Variables
 RAW_CAMERA = None # Camera
 RAW_CAPTURE = None # Capture Object
+FRAMERATE = 30 # Max Framerate
+WIDTH = 640 # Max Width
+HEIGHT = 480 # Max Height
+
+# Camera - Clarity Variables
 CLARITY_CAPTURE = None # Clarity Capture Object
-CLARITY_CAPTURE_IMAGE_NAME = "clarity_[ts]_[val].jpg" # Name of Clarity Image
+CLARITY_CAPTURE_IMAGE_NAME = str(global_var.RPID) + "_clarity_[ts]_[val].jpg" # Name of Clarity Image
 
 def InitializeCamera():
     global RAW_CAMERA
@@ -36,24 +40,17 @@ def InitializeCamera():
         RAW_CAMERA.resolution = (WIDTH, HEIGHT)
         RAW_CAMERA.framerate = FRAMERATE
         RAW_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
-        time.sleep(0.1)
     except Exception as e:
-        print("No recording device found...\n{}".format(e))
+        print("Exception Occured: {}".format(e))
         return
 
 def ClarityCapture():
-    global RAW_CAMERA
-    global RAW_CAPTURE
-    global CLARITY_CAPTURE
-    global CLARITY_CAPTURE_IMAGE_NAME
-    
     # Capture Image and Threshold it
-    frame_capture_array = CLARITY_CAPTURE
-    frame_capture_gray = cv2.cvtColor(frame_capture_array, cv2.COLOR_BGR2GRAY)
+    frame_capture_gray = cv2.cvtColor(CLARITY_CAPTURE, cv2.COLOR_BGR2GRAY)
     ret, frame_threshold = cv2.threshold(frame_capture_gray, 128, 255, cv2.THRESH_BINARY)
     
     # Calculate non-zero ratio (intention/assumption is that a clear sky will be brighter in color than a (dark/light) cloud or objects it picks up)
-    # Perhaps in the future, someone can implement an even more detailed image processing code to identify objects and ignore their presenc
+    # Perhaps in the future, a better implementation would be to have an even more detailed image processing code to identify objects and ignore their presence
     non_zero_count = cv2.countNonZero(frame_threshold)
     frame_size_total = frame_threshold.shape[0] * frame_threshold.shape[1]
     clear_ratio = 100 * (non_zero_count / float(frame_size_total))
@@ -61,20 +58,11 @@ def ClarityCapture():
     # Write image out
     current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
     filename_safe_current_time = current_time.replace(":", "-")
-    CLARITY_CAPTURE_IMAGE_NAME = CLARITY_CAPTURE_IMAGE_NAME.replace("ts", filename_safe_current_time)
-    CLARITY_CAPTURE_IMAGE_NAME = CLARITY_CAPTURE_IMAGE_NAME.replace("val", str(clear_ratio))
-    cv2.imwrite(CLARITY_DIRECTORY + CLARITY_CAPTURE_IMAGE_NAME, frame_threshold)
+    filename_clarity = CLARITY_CAPTURE_IMAGE_NAME.replace("ts", filename_safe_current_time)
+    filename_clarity = CLARITY_CAPTURE_IMAGE_NAME.replace("val", str(clear_ratio))
+    cv2.imwrite(CLARITY_DIRECTORY + filename_clarity, frame_threshold)
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
-    # Set globals
-    global PREVIOUS_MINUTE_DIRECTORY
-    global CURRENT_MINUTE_DIRECTORY
-    global DATE_AND_TIME_FORMAT
-    global DETECTION_DIRECTORY
-    global FRAMERATE
-    global HEIGHT
-    global WIDTH
-
     # Create a detection directory for this instance of motion detected
     detection_and_filename_path = DETECTION_DIRECTORY + filenameSafeCurrentTime 
     if not os.path.isdir(detection_and_filename_path): os.mkdir(detection_and_filename_path)
@@ -130,7 +118,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         if len(string_minute) == 1: string_minute = "0" + string_minute
         if len(string_second) == 1: string_second = "0" + string_second
         get_seconds_and_clock = re.sub(r'[0-9]{2}-[0-9]{2}-[0-9]{2}$', string_hour + "-" + string_minute + "-" + string_second, filenameSafeCurrentTime) 
-        frame_full_path = CURRENT_MINUTE_DIRECTORY + str(global_var.RPID) + " - capture (" + get_seconds_and_clock + ").jpg"
+        frame_full_path = CURRENT_MINUTE_DIRECTORY + str(global_var.RPID) + "_capture_[" + get_seconds_and_clock + "].jpg"
         # print(frame_full_path)
 
         # Move image to detection directory
@@ -155,13 +143,6 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
 
 def Main(programTime=None):
     # Set globals
-    global PREVIOUS_MINUTE_DIRECTORY
-    global CURRENT_MINUTE_DIRECTORY
-    global DATE_AND_TIME_FORMAT
-    global DETECTION_DIRECTORY
-    global FRAMERATE
-    global HEIGHT
-    global WIDTH
     global RAW_CAMERA
     global RAW_CAPTURE
     global CLARITY_CAPTURE

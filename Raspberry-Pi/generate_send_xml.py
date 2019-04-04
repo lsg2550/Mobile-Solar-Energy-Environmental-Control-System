@@ -5,6 +5,7 @@ import connect_to_ftp as CTF
 from datetime import datetime
 from threading import Thread
 from pytz import timezone
+import global_var
 import requests
 import shutil
 import json
@@ -15,11 +16,8 @@ import os
 # Create Storage Directories
 TEMPORARY_STORAGE_DIRECTORY = "TempStorage/"
 SENT_STORAGE_DIRECTORY = "SentStorage/"
-if not os.path.isdir(TEMPORARY_STORAGE_DIRECTORY): os.mkdir(TEMPORARY_STORAGE_DIRECTORY)
-if not os.path.isdir(SENT_STORAGE_DIRECTORY): os.mkdir(SENT_STORAGE_DIRECTORY)
 DATE_AND_TIME_FORMAT = "%Y-%m-%d %H:%M:%S" # Date & Time Format for JSON
-RPID = 0 # RaspberryPi Identification Number (rpid)
-pi_payload = {"rpid": RPID} # Payload for Server Confirmation
+pi_payload = {"rpid": global_var.RPID} # Payload for Server Confirmation
 
 def GetAndSendStatus(): # Send JSON to Server
     try:
@@ -73,12 +71,12 @@ def GetAndSendClarity(): # Send Clarity Image to Server
     try:
         for clarity_frame in sorted(os.listdir(MD.CLARITY_DIRECTORY)):
             temporary_file_full_path = os.path.join(MD.CLARITY_DIRECTORY, clarity_frame)
-            CTF.SendClarity(temporary_file_full_path)
+            CTF.SendClarity(clarity_frame)
             
-            pi_payload["capture"] = clarity_frame
-            server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piclarityconfirm.php", params=pi_payload, timeout=5)
+            pi_payload["clarity"] = clarity_frame
+            server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pi_payload, timeout=5)
             print(server_confirmation.text.strip())
-            pi_payload.pop("capture")
+            pi_payload.pop("clarity")
 
             if server_confirmation.text.strip() == "OK":
                 print("File and clarity status confirmed received!")
@@ -106,8 +104,8 @@ def Main():
             server_threshold_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pi_payload, timeout=5)
             
             if server_threshold_confirmation.text.strip() == "OK":
-                CTF.RetrieveThreshold(RPID)
-                threshold_file_name = str(RPID) + ".json"
+                CTF.RetrieveThreshold(global_var.RPID)
+                threshold_file_name = str(global_var.RPID) + ".json"
 
                 # Tell the server that we retrieved the file
                 pi_payload["result"] = "OK"
@@ -120,8 +118,8 @@ def Main():
                 raise FileNotFoundError
         except Exception as e:
             print("Could not connect to server/Issue with server...\nError Received:{}".format(e))
-            if os.path.exists(str(RPID) + ".json"):
-                threshold_file_name = str(RPID) + ".json"
+            if os.path.exists(str(global_var.RPID) + ".json"):
+                threshold_file_name = str(global_var.RPID) + ".json"
                 print("Using previous thresholds...")
             else:
                 threshold_file_name = "default.json"
@@ -142,6 +140,10 @@ def Main():
         threshold_temperature_inner_upper = thresholds["temperatureinnerupper"]
         threshold_temperature_outer_lower = thresholds["temperatureouterlower"]
         threshold_temperature_outer_upper = thresholds["temperatureouterupper"]
+        threshold_humidity_inner_lower = thresholds["humidityinnerlower"]
+        threshold_humidity_inner_upper = thresholds["humidityinnerupper"]
+        threshold_humidity_outer_lower = thresholds["humidityouterlower"]
+        threshold_humidity_outer_upper = thresholds["humidityouterupper"]
         
         # Read from Sensors
         print("Reading from sensors...")
@@ -151,7 +153,9 @@ def Main():
                                                 threshold_solar_panel_current_lower, threshold_solar_panel_current_upper,
                                                 threshold_charge_controller_current_lower, threshold_charge_controller_current_upper,
                                                 threshold_temperature_inner_lower, threshold_temperature_inner_upper,
-                                                threshold_temperature_outer_lower, threshold_temperature_outer_upper)
+                                                threshold_temperature_outer_lower, threshold_temperature_outer_upper,
+                                                threshold_humidity_inner_lower, threshold_humidity_inner_upper,
+                                                threshold_humidity_outer_lower, threshold_humidity_outer_upper)
         print("Done reading from sensors...")
 
         # Generate Timestamps
@@ -159,9 +163,9 @@ def Main():
         timestamp_for_filename = timestamp_for_log.replace(":", "-")
         
         # Create JSON
-        json_format = {"log": str(timestamp_for_log), "rpid": str(RPID)}
+        json_format = {"log": str(timestamp_for_log), "rpid": str(global_var.RPID)}
         for key, value in sensor_status_dictionary.items(): json_format[key] = str(value)
-        json_file = TEMPORARY_STORAGE_DIRECTORY + "status" + str(RPID) + "(" + timestamp_for_filename + ").json"
+        json_file = TEMPORARY_STORAGE_DIRECTORY + "status" + str(global_var.RPID) + "(" + timestamp_for_filename + ").json"
         with open(json_file, "w+") as status: json.dump(json_format, status, indent = 4)
             
         # Send JSON in new thread
@@ -190,5 +194,7 @@ def Main():
 # Main() end
 
 if __name__ == "__main__":
+    if not os.path.isdir(TEMPORARY_STORAGE_DIRECTORY): os.mkdir(TEMPORARY_STORAGE_DIRECTORY)
+    if not os.path.isdir(SENT_STORAGE_DIRECTORY): os.mkdir(SENT_STORAGE_DIRECTORY)
     print("Program Start")
     Main()

@@ -9,9 +9,7 @@
         $TYP = "ST";
 
         //Init - Get Username
-        $sqlGetUser = "SELECT owner 
-                        FROM rpi 
-                        WHERE rpiID = {$_GET["rpid"]}";
+        $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
         $resultsGetUser = mysqli_query($conn, $sqlGetUser);
         $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
@@ -39,21 +37,17 @@
                     }
 
                     //Get VID
-                    $sqlGetVID = "SELECT VID 
-                                    FROM vitals 
-                                    WHERE VN='{$VN}' AND RPID='{$RPID}' AND USR='{$USR}';";
+                    $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$VN}' AND RPID='{$RPID}' AND USR='{$USR}';";
                     $resultGetVID = mysqli_query($conn, $sqlGetVID);
                     $VID = mysqli_fetch_assoc($resultGetVID)['VID'];
 
                     //Update DB
-                    $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) 
-                                            VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
+                    $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
+                    $sqlUpdateCurrentStatus = "REPLACE INTO status (VID, V1, V2, TS, USR, RPID) VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$USR}', '{$RPID}');";
 
-                    $sqlUpdateCurrentStatus = "REPLACE INTO status (VID, V1, V2, TS, USR, RPID)
-                                                VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$USR}', '{$RPID}');";
-
-                    $resultInsertIntoLog = mysqli_query($conn, $sqlInsertIntoLog);
-                    $resultUpdateCurrentStatus = mysqli_query($conn, $sqlUpdateCurrentStatus);
+                    // Execute SQL queries to update the database
+                    mysqli_query($conn, $sqlInsertIntoLog);
+                    mysqli_query($conn, $sqlUpdateCurrentStatus);
             }
         }
 

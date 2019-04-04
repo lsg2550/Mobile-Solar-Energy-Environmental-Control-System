@@ -1,86 +1,80 @@
 <?php
-    function generateThresholdAndVitalsFile() {
-        //Include
-        include("connect.php");
+    /**
+     * Name: pithresholdconfirm.php
+     * Description: This script is called by the Raspberry Pi, where the RPi requests for a new/updated JSON file
+     * with new/updated thresholds for the ESSI sensors.
+     */
 
-        //Init
-        $fileDirectory = "../../rpixmlsthresholds/";
-        
-        //Init - Get User
-        $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID={$_GET["rpid"]}";
-        $resultsGetUser = mysqli_query($conn, $sqlGetUser);
-        $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
+    try {
+        // Require
+        require("connect.php");
 
-        //Get RPIDs belonging to $currentUser
-        $RPID = [];
-        $sqlGetRPID = "SELECT rpiID FROM rpi WHERE owner='{$USR}';";
-        $resultGetRPID = mysqli_query($conn, $sqlGetRPID);
-        while($rpi = mysqli_fetch_assoc($resultGetRPID)) { $RPID[] = $rpi["rpiID"]; } //Gets raspberry pi IDs and stores them into an array
+        // Initialize variables
+        $RASPBERRY_PI_THRESHOLD_DIRECTORY = "../../rpixmlthresholds/";
+        $RASPBERRY_PI_ID = $_GET["rpid"]; //TODO: Filter rpid
 
-        //Generate Threshold JSON
-        foreach($RPID as $rpi) {
-            $thresholdXML = new stdClass();
+        // Generate threshold dictionary
+        $thresholdDictionary = new stdClass();
 
-            //SQL Queries
-            $sqlGetRPIThresholdsThresh = "SELECT VN, VL, VU FROM vitals WHERE RPID='{$rpi}';";
-            $sqlGetRPIThresholdsToggle = "SELECT VN, VV FROM status NATURAL JOIN vitals WHERE status.RPID='{$rpi}';";
-            $resultGetRPIThresholdsThresh = mysqli_query($conn, $sqlGetRPIThresholdsThresh);
-            $resultGetRPIThresholdsToggle = mysqli_query($conn, $sqlGetRPIThresholdsToggle);
+        // Query database for the RPi's thresholds
+        $sqlSelectRPiThresholds = "SELECT VN, VL, VU FROM vitals WHERE RPID='{$RASPBERRY_PI_ID}';";
+        $resultSelectRPiThresholds = mysqli_query($conn, $sqlSelectRPiThresholds);
 
-            //Get Vitals - Variables with thresholds
-            while($vital = mysqli_fetch_assoc($resultGetRPIThresholdsThresh)) {
-                switch($vital["VN"]) {
-                    case "BatteryVoltage":
-                        $thresholdXML->voltagelower = $vital["VL"];
-                        $thresholdXML->voltageupper = $vital["VU"];
-                        break;
-                    case "BatteryCurrent":
-                        $thresholdXML->currentlower = $vital["VL"];
-                        $thresholdXML->currentupper = $vital["VU"];
-                        break;
-                    case "SolarPanelVoltage":
-                        $thresholdXML->spvoltagelower = $vital["VL"];
-                        $thresholdXML->spvoltageupper = $vital["VU"];
-                        break;
-                    case "SolarPanelCurrent":
-                        $thresholdXML->spcurrentlower = $vital["VL"];
-                        $thresholdXML->spcurrentupper = $vital["VU"];
-                        break;
-                    case "ChargeControllerVoltage":
-                        $thresholdXML->ccvoltagelower = $vital["VL"];
-                        $thresholdXML->ccvoltageupper = $vital["VU"];
-                        break;
-                    case "ChargeControllerCurrent":
-                        $thresholdXML->cccurrentlower = $vital["VL"];
-                        $thresholdXML->cccurrentupper = $vital["VU"];
-                        break;
-                    case "TemperatureInner":
-                        $thresholdXML->temperatureinnerlower = $vital["VL"];
-                        $thresholdXML->temperatureinnerupper = $vital["VU"];
-                        break;
-                    case "TemperatureOuter":
-                        $thresholdXML->temperatureouterlower = $vital["VL"];
-                        $thresholdXML->temperatureouterupper = $vital["VU"];
-                        break;
-                    case "Photo":
-                        $thresholdXML->photofps = $vital["VL"];
-                        break;
-                    default:
-                        break;
-                }
+        // From results, get the thresholds of every vital and store them into the threshold dictionary
+        while($vital = mysqli_fetch_assoc($resultSelectRPiThresholds)) {
+            switch($vital["VN"]) {
+                case "BatteryVoltage":
+                    $thresholdDictionary->voltagelower = $vital["VL"];
+                    $thresholdDictionary->voltageupper = $vital["VU"];
+                    break;
+                case "BatteryCurrent":
+                    $thresholdDictionary->currentlower = $vital["VL"];
+                    $thresholdDictionary->currentupper = $vital["VU"];
+                    break;
+                case "SolarPanelVoltage":
+                    $thresholdDictionary->spvoltagelower = $vital["VL"];
+                    $thresholdDictionary->spvoltageupper = $vital["VU"];
+                    break;
+                case "SolarPanelCurrent":
+                    $thresholdDictionary->spcurrentlower = $vital["VL"];
+                    $thresholdDictionary->spcurrentupper = $vital["VU"];
+                    break;
+                case "ChargeControllerCurrent":
+                    $thresholdDictionary->cccurrentlower = $vital["VL"];
+                    $thresholdDictionary->cccurrentupper = $vital["VU"];
+                    break;
+                case "TemperatureInner":
+                    $thresholdDictionary->temperatureinnerlower = $vital["VL"];
+                    $thresholdDictionary->temperatureinnerupper = $vital["VU"];
+                    break;
+                case "TemperatureOuter":
+                    $thresholdDictionary->temperatureouterlower = $vital["VL"];
+                    $thresholdDictionary->temperatureouterupper = $vital["VU"];
+                    break;                
+                case "HumidityInner":
+                    $thresholdDictionary->humidityinnerlower = $vital["VL"];
+                    $thresholdDictionary->humidityinnerupper = $vital["VU"];
+                    break;          
+                case "HumidityOuter":
+                    $thresholdDictionary->humidityouterlower = $vital["VL"];
+                    $thresholdDictionary->humidityouterupper = $vital["VU"];
+                    break;
+                default:
+                    break;
             }
-
-            $rpiFile = fopen("{$fileDirectory}{$rpi}.json", "w");
-            fwrite($rpiFile, json_encode($thresholdXML));
-            fclose($rpiFile);
         }
-    }
 
-    try { 
-        generateThresholdAndVitalsFile();
+        // Create a file for the thresholds and write the dictionary to it
+        $thresholdFile = fopen("{$RASPBERRY_PI_THRESHOLD_DIRECTORY}{$RASPBERRY_PI_ID}.json", "w");
+        fwrite($thresholdFile, json_encode($thresholdDictionary));
+        fclose($thresholdFile);
+
+        // Return an OK
         echo "OK";
     } catch (Exception $e) {
-        echo $e;
+        //echo $e;
+
+        // Return a NO
         echo "NO";
     }
 ?>

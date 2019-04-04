@@ -1,46 +1,63 @@
 <?php
-    //Require
+    /**
+     * Name: pinotification.php
+     * Description: This script is called by the Raspberry Pi, when it runs its notification function.
+     * In the notification function, if any of the ESSI sensors trigger a threshold flag, this script will
+     * be called. Thus creating an email and sending it to the user.
+     * 
+     * Note: Improvements to work on, to avoid spamming the owner/user about these threshold breaches, allow this
+     * script to take in multiple arguments and have the raspberry pi send in multiple arguments. Also, work on
+     * getting both the owner/user and their email in one sequel statement using a join.
+     */
+
+    // Require
     require("connect.php");
 
-    //Init - Get Username
-    $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
+    // Initialize Variables
+    $RASPBERRY_PI_ID = $_GET['rpid'];
+    $ESSI_TRIGGER = $_GET['noti'];
+    $ESSI_TRIGGER_VALUE = $_GET['valu'];
+
+    // Get owner (user) from database
+    $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$RASPBERRY_PI_ID}";
     $resultsGetUser = mysqli_query($conn, $sqlGetUser);
     $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
-    //Get User Email
+    // Get owner's (user) email from the database
     $sqlGetEmail = "SELECT email FROM users WHERE username = '{$USR}'";
     $resultsGetEmail = mysqli_query($conn, $sqlGetEmail);
     $EMAIL = mysqli_fetch_assoc($resultsGetEmail)['email'];
-    $emailMessage = "";
 
-    switch ($_GET["noti"]) {
+    // Determine email message
+    $emailMessage = "";
+    switch ($ESSI_TRIGGER) {
         case "bvoltage":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the battery voltage threshold with '{$_GET["valu"]}'V!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the battery voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
             break;
         case "bcurrent":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the battery current threshold with '{$_GET["valu"]}'mA!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the battery current threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
             break;
         case "spvoltage":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with '{$_GET["valu"]}'V!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the solar panel voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
             break;
         case "spcurrent":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with '{$_GET["valu"]}'mA!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the solar panel voltage threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
             break;
         case "cccurrent":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the solar panel voltage threshold with '{$_GET["valu"]}'mA!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the solar panel voltage threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
             break;
         case "temperatureI":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the inside temperature threshold with '{$_GET["valu"]}'F!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the inside temperature threshold with '{$ESSI_TRIGGER_VALUE}'F!";
             break;        
         case "temperatureI":
-            $emailMessage = "'{$_GET["rpid"]}' has triggered the outside temperature threshold with '{$_GET["valu"]}'F!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the outside temperature threshold with '{$ESSI_TRIGGER_VALUE}'F!";
             break;
         default:
             exit();
     }
 
-    //Send Emailv
+    // Send Email to User
     //echo $emailMessage;
     $emailMessage = wordwrap($emailMessage, 70);
-    mail($EMAIL, "Raspberry Pi {$_GET["rpid"]} Notification", $emailMessage);
+    mail($EMAIL, "Raspberry Pi {$RASPBERRY_PI_ID} Notification", $emailMessage);
 ?>

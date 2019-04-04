@@ -116,7 +116,9 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
                     threshold_solar_panel_current_lower=None, threshold_solar_panel_current_upper=None,
                     threshold_charge_controller_current_lower=None, threshold_charge_controller_current_upper=None,
                     threshold_temperature_inner_lower=None, threshold_temperature_inner_upper=None,
-                    threshold_temperature_outer_lower=None, threshold_temperature_outer_upper=None):
+                    threshold_temperature_outer_lower=None, threshold_temperature_outer_upper=None,
+                    threshold_humidity_inner_lower=None, threshold_humidity_inner_upper=None,
+                    threshold_humidity_outer_lower=None, threshold_humidity_outer_upper=None):
     # Init - Global Var 
     global NOTIFICATION_THREAD
     global DHT11_SENSOR
@@ -136,11 +138,16 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     # Charge Controller Thresholds
     thresholdCCCL = float(threshold_charge_controller_current_lower)
     thresholdCCCU = float(threshold_charge_controller_current_upper)
-    # Temperature Thresolds
+    # Temperature Thresholds
     thresholdTIL = float(threshold_temperature_inner_lower)
     thresholdTIU = float(threshold_temperature_inner_upper)
     thresholdTOL = float(threshold_temperature_outer_lower)
     thresholdTOU = float(threshold_temperature_outer_upper)
+    # Humidity Thresholds
+    thresholdHIL = float(threshold_humidity_inner_lower)
+    thresholdHIU = float(threshold_humidity_inner_upper)
+    thresholdHOL = float(threshold_humidity_outer_lower)
+    thresholdHOU = float(threshold_humidity_outer_upper)
     
     # Dictionary to hold {Sensor => Value}
     temporary_sensor_dictionary = {}
