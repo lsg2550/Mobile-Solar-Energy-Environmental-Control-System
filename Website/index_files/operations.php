@@ -1,8 +1,4 @@
 <?php
-// Require
-require "sessionstart.php";
-require "sessioncheck.php";
-
 /**********************************************************************************
  * Code that can be used by most if not all functions * 
  *********************************************************************************/
@@ -95,7 +91,10 @@ function splitDataIntoArray($DATA_ARRAY_AS_STRING) {
 // Not to be confused with getTimeStamp() which is for building HTML of certain pages
 // This function will be used to extract the timestamp from the filenames used by clarity and motion detection
 function getTimeStampFromFileName($fileName) {
-    return preg_match("\[([0-9\-\s]+)\]", $fileName)[0]; // Matches for groups within square brackets [ timestamp ]
+    $tempArray = array();
+    preg_match("/\[([0-9\-\s]+)\]/", $fileName, $tempArray);
+    //echo print_r($tempArray);
+    return $tempArray[1]; // Matches for groups within square brackets [ timestamp ]
 }
 
 /**********************************************************************************

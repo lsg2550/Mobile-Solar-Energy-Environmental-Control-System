@@ -20,8 +20,13 @@
         // Initialize Variables
         $TYP = "ST";
         $V1 = $V2 = "";
-        if ($isClarity) { $V1 = $V2 = "CLR"; }
-        elseif ($isMotion) { $V1 = $V2 = "IMG"; }
+        if ($isClarity) { 
+            $V1 = $V2 = "CLR"; 
+            
+
+        } elseif ($isMotion) { 
+            $V1 = $V2 = "IMG"; 
+        }
 
         // Get owner/user from database
         $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = '{$RASPBERRY_PI_ID}'";
@@ -30,7 +35,6 @@
 
         // Get Timestamp
         $TS = getTimeStampFromFileName($fileName);
-        echo "$TS";
 
         //Update DB
         $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES (NULL, '{$TYP}', '{$USR}', '{$RASPBERRY_PI_ID}', '{$V1}', '{$V2}', '{$TS}');";

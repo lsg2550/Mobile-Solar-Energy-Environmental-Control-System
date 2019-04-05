@@ -1,7 +1,7 @@
 <?php
     function processXML($xmlFileName) {
-        //Include
-        include("connect.php");
+        // Require
+        require("connect.php");
 
         //Init
         global $xmlDirectory;
@@ -26,7 +26,7 @@
                 default:
                     //Vital Name & Vital Values
                     $VN = $key;
-                    $V1 = $VV = $value;
+                    $V1 = $value;
                     $V2 = null;
 
                     if($VN == "gps") {
