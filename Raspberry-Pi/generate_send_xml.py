@@ -102,11 +102,12 @@ def Main():
         try: # Retrieve files with thresholds set by user
             print("Requesting threshold update from server...")
             server_threshold_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pi_payload, timeout=5)
+            print(server_threshold_confirmation.text.strip())
             
             if server_threshold_confirmation.text.strip() == "OK":
                 CTF.RetrieveThreshold(global_var.RPID)
                 threshold_file_name = str(global_var.RPID) + ".json"
-
+                
                 # Tell the server that we retrieved the file
                 pi_payload["result"] = "OK"
                 requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pi_payload, timeout=5)

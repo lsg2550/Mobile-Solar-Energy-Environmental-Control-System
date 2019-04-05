@@ -58,13 +58,14 @@ def ClarityCapture():
     # Write image out
     current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
     filename_safe_current_time = current_time.replace(":", "-")
-    filename_clarity = CLARITY_CAPTURE_IMAGE_NAME.replace("ts", filename_safe_current_time)
-    filename_clarity = CLARITY_CAPTURE_IMAGE_NAME.replace("val", str(clear_ratio))
+    filename_clarity = CLARITY_CAPTURE_IMAGE_NAME
+    filename_clarity = filename_clarity.replace("ts", filename_safe_current_time)
+    filename_clarity = filename_clarity.replace("val", str(clear_ratio))
     cv2.imwrite(CLARITY_DIRECTORY + filename_clarity, frame_threshold)
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     # Create a detection directory for this instance of motion detected
-    detection_and_filename_path = DETECTION_DIRECTORY + filenameSafeCurrentTime 
+    detection_and_filename_path = DETECTION_DIRECTORY + str(global_var.RPID) + "_[" + filenameSafeCurrentTime + "]" 
     if not os.path.isdir(detection_and_filename_path): os.mkdir(detection_and_filename_path)
 
     # Load names of files in the previous/current directories
@@ -191,7 +192,7 @@ def Main(programTime=None):
 
             # Write image
             filename_safe_current_time = current_time.replace(":", "-")
-            current_frame_name = str(global_var.RPID) + " - capture (" + filename_safe_current_time + ").jpg"
+            current_frame_name = str(global_var.RPID) + "_capture_[" + filename_safe_current_time + "].jpg"
             current_frame_name_full_path = CURRENT_MINUTE_DIRECTORY + current_frame_name
             cv2.imwrite(current_frame_name_full_path, frame)
             
@@ -225,7 +226,7 @@ def Main(programTime=None):
         if total_timer_second < 1 and total_timer_second >= 0.9:
             current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
             filename_safe_current_time = current_time.replace(":", "-")
-            current_frame_name = str(global_var.RPID) + " - capture (" + filename_safe_current_time + ").jpg"
+            current_frame_name = str(global_var.RPID) + "_capture_[" + filename_safe_current_time + "].jpg"
             current_frame_name_full_path = CURRENT_MINUTE_DIRECTORY + current_frame_name
             cv2.imwrite(current_frame_name_full_path, frame)
         
