@@ -97,6 +97,13 @@ function getTimeStampFromFileName($fileName) {
     return $tempArray[1]; // Matches for groups within square brackets [ timestamp ]
 }
 
+function getClarityValFromFileName($fileName) {
+    $tempArray = array();
+    preg_match("/\[([0-9\.]+)\]/", $fileName, $tempArray);
+    //echo print_r($tempArray);
+    return $tempArray[1]; // Matches for groups within square brackets [ timestamp ]
+}
+
 /**********************************************************************************
  * Misc code I need for debugging * 
  *********************************************************************************/

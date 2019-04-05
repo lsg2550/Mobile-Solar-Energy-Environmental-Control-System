@@ -17,27 +17,29 @@
         // global
         global $RASPBERRY_PI_ID;
 
-        // Initialize Variables
-        $TYP = "ST";
-        $V1 = $V2 = "";
-        if ($isClarity) { 
-            $V1 = $V2 = "CLR"; 
-            
-
-        } elseif ($isMotion) { 
-            $V1 = $V2 = "IMG"; 
-        }
-
         // Get owner/user from database
         $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = '{$RASPBERRY_PI_ID}'";
         $resultsGetUser = mysqli_query($conn, $sqlGetUser);
         $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
 
+        //Get VID from database
+        $VN = "";
+        if ($isClarity) { $VN = "Clarity"; } elseif ($isMotion) { $VN = "Photo"; }
+        $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$VN}' AND RPID='{$RASPBERRY_PI_ID}' AND USR='{$USR}';";
+        $resultGetVID = mysqli_query($conn, $sqlGetVID);
+        $VID = mysqli_fetch_assoc($resultGetVID)['VID'];
+
+        // Initialize Variables
+        $TYP = "ST";
+        $V1 = $V2 = "";
+        if ($isClarity) { $V1 = getClarityValFromFileName($fileName); } elseif ($isMotion) { $V1 = $V2 = "IMG"; }
+
         // Get Timestamp
         $TS = getTimeStampFromFileName($fileName);
 
         //Update DB
-        $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES (NULL, '{$TYP}', '{$USR}', '{$RASPBERRY_PI_ID}', '{$V1}', '{$V2}', '{$TS}');";
+        $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RASPBERRY_PI_ID}', '{$V1}', '{$V2}', '{$TS}');";
+        echo $sqlInsertIntoLog;
         mysqli_query($conn, $sqlInsertIntoLog);
         
         // If the function makes it to the end with no issues than we return an OK
@@ -55,14 +57,14 @@
             $CLARITY_FILE_NAME = $_GET["clarity"];
             $CLARITY_FILE_FULL_PATH = $CLARITY_DIRECTORY . $CLARITY_FILE_NAME;
 
-            if (is_file($CLARITY_FILE_FULL_PATH)) { logImages($CLARITY_FILE_NAME, $isClarity=$isClarityUpdate); }
+            if (is_file($CLARITY_FILE_FULL_PATH)) { logImages($CLARITY_FILE_NAME, $isClarityUpdate, $isMotionUpdate); }
             else { echo "NO"; } 
         } else if ($isMotionUpdate) {
             $DETECT_DIRECTORY = "../detectdir/";
             $DETECT_DIRECTORY_NAME = $_GET["capture"];
             $DETECT_DIRECTORY_FULL_PATH = $DETECT_DIRECTORY . $DETECT_DIRECTORY_NAME;
             
-            if (is_dir($DETECT_DIRECTORY_FULL_PATH)) { logImages($DETECT_DIRECTORY_NAME, $isMotion=$isMotionUpdate); }
+            if (is_dir($DETECT_DIRECTORY_FULL_PATH)) { logImages($DETECT_DIRECTORY_NAME, $isClarityUpdate , $isMotionUpdate); }
             else { echo "NO"; }
         } else {
             echo "NO";
