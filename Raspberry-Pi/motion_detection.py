@@ -4,6 +4,7 @@ from picamera import PiCamera # PiCamera Module
 from threading import Thread # Threading
 from datetime import datetime # DateTime
 from pytz import timezone # Timezone
+import notify_server # Used to send a request to the CMS to notify the user of motion detection
 import global_var # Variables used across the program 
 import numpy # Matrix Operations for Image Processing
 import shutil # File Operations
@@ -141,6 +142,8 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         else: 
             timeout_counter += 1
             if timeout_counter == timeout_max: break
+    # Reqest Notification from CMS
+    notify_server.CheckAndNotify("motion")
 
 def Main(programTime=None):
     # Set globals
@@ -154,14 +157,13 @@ def Main(programTime=None):
     first_frame = None # This frame is used to compare against the next frame to determine changes (or motion) between the frames
 
     # Begin monitoring
+    frame_counter = 0
     for image in RAW_CAMERA.capture_continuous(RAW_CAPTURE, format="bgr", use_video_port=True):
         # Read frame
         frame = image.array
         CLARITY_CAPTURE = frame.copy()
-        frame_text = "Clear"
 
         # Convert frame to specified size and perform color and blur operations for comparisons
-        #frame = imutils.resize(frame, width = minArea)
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         frame_gray = cv2.GaussianBlur(frame_gray, (21, 21), 0)
 
@@ -180,14 +182,12 @@ def Main(programTime=None):
 
         # Loop through the contours
         for contour in contours:
-            if cv2.contourArea(contour) < WIDTH: continue # If the contour is too small, move to the next one
+            if cv2.contourArea(contour) < HEIGHT: continue # If the contour is too small, move to the next one
 
             # Generate text and bounding rectangles of the detected object for the view in the windows, then show window
-            frame_text = "Motion Detected"
             current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
             (x, y, w, h) = cv2.boundingRect(contour)
             cv2.rectangle(frame, (x,y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(frame, "Status: {}".format(frame_text), (10, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255), 2)
             cv2.putText(frame, current_time, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
 
             # Write image
@@ -216,11 +216,12 @@ def Main(programTime=None):
         # print("Total Second: {}".format(str(total_timer_second)))
 
         # Minute directory check - Move files in currMinuteDir to prevMinuteDir, if prevMinuteDir exists, delete all contents and store new files in there (new thread)
-        if total_timer_minute < 60 and total_timer_minute >= 59.9:
+        if frame_counter >= 60: #if total_timer_minute < 60 and total_timer_minute >= 59.9:
             previous_minute_directory_list = os.listdir(PREVIOUS_MINUTE_DIRECTORY)
             current_minute_directory_list = os.listdir(CURRENT_MINUTE_DIRECTORY)
             for previous_frame in previous_minute_directory_list: os.unlink(os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_frame))
             for current_frame in current_minute_directory_list: os.rename(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame), PREVIOUS_MINUTE_DIRECTORY + current_frame)
+            frame_counter = 0
 
         # Capture Image
         if total_timer_second < 1 and total_timer_second >= 0.9:
@@ -229,6 +230,7 @@ def Main(programTime=None):
             current_frame_name = str(global_var.RPID) + "_capture_[" + filename_safe_current_time + "].jpg"
             current_frame_name_full_path = CURRENT_MINUTE_DIRECTORY + current_frame_name
             cv2.imwrite(current_frame_name_full_path, frame)
+            frame_counter += 1
         
         # Clear Stream
         RAW_CAPTURE.truncate(0)
