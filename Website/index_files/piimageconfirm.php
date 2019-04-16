@@ -39,7 +39,7 @@
 
         //Update DB
         $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RASPBERRY_PI_ID}', '{$V1}', '{$V2}', '{$TS}');";
-        echo $sqlInsertIntoLog;
+        #echo $sqlInsertIntoLog;
         mysqli_query($conn, $sqlInsertIntoLog);
         
         // If the function makes it to the end with no issues than we return an OK
