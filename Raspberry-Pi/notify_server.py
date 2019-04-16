@@ -71,11 +71,10 @@ def CheckAndNotify(battery_voltage_value, battery_current_value,
     except Exception as e: print(e)  # Unable to connect to internet, so just disregard sending a notification
 # CheckAndNotify end
 
-def CheckAndNotify(trigger_type):
-    try:
-        if trigger_type == "motion":
-            global_var.PIPAYLOAD["noti"] = "motion"
-            server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=global_var.PIPAYLOAD)
-            # print(serverConfirmation.text.strip())
-            global_var.PIPAYLOAD.pop("noti")
+def MotionNotify():
+    try:        
+        global_var.PIPAYLOAD["noti"] = "motion"
+        server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=global_var.PIPAYLOAD, timeout=1)
+        # print(serverConfirmation.text.strip())
+        global_var.PIPAYLOAD.pop("noti")
     except Exception as e: print(e)

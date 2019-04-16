@@ -143,7 +143,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
             timeout_counter += 1
             if timeout_counter == timeout_max: break
     # Reqest Notification from CMS
-    notify_server.CheckAndNotify("motion")
+    notify_server.MotionNotify()
 
 def Main(programTime=None):
     # Set globals
@@ -182,7 +182,7 @@ def Main(programTime=None):
 
         # Loop through the contours
         for contour in contours:
-            if cv2.contourArea(contour) < HEIGHT: continue # If the contour is too small, move to the next one
+            if cv2.contourArea(contour) < WIDTH: continue # If the contour is too small, move to the next one
 
             # Generate text and bounding rectangles of the detected object for the view in the windows, then show window
             current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
