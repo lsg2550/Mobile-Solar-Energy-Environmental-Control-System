@@ -58,8 +58,8 @@
         case "humidityO":
             $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the outside humidity threshold with '{$ESSI_TRIGGER_VALUE}'F!";
             break;
-        case "intruderalert":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has reported movement near your vehicle!";
+        case "motion":
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has reported movement near your vehicle. Please check 'https://remote-ecs.000webhostapp.com/client/image_files/image.php' to view the images.";
             break;
         default:
             exit();
