@@ -16,10 +16,16 @@
 
     //If user is correct, sign them in, otherwise send them back to the log in page
     if(mysqli_num_rows($sqlResult) == 1) {
+        // Log login attempt
+
+        
         header("Location: /client/client.php");
         $_SESSION['user'] = 1;
         $_SESSION['username'] = $user;
     } else{
+        // Log login attempt
+
+
         header("Location: /index.html");
     }
 
