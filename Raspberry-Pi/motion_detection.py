@@ -4,6 +4,7 @@ from picamera import PiCamera # PiCamera Module
 from threading import Thread # Threading
 from datetime import datetime # DateTime
 from pytz import timezone # Timezone
+import notify_server # Used to send a request to the CMS to notify the user of motion detection
 import global_var # Variables used across the program 
 import numpy # Matrix Operations for Image Processing
 import shutil # File Operations
@@ -141,6 +142,8 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         else: 
             timeout_counter += 1
             if timeout_counter == timeout_max: break
+    # Reqest Notification from CMS
+    notify_server.CheckAndNotify("motion")
 
 def Main(programTime=None):
     # Set globals

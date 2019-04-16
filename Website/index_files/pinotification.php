@@ -38,19 +38,28 @@
             $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the battery current threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
             break;
         case "spvoltage":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the solar panel voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the pv voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
             break;
         case "spcurrent":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the solar panel voltage threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the pv current threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
             break;
         case "cccurrent":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the solar panel voltage threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the charge controller current threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
             break;
         case "temperatureI":
             $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the inside temperature threshold with '{$ESSI_TRIGGER_VALUE}'F!";
             break;        
-        case "temperatureI":
+        case "temperatureO":
             $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the outside temperature threshold with '{$ESSI_TRIGGER_VALUE}'F!";
+            break;
+        case "humidityI":
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the inside humidity threshold with '{$ESSI_TRIGGER_VALUE}'F!";
+            break;        
+        case "humidityO":
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the outside humidity threshold with '{$ESSI_TRIGGER_VALUE}'F!";
+            break;
+        case "intruderalert":
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has reported movement near your vehicle!";
             break;
         default:
             exit();
