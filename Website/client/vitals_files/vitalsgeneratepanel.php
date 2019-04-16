@@ -17,37 +17,60 @@ if (!$resultCurrentThresholds || mysqli_num_rows($resultCurrentThresholds) == 0)
 $arrayCurrentThreshold = array(); 
 if(mysqli_num_rows($resultCurrentThresholds) > 0) {
     while($row = mysqli_fetch_assoc($resultCurrentThresholds)) {
-        $tempRow = "[ {$row['VN']}, {$row['VL']}, {$row['VU']}, {$row['RPID']} ]";
-        $arrayCurrentThreshold[] = $tempRow;
+        $tempVitalName = $row['VN'];
+        
+        switch ($tempVitalName) {
+            case "BatteryVoltage":
+                $tempVitalName = "Battery Voltage";
+                break;
+            case "BatteryCurrent":
+                $tempVitalName = "Battery Current";
+                break;
+            case "SolarPanelVoltage":
+                $tempVitalName = "PV Voltage";
+                break;
+            case "SolarPanelCurrent":
+                $tempVitalName = "PV Current";
+                break;
+            case "ChargeControllerCurrent":
+                $tempVitalName = "Charge Controller Current";
+                break;
+            case "TemperatureInner":
+                $tempVitalName = "Temperature Inner";
+                break;
+            case "TemperatureOuter":
+                $tempVitalName = "Temperature Outer";
+                break;
+            case "HumidityInner":
+                $tempVitalName = "Humidity Inner";
+                break;
+            case "HumidityOuter":
+                $tempVitalName = "Humidity Outer";
+                break;
+            default:
+                $tempVitalName = "SKIP";
+                break;
+        }
+
+        if($tempVitalName !== "SKIP") {
+            $tempRow = "[ {$tempVitalName}, {$row['VL']}, {$row['VU']}, {$row['RPID']}, {$row['VN']} ]"; //Last index is used to store the original name for form processing purposes (see generateVitalTHresholdControlPanel)
+            $arrayCurrentThreshold[] = $tempRow;
+        }
     }
-}
-
-//Initialize RPi
-$initalRaspberryPi = true;
-$currentRaspberryPi = "0"; 
-
-//Reset Globals
-function resetGlobals() {
-    global $initalRaspberryPi;
-    global $currentRaspberryPi;
-
-    $initalRaspberryPi = true; //Reset currentRaspberryPi 'Counter'
-    $currentRaspberryPi = "0"; //Reset currentRaspberryPi 'Counter'
 }
 
 //generateVitalsThresholdControlPanel - Generates an HTML threshold panel where the user will define thresholds for the vitals to follow (e.g default battery VL is 12.6v, the user can change this to 12.0v)
 function generateVitalThresholdControlPanel($vitalThresholdDataArr) {
-    global $currentRaspberryPi;
-    global $initalRaspberryPi;
+    $initalRaspberryPi = true;
+    $currentRaspberryPi = splitDataIntoArray($vitalThresholdDataArr[0]);
     $vitalThresholdControlPanel = "<fieldset class='rpi-fieldset'>"; //Initialize Vital Threshold Control Panel HTML
 
     foreach ($vitalThresholdDataArr as $vitalThresholdData) {
         $vitalThresholdDataFormatted = splitDataIntoArray($vitalThresholdData);
+        $tempRaspberryPi = $vitalThresholdDataFormatted[3];
 
-        //If the vital name is Solar Panel, Exhaust (vitals that can't be overwritten outside from the status panel) then return nothing
-        if(trim($vitalThresholdDataFormatted[0]) === "SolarPanel" || trim($vitalThresholdDataFormatted[0]) === "Exhaust" || trim($vitalThresholdDataFormatted[0]) === "Photo" || trim($vitalThresholdDataFormatted[0]) === "GPS") { continue; } 
-        if (end($vitalThresholdDataFormatted) !== $currentRaspberryPi) { //end($vitalThresholdDataFormatted) will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
-            $currentRaspberryPi = end($vitalThresholdDataFormatted);
+        if ($tempRaspberryPi !== $currentRaspberryPi) { //end($vitalThresholdDataFormatted) will always be the RaspberryPi ID - Conditional will create the new table header and caption for the respective RaspberryPi
+            $currentRaspberryPi = $tempRaspberryPi;
             
             if($initalRaspberryPi === false){ $vitalThresholdControlPanel .= "</table></fieldset><fieldset class='rpi-fieldset'>"; } //Closes the table and fieldset from the previous RaspberryPi, then starts a new fieldset
             else { $initalRaspberryPi = false; } //Initial table will change this to false after it creates the first table header
@@ -60,7 +83,7 @@ function generateVitalThresholdControlPanel($vitalThresholdDataArr) {
         . "<td>{$vitalThresholdDataFormatted[0]}</td>"
         . "<td><input type='text' name='vitallower[]' value='{$vitalThresholdDataFormatted[1]}' required></td>"
         . "<td><input type='text' name='vitalupper[]' value='{$vitalThresholdDataFormatted[2]}' required></td>"
-        . "<input type='hidden' name='vitalname[]' value='{$vitalThresholdDataFormatted[0]}'>"
+        . "<input type='hidden' name='vitalname[]' value='{$vitalThresholdDataFormatted[4]}'>"
         . "<input type='hidden' name='rpid[]' value='{$currentRaspberryPi}'>"
         . "</tr>"; //[0] Vital Name; [1] Vital Lower Threshold; [2] Vital Upper Threshold  $GLOBALS['currentRaspberryPi'] Raspberry Pi ID
     }
