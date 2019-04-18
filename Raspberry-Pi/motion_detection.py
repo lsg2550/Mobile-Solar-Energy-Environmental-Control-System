@@ -88,7 +88,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
                 previous_minute_frame_full_path = os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_minute_frame)
                 shutil.copy(previous_minute_frame_full_path, detection_and_filename_path)
                 index_counter += 1
-        except Exception as e: pass # Movement has been caught in the beginning of the loop - thus there are no images to grab in the previous directory
+        except Exception as e: pass # Movement has been caught in the beginning of the loop (or some other issue occured) - thus there are no images to grab in the previous directory
 
     # Grab N frames after motion was detected
     timeout_max = 15
@@ -142,12 +142,12 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         else: 
             timeout_counter += 1
             if timeout_counter == timeout_max: break
+            
     # Reqest Notification from CMS
     notify_server.MotionNotify()
 
 def Main(programTime=None):
     # Set globals
-    global RAW_CAMERA
     global RAW_CAPTURE
     global CLARITY_CAPTURE
 
@@ -159,13 +159,12 @@ def Main(programTime=None):
     # Begin monitoring
     frame_counter = 0
     for image in RAW_CAMERA.capture_continuous(RAW_CAPTURE, format="bgr", use_video_port=True):
-        # Read frame
         frame = image.array
         CLARITY_CAPTURE = frame.copy()
 
         # Convert frame to specified size and perform color and blur operations for comparisons
         frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame_gray = cv2.GaussianBlur(frame_gray, (21, 21), 0)
+        #frame_gray = cv2.GaussianBlur(frame_gray, (21, 21), 0)
 
         # Initial run only - no previous frame to compare so set the converted frame to the firstFrame and continue to the next iteration of the loop
         if first_frame is None:
@@ -188,7 +187,7 @@ def Main(programTime=None):
             current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
             (x, y, w, h) = cv2.boundingRect(contour)
             cv2.rectangle(frame, (x,y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(frame, current_time, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (0, 0, 255), 1)
+            cv2.putText(frame, current_time, (10, frame.shape[0] - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.35, (125, 0, 255), 1)
 
             # Write image
             filename_safe_current_time = current_time.replace(":", "-")
@@ -216,15 +215,20 @@ def Main(programTime=None):
         # print("Total Second: {}".format(str(total_timer_second)))
 
         # Minute directory check - Move files in currMinuteDir to prevMinuteDir, if prevMinuteDir exists, delete all contents and store new files in there (new thread)
-        if frame_counter >= 60: #if total_timer_minute < 60 and total_timer_minute >= 59.9:
+        if frame_counter >= 60:#if total_timer_minute < 60 and total_timer_minute > 59.5:
             previous_minute_directory_list = os.listdir(PREVIOUS_MINUTE_DIRECTORY)
             current_minute_directory_list = os.listdir(CURRENT_MINUTE_DIRECTORY)
-            for previous_frame in previous_minute_directory_list: os.unlink(os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_frame))
-            for current_frame in current_minute_directory_list: os.rename(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame), PREVIOUS_MINUTE_DIRECTORY + current_frame)
+            for previous_frame in previous_minute_directory_list:
+                print(os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_frame))
+                os.unlink(os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_frame))
+            for current_frame in current_minute_directory_list:
+                print(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame))
+                os.rename(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame), os.path.join(PREVIOUS_MINUTE_DIRECTORY, current_frame))
+                print(os.path.join(PREVIOUS_MINUTE_DIRECTORY, current_frame))
             frame_counter = 0
 
         # Capture Image
-        if total_timer_second < 1 and total_timer_second >= 0.9:
+        if total_timer_second < 1 and total_timer_second > 0.95:
             current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
             filename_safe_current_time = current_time.replace(":", "-")
             current_frame_name = str(global_var.RPID) + "_capture_[" + filename_safe_current_time + "].jpg"
