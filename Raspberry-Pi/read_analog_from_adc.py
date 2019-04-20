@@ -163,9 +163,9 @@ def read_from_sensors(threshold_battery_voltage_lower=None, threshold_battery_vo
     temporary_sensor_dictionary = {}
 
     # Read from Shunts - ADC Channels 3 & 4 & 5
-    v1 = convert_digital_to_analog_shunt(read_from_adc_channel(CHANNEL_C_BATT), VOLTAGE_REFERENCE, SHUNT_ONE_GAIN, 2) # From Shunt #1 OpAmp
-    v2 = convert_digital_to_analog_shunt(read_from_adc_channel(CHANNEL_C_CC), VOLTAGE_REFERENCE, SHUNT_TWO_GAIN, 2) # From Shunt #3 OpAmp
-    v4 = convert_digital_to_analog_shunt(read_from_adc_channel(CHANNEL_C_PV), VOLTAGE_REFERENCE, SHUNT_THREE_GAIN, 2) # From Shunt #2 OpAmp
+    v1 = convert_digital_to_analog_shunt(read_from_adc_channel(CHANNEL_C_BATT), VOLTAGE_REFERENCE, SHUNT_ONE_GAIN, 5) # From Shunt #1 OpAmp
+    v2 = convert_digital_to_analog_shunt(read_from_adc_channel(CHANNEL_C_CC), VOLTAGE_REFERENCE, SHUNT_TWO_GAIN, 5) # From Shunt #3 OpAmp
+    v4 = convert_digital_to_analog_shunt(read_from_adc_channel(CHANNEL_C_PV), VOLTAGE_REFERENCE, SHUNT_THREE_GAIN, 5) # From Shunt #2 OpAmp
 
     # Read Battery & Solar Panel Voltage - ADC Channels 1 & 2 - then calculate Battery, Solar Panel, and Charge Controller Current
     battery_voltage_value = convert_digital_to_analog_divider(read_from_adc_channel(CHANNEL_V_BATT), VOLTAGE_REFERENCE, VOLTAGE_BATT_DROP, 2) - v1 # From Voltage Divider #1
