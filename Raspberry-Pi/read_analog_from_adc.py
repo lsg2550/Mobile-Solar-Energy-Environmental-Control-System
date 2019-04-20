@@ -1,7 +1,6 @@
 # import
 from notify_server import notification_for_thresholds
 from multiprocessing import Process
-from threading import Thread
 import RPi.GPIO as GPIO
 import Adafruit_DHT
 import spidev

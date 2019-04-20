@@ -11,7 +11,6 @@ import requests
 import shutil
 import json
 import time
-import sys
 import os
 
 # Create Storage Directories

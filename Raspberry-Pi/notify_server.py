@@ -20,6 +20,8 @@ def notification_for_thresholds(battery_voltage_value, battery_current_value,
     try:
         current_hour = int(datetime.now().strftime("%H")) # Uses military hours (0-23)
         if current_hour >= 9 and current_hour <= 16:
+            print("Contacting server for threshold notification...")            
+            
             if battery_voltage_value <= threshold_battery_voltage_lower or battery_voltage_value >= threshold_battery_voltage_upper:
                 global_var.PIPAYLOAD["noti"] = "bvoltage"
                 global_var.PIPAYLOAD["valu"] = battery_voltage_value
@@ -87,6 +89,7 @@ def notification_for_thresholds(battery_voltage_value, battery_current_value,
 # end
 
 def notification_for_motion():
+    print("Contacting server for motion notification...")
     try:        
         global_var.PIPAYLOAD["noti"] = "motion"
         server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=global_var.PIPAYLOAD, timeout=1)
