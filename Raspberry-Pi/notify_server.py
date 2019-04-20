@@ -1,8 +1,9 @@
+# import
 from datetime import datetime
 import global_var
 import requests
 
-def ThresholdNotify(battery_voltage_value, battery_current_value,
+def notification_for_thresholds(battery_voltage_value, battery_current_value,
                    solar_panel_voltage_value, solar_panel_current_value,
                    charge_controller_current_value,
                    temperature_inner_value, temperature_outer_value,
@@ -83,12 +84,13 @@ def ThresholdNotify(battery_voltage_value, battery_current_value,
                 global_var.PIPAYLOAD.pop("noti")
                 global_var.PIPAYLOAD.pop("valu")
     except Exception as e: pass #print(e)  # Unable to connect to internet, so just disregard sending a notification
-# CheckAndNotify end
+# end
 
-def MotionNotify():
+def notification_for_motion():
     try:        
         global_var.PIPAYLOAD["noti"] = "motion"
         server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pinotification.php", params=global_var.PIPAYLOAD, timeout=1)
         # print(serverConfirmation.text.strip())
         global_var.PIPAYLOAD.pop("noti")
-    except Exception as e: pass#print(e) # Unable to connect to internet, so just disregard sending a notification
+    except Exception as e: pass #print(e) # Unable to connect to internet, so just disregard sending a notification
+# end

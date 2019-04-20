@@ -131,7 +131,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
             if timeout_counter == timeout_max: break
             
     # Reqest Notification from CMS
-    notify_server.MotionNotify()
+    notify_server.notification_for_motion()
 
 def Main(programTime=None):
     # Set globals

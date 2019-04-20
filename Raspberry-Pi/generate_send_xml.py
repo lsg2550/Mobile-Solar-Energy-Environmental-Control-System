@@ -18,9 +18,8 @@ import os
 TEMPORARY_STORAGE_DIRECTORY = "TempStorage/"
 SENT_STORAGE_DIRECTORY = "SentStorage/"
 DATE_AND_TIME_FORMAT = "%Y-%m-%d %H:%M:%S" # Date & Time Format for JSON
-pi_payload = {"rpid": global_var.RPID} # Payload for Server Confirmation
 
-def GetAndSendStatus(): # Send JSON to Server
+def get_and_send_status(): # Send JSON to Server
     try:
         for stored_file in sorted(os.listdir(TEMPORARY_STORAGE_DIRECTORY)):
             temporary_file = str(stored_file)
@@ -30,20 +29,21 @@ def GetAndSendStatus(): # Send JSON to Server
                 sent_storage_full_path = os.path.join(SENT_STORAGE_DIRECTORY, temporary_file)
                 CTF.SendStatus(TEMPORARY_STORAGE_DIRECTORY + temporary_file)
                 
-                pi_payload["xmlfile"] = temporary_file
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=pi_payload, timeout=5)
+                global_var.PIPAYLOAD["xmlfile"] = temporary_file
+                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piconfirm.php", params=global_var.PIPAYLOAD, timeout=5)
                 print(server_confirmation.text.strip())
-                pi_payload.pop("xmlfile")
+                global_var.PIPAYLOAD.pop("xmlfile")
 
                 if server_confirmation.text.strip() == "OK":
                     print("File confirmed received!")
                     os.rename(temp_storage_full_path, sent_storage_full_path)
                 else: break # Server did not receive or process the JSON correctly
     except Exception as e: print("Could not connect to server...\nStoring status file into {}...\nError Received:{}".format(TEMPORARY_STORAGE_DIRECTORY, e))
+
     print("Status background thread done!")
 # GetAndSendStatus() end
 
-def GetAndSendImages(): # Send Images to Server
+def get_and_send_images(): # Send Images to Server
     try: 
         detection_directory_contents = sorted(os.listdir(MD.DETECTION_DIRECTORY))
         for stored_frames in detection_directory_contents:
@@ -53,37 +53,37 @@ def GetAndSendImages(): # Send Images to Server
             for root, subfolders, files in sorted(os.walk(temporary_file_full_path)): 
                 CTF.SendImages(root, files)
                 
-                pi_payload["capture"] = stored_frames
-                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pi_payload, timeout=5)
+                global_var.PIPAYLOAD["capture"] = stored_frames
+                server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=global_var.PIPAYLOAD, timeout=5)
                 print(server_confirmation.text.strip())
-                pi_payload.pop("capture")
+                global_var.PIPAYLOAD.pop("capture")
 
                 if server_confirmation.text.strip() == "OK":
                     print("File and folders confirmed received!")
                     shutil.rmtree(root) # Delete Capture Folder
                 else: break # Server did not receive or process the images correctly
     except Exception as e: print("Could not connect to server...\nImages were not sent...\nError Received:{}".format(e))
+
     print("Images background thread done!")
 # GetAndSendImages() end
 
-def GetAndSendClarity(): # Send Clarity Image to Server
-    #MD.ClarityCapture() # Take a Clarity Capture
-
+def get_and_send_clarity(): # Send Clarity Image to Server
     try:
         for clarity_frame in sorted(os.listdir(MD.CLARITY_DIRECTORY)):
             temporary_file_full_path = os.path.join(MD.CLARITY_DIRECTORY, clarity_frame)
             CTF.SendClarity(clarity_frame)
             
-            pi_payload["clarity"] = clarity_frame
-            server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=pi_payload, timeout=5)
+            global_var.PIPAYLOAD["clarity"] = clarity_frame
+            server_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/piimageconfirm.php", params=global_var.PIPAYLOAD, timeout=5)
             print(server_confirmation.text.strip())
-            pi_payload.pop("clarity")
+            global_var.PIPAYLOAD.pop("clarity")
 
             if server_confirmation.text.strip() == "OK":
                 print("File and clarity status confirmed received!")
                 os.remove(temporary_file_full_path) # Delete Clarity Image
             else: break # Server did not receive or process the images correctly
     except Exception as e: print("Could not connect to server...\nImage was not sent...\nError Received:{}".format(e))
+
     print("Clarity Image background thread done!")
 # GetAndSendClarity() end
 
@@ -95,15 +95,14 @@ def Main():
     SEND_IMAGES_THREAD = None # Thread for sending multiple motion detection images
     
     # Start Camera Thread
-    CAMERA_THREAD = Process(target=MD.Main, args=(START_TIME, ), daemon=True) #Thread(target=MD.Main, args=(START_TIME, ))
-    #CAMERA_THREAD.setDaemon(True)
+    CAMERA_THREAD = Process(target=MD.Main, args=(START_TIME, ), daemon=True)
     CAMERA_THREAD.start()
 
     try:
         while True:
             try: # Retrieve files with thresholds set by user
                 print("Requesting threshold update from server...")
-                server_threshold_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=pi_payload, timeout=5)
+                server_threshold_confirmation = requests.get("https://remote-ecs.000webhostapp.com/index_files/pithresholdconfirm.php", params=global_var.PIPAYLOAD, timeout=5)
                 print(server_threshold_confirmation.text.strip())
                 
                 if server_threshold_confirmation.text.strip() == "OK":
@@ -111,13 +110,13 @@ def Main():
                     threshold_file_name = str(global_var.RPID) + ".json"
                     
                     # Tell the server that we retrieved the file
-                    pi_payload["result"] = "OK"
-                    requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pi_payload, timeout=5)
-                    pi_payload.pop("result")
+                    global_var.PIPAYLOAD["result"] = "OK"
+                    requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=global_var.PIPAYLOAD, timeout=5)
+                    global_var.PIPAYLOAD.pop("result")
                 else: # Tell the server that we did not retrieve the file
-                    pi_payload["result"] = "NO"
-                    requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=pi_payload, timeout=5)
-                    pi_payload.pop("result")
+                    global_var.PIPAYLOAD["result"] = "NO"
+                    requests.get("https://remote-ecs.000webhostapp.com/index_files/piserverconfirm.php", params=global_var.PIPAYLOAD, timeout=5)
+                    global_var.PIPAYLOAD.pop("result")
                     raise FileNotFoundError
             except Exception as e:
                 print("Could not connect to server/Issue with server...\nError Received:{}".format(e))
@@ -150,7 +149,7 @@ def Main():
             
             # Read from Sensors
             print("Reading from sensors...")
-            sensor_status_dictionary = RAFA.ReadFromSensors(threshold_voltage_lower, threshold_voltage_upper,
+            sensor_status_dictionary = RAFA.read_from_sensors(threshold_voltage_lower, threshold_voltage_upper,
                                                     threshold_current_lower, threshold_current_upper,
                                                     threhsold_solar_panel_voltage_lower, threshold_solar_panel_voltage_upper,
                                                     threshold_solar_panel_current_lower, threshold_solar_panel_current_upper,
@@ -173,19 +172,19 @@ def Main():
                 
             # Send JSON in new thread
             if SEND_STATUS_THREAD == None or not SEND_STATUS_THREAD.isAlive():
-                SEND_STATUS_THREAD = Thread(target=GetAndSendStatus, args=())
+                SEND_STATUS_THREAD = Thread(target=get_and_send_status, args=())
                 SEND_STATUS_THREAD.setDaemon(True)
                 SEND_STATUS_THREAD.start()
                 
             # Send images in new thread
             if SEND_IMAGES_THREAD == None or not SEND_IMAGES_THREAD.isAlive():
-                SEND_IMAGES_THREAD = Thread(target=GetAndSendImages, args=())
+                SEND_IMAGES_THREAD = Thread(target=get_and_send_images, args=())
                 SEND_IMAGES_THREAD.setDaemon(True)
                 SEND_IMAGES_THREAD.start()
 
             # Send a single image in new thread
             if SEND_CLARITY_THREAD == None or not SEND_CLARITY_THREAD.isAlive():
-               SEND_CLARITY_THREAD = Thread(target=GetAndSendClarity, args=())
+               SEND_CLARITY_THREAD = Thread(target=get_and_send_clarity, args=())
                SEND_CLARITY_THREAD.setDaemon(True)
                SEND_CLARITY_THREAD.start()
                 
@@ -196,7 +195,6 @@ def Main():
         # while end
     finally:
         CAMERA_THREAD.join()
-    
 # Main() end
 
 if __name__ == "__main__":

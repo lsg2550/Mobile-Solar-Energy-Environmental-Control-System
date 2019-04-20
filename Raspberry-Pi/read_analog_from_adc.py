@@ -1,5 +1,5 @@
 # import
-from notify_server import ThresholdNotify
+from notify_server import notification_for_thresholds
 from multiprocessing import Process
 from threading import Thread
 import RPi.GPIO as GPIO
@@ -8,19 +8,18 @@ import spidev
 import serial
 
 # Initialize
-NOTIFICATION_THREAD = None
-GPS_NO_ERROR = 0
-GPS_COORD_INACCESSIBLE = 1
 DHT11_SENSOR = Adafruit_DHT.DHT11
+GPS_COORD_INACCESSIBLE = 1
+GPS_NO_ERROR = 0
 
 # Analog Devices = Channel #
-spi = spidev.SpiDev()
-spi.open(0, 0)
-battery_voltage = 1 # ESU - Voltage
-solar_voltage = 2 # Solar Panel - Voltage
-battery_current = 3 # ESU - Current
-solar_current = 4 # Solar Panel - Current
-charge_con_current = 5 # Charge Controller - Current
+SPI = spidev.SpiDev()
+SPI.open(0, 0)
+CHANNEL_V_BATT = 1 # ESU - Voltage
+CHANNEL_V_PV = 2 # Solar Panel - Voltage
+CHANNEL_C_BATT = 3 # ESU - Current
+CHANNEL_C_PV = 4 # Solar Panel - Current
+CHANNEL_C_CC = 5 # Charge Controller - Current
 
 # GPIO Devices = GPIO Pin #
 GPIO.setmode(GPIO.BCM)
@@ -32,67 +31,65 @@ EXHAUST = 4
 GPIO.setup(EXHAUST, GPIO.OUT)
 
 # Onboard Parts
-actual_five_voltage_rail = 2.5
+VOLTAGE_REFERENCE = 2.5
 
 # Battery Voltage Divider
-voltage_divider_batt_resistor_from_ground = 4.6
-voltage_divider_batt_resistor_from_positive = 32.5
-voltage_divider_batt_drop = voltage_divider_batt_resistor_from_ground / (voltage_divider_batt_resistor_from_ground + voltage_divider_batt_resistor_from_positive)
+VOLTAGE_BATT_RESISTOR_FROM_GND = 4.6
+VOLTAGE_BATT_RESISTOR_FROM_POS = 32.5
+VOLTAGE_BATT_DROP = VOLTAGE_BATT_RESISTOR_FROM_GND / (VOLTAGE_BATT_RESISTOR_FROM_GND + VOLTAGE_BATT_RESISTOR_FROM_POS)
 
 # Solar Panel Voltage Divider
-voltage_divider_pv_resistor_from_ground = 4.6
-voltage_divider_pv_resistor_from_positive = 32.6
-voltage_divider_pv_drop = voltage_divider_pv_resistor_from_ground / (voltage_divider_pv_resistor_from_ground + voltage_divider_pv_resistor_from_positive)
+VOLTAGE_PV_RESISTOR_FROM_GND = 4.6
+VOLTAGE_PV_RESISTOR_FROM_POS = 32.6
+VOLTAGE_PV_DROP = VOLTAGE_PV_RESISTOR_FROM_GND / (VOLTAGE_PV_RESISTOR_FROM_GND + VOLTAGE_PV_RESISTOR_FROM_POS)
 
 # Shunt #1 OpAmp
-shunt_one_opamp_resistor_feedback = 44.9
-shunt_one_opamp_resistor_one = 0.994
-shunt_one_gain = 1 + (shunt_one_opamp_resistor_feedback / shunt_one_opamp_resistor_one)
+SHUNT_ONE_OPAMP_RESISTOR_FEEDBACK = 44.9
+SHUNT_ONE_OPAMP_RESISTOR_ONE = 0.994
+SHUNT_ONE_GAIN = 1 + (SHUNT_ONE_OPAMP_RESISTOR_FEEDBACK / SHUNT_ONE_OPAMP_RESISTOR_ONE)
 
 # Shunt #2 OpAmp
-shunt_two_opamp_resistor_feedback = 45.0
-shunt_two_opamp_resistor_one = 0.998
-shunt_two_gain = 1 + (shunt_two_opamp_resistor_feedback / shunt_two_opamp_resistor_one)
+SHUNT_TWO_OPAMP_RESISTOR_FEEDBACK = 45.0
+SHUNT_TWO_OPAMP_RESISTOR_ONE = 0.998
+SHUNT_TWO_GAIN = 1 + (SHUNT_TWO_OPAMP_RESISTOR_FEEDBACK / SHUNT_TWO_OPAMP_RESISTOR_ONE)
 
 # Shunt #3 OpAmp
-shunt_three_opamp_resistor_feedback = 45.0
-shunt_three_opamp_resistor_one = 0.994
-shunt_three_gain = 1 + (shunt_three_opamp_resistor_feedback / shunt_three_opamp_resistor_one)
+SHUNT_THREE_OPAMP_RESISTOR_FEEDBACK = 45.0
+SHUNT_THREE_OPAMP_RESISTOR_ONE = 0.994
+SHUNT_THREE_GAIN = 1 + (SHUNT_THREE_OPAMP_RESISTOR_FEEDBACK / SHUNT_THREE_OPAMP_RESISTOR_ONE)
 
 # Shunt Resistance
-shunt_resistance = 0.0075
+SHUNT_RESISTANCE = 0.0075
 
 # Serial Devices
-try: SERIAL_GPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
+try: SERIAL_GPS = serial.Serial(port="/dev/ttyACM0", baudrate=9600, timeout=1)
 except Exception as e: print(e)
 
-def ConvertVoltsDivider(data, actual_voltage, actual_drop, place): # Used by Voltage Divider
-    volts = (data / float(1023)) * (actual_voltage/actual_drop)
-    volts = round(volts, place)
+def convert_digital_to_analog_divider(data, v_ref, v_drop, decimal_place): 
+    '''Used by Voltage Divider'''
+    volts = (data / float(1023)) * (v_ref/v_drop)
+    volts = round(volts, decimal_place)
     return volts
 
-def ConvertVoltsShunt(data, actual_voltage, actual_gain, place): # Used by Shunts
-    volts = (data / float(1023)) * (actual_voltage)
-    volts = round(volts/actual_gain, place)
+def convert_digital_to_analog_shunt(data, v_ref, shunt_gain, decimal_place):
+    '''Used by Shunts'''
+    volts = (data / float(1023)) * (v_ref)
+    volts = round(volts/shunt_gain, decimal_place)
     return volts
 
-def CelciusToFahrenheit(temperature_celcius): 
-    return ((temperature_celcius * 9/5) + 32)
+def celcius_to_fahrenheit(temperature_celcius): return ((temperature_celcius * 9/5) + 32)
 
-def FahrenheitToCelcius(temperature_fahrenheit): 
-    return ((temperature_fahrenheit - 32) * 5/9)
+def fahrenheit_to_celcius(temperature_fahrenheit): return ((temperature_fahrenheit - 32) * 5/9)
 
-def ReadADCChannel(channel):
-    analog_to_digital_channel_read = spi.xfer2([1, (8 + channel) << 4, 0])
+def read_from_adc_channel(channel):
+    '''ADC will read from a given channel and convert its value from analog to digital'''
+    analog_to_digital_channel_read = SPI.xfer2([1, (8 + channel) << 4, 0])
     analog_to_digital_channel_data = ((analog_to_digital_channel_read[1] & 3) << 8) + analog_to_digital_channel_read[2]
     #print("Channel {} reads a digital value of {}".format(channel, analog_to_digital_channel_data))    
     return analog_to_digital_channel_data
 # ReadADCChannel end
 
-def ReadGPS():
-    # Init
-    global GPS_NO_ERROR
-    global GPS_COORD_INACCESSIBLE
+def read_from_gps():
     timeout_max_count = 100
     timeout_counter = 0
     gps_status_latitude_longitude = [None, None, None]
@@ -127,65 +124,59 @@ def ReadGPS():
     return gps_status_latitude_longitude
 # ReadGPS end
 
-def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_voltage_upper=None,
-                    threshold_battery_current_lower=None, threshold_battery_current_upper=None,
-                    threshold_solar_panel_voltage_lower=None, threshold_solar_panel_voltage_upper=None,
-                    threshold_solar_panel_current_lower=None, threshold_solar_panel_current_upper=None,
-                    threshold_charge_controller_current_lower=None, threshold_charge_controller_current_upper=None,
-                    threshold_temperature_inner_lower=None, threshold_temperature_inner_upper=None,
-                    threshold_temperature_outer_lower=None, threshold_temperature_outer_upper=None,
-                    threshold_humidity_inner_lower=None, threshold_humidity_inner_upper=None,
-                    threshold_humidity_outer_lower=None, threshold_humidity_outer_upper=None):
+def read_from_sensors(threshold_battery_voltage_lower=None, threshold_battery_voltage_upper=None,
+                      threshold_battery_current_lower=None, threshold_battery_current_upper=None,
+                      threshold_solar_panel_voltage_lower=None, threshold_solar_panel_voltage_upper=None,
+                      threshold_solar_panel_current_lower=None, threshold_solar_panel_current_upper=None,
+                      threshold_charge_controller_current_lower=None, threshold_charge_controller_current_upper=None,
+                      threshold_temperature_inner_lower=None, threshold_temperature_inner_upper=None,
+                      threshold_temperature_outer_lower=None, threshold_temperature_outer_upper=None,
+                      threshold_humidity_inner_lower=None, threshold_humidity_inner_upper=None,
+                      threshold_humidity_outer_lower=None, threshold_humidity_outer_upper=None):
     # Init - Global Var 
-    global NOTIFICATION_THREAD
-    global DHT11_SENSOR
-    global GPS_NO_ERROR
-    global GPS_COORD_INACCESSIBLE
+    global PROCESS_NOTIFICATION
     
     # Battery Thresholds
-    thresholdBVL = float(threshold_battery_voltage_lower)
-    thresholdBVU = float(threshold_battery_voltage_upper)
-    thresholdBCL = float(threshold_battery_current_lower)
-    thresholdBCU = float(threshold_battery_current_upper)
+    threshold_bvl = float(threshold_battery_voltage_lower)
+    threshold_bvu = float(threshold_battery_voltage_upper)
+    threshold_bcl = float(threshold_battery_current_lower)
+    threshold_bcu = float(threshold_battery_current_upper)
     # Solar Panel Thresholds
-    thresholdSPVL = float(threshold_solar_panel_voltage_lower)
-    thresholdSPVU = float(threshold_solar_panel_voltage_upper)
-    thresholdSPCL = float(threshold_solar_panel_current_lower)
-    thresholdSPCU = float(threshold_solar_panel_current_upper)
+    threshold_spvl = float(threshold_solar_panel_voltage_lower)
+    threshold_spvu = float(threshold_solar_panel_voltage_upper)
+    threshold_spcl = float(threshold_solar_panel_current_lower)
+    threshold_spcu = float(threshold_solar_panel_current_upper)
     # Charge Controller Thresholds
-    thresholdCCCL = float(threshold_charge_controller_current_lower)
-    thresholdCCCU = float(threshold_charge_controller_current_upper)
+    threshold_cccl = float(threshold_charge_controller_current_lower)
+    threshold_cccu = float(threshold_charge_controller_current_upper)
     # Temperature Thresholds
-    thresholdTIL = float(threshold_temperature_inner_lower)
-    thresholdTIU = float(threshold_temperature_inner_upper)
-    thresholdTOL = float(threshold_temperature_outer_lower)
-    thresholdTOU = float(threshold_temperature_outer_upper)
+    threshold_til = float(threshold_temperature_inner_lower)
+    threshold_tiu = float(threshold_temperature_inner_upper)
+    threshold_tol = float(threshold_temperature_outer_lower)
+    threshold_tou = float(threshold_temperature_outer_upper)
     # Humidity Thresholds
-    thresholdHIL = float(threshold_humidity_inner_lower)
-    thresholdHIU = float(threshold_humidity_inner_upper)
-    thresholdHOL = float(threshold_humidity_outer_lower)
-    thresholdHOU = float(threshold_humidity_outer_upper)
+    threshold_hil = float(threshold_humidity_inner_lower)
+    threshold_hiu = float(threshold_humidity_inner_upper)
+    threshold_hol = float(threshold_humidity_outer_lower)
+    threshold_hou = float(threshold_humidity_outer_upper)
     
     # Dictionary to hold {Sensor => Value}
     temporary_sensor_dictionary = {}
 
-    V1 = ConvertVoltsShunt(ReadADCChannel(battery_current), actual_five_voltage_rail, shunt_one_gain, 2 ) # From Shunt #1 OpAmp
-    V2 = ConvertVoltsShunt(ReadADCChannel(charge_con_current), actual_five_voltage_rail, shunt_two_gain, 2 )# From Shunt #3 OpAmp
-    V4 = ConvertVoltsShunt(ReadADCChannel(solar_current), actual_five_voltage_rail, shunt_three_gain, 2 )# From Shunt #2 OpAmp
+    # Read from Shunts - ADC Channels 3 & 4 & 5
+    v1 = convert_digital_to_analog_shunt(read_from_adc_channel(CHANNEL_C_BATT), VOLTAGE_REFERENCE, SHUNT_ONE_GAIN, 2) # From Shunt #1 OpAmp
+    v2 = convert_digital_to_analog_shunt(read_from_adc_channel(CHANNEL_C_CC), VOLTAGE_REFERENCE, SHUNT_TWO_GAIN, 2) # From Shunt #3 OpAmp
+    v4 = convert_digital_to_analog_shunt(read_from_adc_channel(CHANNEL_C_PV), VOLTAGE_REFERENCE, SHUNT_THREE_GAIN, 2) # From Shunt #2 OpAmp
 
-    # Read Battery Voltage and Current - ADC Channels 1 & 3
-    battery_voltage_value = ConvertVoltsDivider(ReadADCChannel(battery_voltage), actual_five_voltage_rail, voltage_divider_batt_drop, 2) - V1 # From Voltage Divider #1
-    battery_current_value = (V2 - V1) / shunt_resistance
-    
-    # Read Solar Panel Voltage and Current - ADC Channels 2 & 4
-    solar_panel_voltage_value = ConvertVoltsDivider(ReadADCChannel(solar_voltage), actual_five_voltage_rail, voltage_divider_pv_drop, 2) # From Voltage Divider #2
-    solar_panel_current_value = V4 / shunt_resistance
-
-    # Read Charge Controller Current - ADC Channels 5
-    charge_controller_current_value = (V1 - V4) / shunt_resistance
+    # Read Battery & Solar Panel Voltage - ADC Channels 1 & 2 - then calculate Battery, Solar Panel, and Charge Controller Current
+    battery_voltage_value = convert_digital_to_analog_divider(read_from_adc_channel(CHANNEL_V_BATT), VOLTAGE_REFERENCE, VOLTAGE_BATT_DROP, 2) - v1 # From Voltage Divider #1
+    solar_panel_voltage_value = convert_digital_to_analog_divider(read_from_adc_channel(CHANNEL_V_PV), VOLTAGE_REFERENCE, VOLTAGE_PV_DROP, 2) # From Voltage Divider #2
+    battery_current_value = (v2 - v1) / SHUNT_RESISTANCE
+    solar_panel_current_value = v4 / SHUNT_RESISTANCE
+    charge_controller_current_value = (v1 - v4) / SHUNT_RESISTANCE
     
     # Debug
-    print("Voltage Read from Shunts: V1:{}V, V2:{}V, V3:{}V".format(V1,V2,V4))
+    print("Voltage Read from Shunts: V1:{}V, V2:{}V, V3:{}V".format(v1, v2, v4))
     print("Battery Voltage:{}V, Battery Current:{}A, PV Voltage:{}V, PV Current:{}A, Charge Controller Current:{}A".format(battery_voltage_value, battery_current_value, solar_panel_voltage_value, solar_panel_current_value, charge_controller_current_value))
     
     # Inner and Outer Temperature Sensors
@@ -193,19 +184,17 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     humidity_outer, temperature_outer = Adafruit_DHT.read(DHT11_SENSOR, DHT11_O)
 
     # GPS
-    try: gps_latitude_longitude = ReadGPS()
-    except Exception as e: gps_latitude_longitude = [GPS_COORD_INACCESSIBLE, 0, 0]
+    try: gps_latitude_longitude = read_from_gps()
+    except Exception: gps_latitude_longitude = [GPS_COORD_INACCESSIBLE, 0, 0]
 
     # Check for notification purposes
-    if NOTIFICATION_THREAD == None or not NOTIFICATION_THREAD.isAlive():
-        NOTIFICATION_THREAD = Thread(target=ThresholdNotify, args=(battery_voltage_value, battery_current_value, solar_panel_voltage_value, solar_panel_current_value, charge_controller_current_value, temperature_inner, temperature_outer, humidity_inner, humidity_outer, thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, thresholdHIL, thresholdHIU, thresholdHOL, thresholdHOU))
-        NOTIFICATION_THREAD.setDaemon(True)
-        NOTIFICATION_THREAD.start()
+    PROCESS_NOTIFICATION = Process(target=notification_for_thresholds, args=(battery_voltage_value, battery_current_value, solar_panel_voltage_value, solar_panel_current_value, charge_controller_current_value, temperature_inner, temperature_outer, humidity_inner, humidity_outer, threshold_bvl, threshold_bvu, threshold_bcl, threshold_bcu, threshold_spvl, threshold_spvu, threshold_spcl, threshold_spcu, threshold_cccl, threshold_cccu, threshold_til, threshold_tiu, threshold_tol, threshold_tou, threshold_hil, threshold_hiu, threshold_hol, threshold_hou), daemon=True)
+    PROCESS_NOTIFICATION.start()
 
     # Exhaust Operations
-    try: 
-        if temperature_inner >= thresholdTIU:  # For Hot Air -> Cold Air
-            if battery_voltage_value > thresholdBVL:
+    try:
+        if temperature_inner >= threshold_tiu:  # For Hot Air -> Cold Air
+            if battery_voltage_value > threshold_bvl:
                 temporary_sensor_dictionary["exhaust"] = "on"
                 GPIO.output(EXHAUST, GPIO.HIGH)
             else:
