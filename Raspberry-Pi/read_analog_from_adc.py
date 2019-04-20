@@ -1,14 +1,11 @@
 # import
-from notify_server import CheckAndNotify
-from datetime import datetime
+from notify_server import ThresholdNotify
+from multiprocessing import Process
 from threading import Thread
 import RPi.GPIO as GPIO
-import math_calc as MC
 import Adafruit_DHT
 import spidev
 import serial
-import time
-import os
 
 # Initialize
 NOTIFICATION_THREAD = None
@@ -35,7 +32,7 @@ EXHAUST = 4
 GPIO.setup(EXHAUST, GPIO.OUT)
 
 # Onboard Parts
-actual_five_voltage_rail = 4.77
+actual_five_voltage_rail = 2.5
 
 # Battery Voltage Divider
 voltage_divider_batt_resistor_from_ground = 4.6
@@ -62,13 +59,33 @@ shunt_three_opamp_resistor_feedback = 45.0
 shunt_three_opamp_resistor_one = 0.994
 shunt_three_gain = 1 + (shunt_three_opamp_resistor_feedback / shunt_three_opamp_resistor_one)
 
+# Shunt Resistance
+shunt_resistance = 0.0075
+
 # Serial Devices
 try: SERIAL_GPS = serial.Serial(port = "/dev/ttyACM0", baudrate = 9600, timeout = 1)
 except Exception as e: print(e)
 
+def ConvertVoltsDivider(data, actual_voltage, actual_drop, place): # Used by Voltage Divider
+    volts = (data / float(1023)) * (actual_voltage/actual_drop)
+    volts = round(volts, place)
+    return volts
+
+def ConvertVoltsShunt(data, actual_voltage, actual_gain, place): # Used by Shunts
+    volts = (data / float(1023)) * (actual_voltage)
+    volts = round(volts/actual_gain, place)
+    return volts
+
+def CelciusToFahrenheit(temperature_celcius): 
+    return ((temperature_celcius * 9/5) + 32)
+
+def FahrenheitToCelcius(temperature_fahrenheit): 
+    return ((temperature_fahrenheit - 32) * 5/9)
+
 def ReadADCChannel(channel):
     analog_to_digital_channel_read = spi.xfer2([1, (8 + channel) << 4, 0])
     analog_to_digital_channel_data = ((analog_to_digital_channel_read[1] & 3) << 8) + analog_to_digital_channel_read[2]
+    #print("Channel {} reads a digital value of {}".format(channel, analog_to_digital_channel_data))    
     return analog_to_digital_channel_data
 # ReadADCChannel end
 
@@ -152,17 +169,25 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     # Dictionary to hold {Sensor => Value}
     temporary_sensor_dictionary = {}
 
+    V1 = ConvertVoltsShunt(ReadADCChannel(battery_current), actual_five_voltage_rail, shunt_one_gain, 2 ) # From Shunt #1 OpAmp
+    V2 = ConvertVoltsShunt(ReadADCChannel(charge_con_current), actual_five_voltage_rail, shunt_two_gain, 2 )# From Shunt #3 OpAmp
+    V4 = ConvertVoltsShunt(ReadADCChannel(solar_current), actual_five_voltage_rail, shunt_three_gain, 2 )# From Shunt #2 OpAmp
+
     # Read Battery Voltage and Current - ADC Channels 1 & 3
-    battery_voltage_value = MC.ConvertVolts(ReadADCChannel(battery_voltage), actual_five_voltage_rail, voltage_divider_batt_drop, 2) # From Voltage Divider #1
-    battery_current_value = MC.ConvertAmps(ReadADCChannel(battery_current), actual_five_voltage_rail, shunt_one_gain, 2) # From Shunt #1 OpAmp
+    battery_voltage_value = ConvertVoltsDivider(ReadADCChannel(battery_voltage), actual_five_voltage_rail, voltage_divider_batt_drop, 2) - V1 # From Voltage Divider #1
+    battery_current_value = (V2 - V1) / shunt_resistance
     
     # Read Solar Panel Voltage and Current - ADC Channels 2 & 4
-    solar_panel_voltage_value = MC.ConvertVolts(ReadADCChannel(solar_voltage), actual_five_voltage_rail, voltage_divider_pv_drop, 2) # From Voltage Divider #2
-    solar_panel_current_value = MC.ConvertAmps(ReadADCChannel(solar_current), actual_five_voltage_rail, shunt_two_gain, 2) # From Shunt #2 OpAmp
+    solar_panel_voltage_value = ConvertVoltsDivider(ReadADCChannel(solar_voltage), actual_five_voltage_rail, voltage_divider_pv_drop, 2) # From Voltage Divider #2
+    solar_panel_current_value = V4 / shunt_resistance
 
     # Read Charge Controller Current - ADC Channels 5
-    charge_controller_current_value = MC.ConvertAmps(ReadADCChannel(charge_con_current), actual_five_voltage_rail, shunt_three_gain, 2) # From Shunt #3 OpAmp
-
+    charge_controller_current_value = (V1 - V4) / shunt_resistance
+    
+    # Debug
+    print("Voltage Read from Shunts: V1:{}V, V2:{}V, V3:{}V".format(V1,V2,V4))
+    print("Battery Voltage:{}V, Battery Current:{}A, PV Voltage:{}V, PV Current:{}A, Charge Controller Current:{}A".format(battery_voltage_value, battery_current_value, solar_panel_voltage_value, solar_panel_current_value, charge_controller_current_value))
+    
     # Inner and Outer Temperature Sensors
     humidity_inner, temperature_inner = Adafruit_DHT.read(DHT11_SENSOR, DHT11_I)
     humidity_outer, temperature_outer = Adafruit_DHT.read(DHT11_SENSOR, DHT11_O)
@@ -173,7 +198,7 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
 
     # Check for notification purposes
     if NOTIFICATION_THREAD == None or not NOTIFICATION_THREAD.isAlive():
-        NOTIFICATION_THREAD = Thread(target=CheckAndNotify, args=(battery_voltage_value, battery_current_value, solar_panel_voltage_value, solar_panel_current_value, charge_controller_current_value, temperature_inner, temperature_outer, thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, ))
+        NOTIFICATION_THREAD = Thread(target=ThresholdNotify, args=(battery_voltage_value, battery_current_value, solar_panel_voltage_value, solar_panel_current_value, charge_controller_current_value, temperature_inner, temperature_outer, humidity_inner, humidity_outer, thresholdBVL, thresholdBVU, thresholdBCL, thresholdBCU, thresholdSPVL, thresholdSPVU, thresholdSPCL, thresholdSPCU, thresholdCCCL, thresholdCCCU, thresholdTIL, thresholdTIU, thresholdTOL, thresholdTOU, thresholdHIL, thresholdHIU, thresholdHOL, thresholdHOU))
         NOTIFICATION_THREAD.setDaemon(True)
         NOTIFICATION_THREAD.start()
 
@@ -186,7 +211,7 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
             else:
                 temporary_sensor_dictionary["exhaust"] = "off"
                 GPIO.output(EXHAUST, GPIO.LOW)
-    except Exception as e:
+    except Exception: # Means that temperature_inner did not receive a value from the sensor, so just disable exhaust
         temporary_sensor_dictionary["exhaust"] = "off"
         GPIO.output(EXHAUST, GPIO.LOW)
             
@@ -208,12 +233,8 @@ def ReadFromSensors(threshold_battery_voltage_lower=None, threshold_battery_volt
     else: temporary_sensor_dictionary["humidityouter"] = humidity_outer
         
     # GPS Values
-    if gps_latitude_longitude[0] == GPS_NO_ERROR:
-        temporary_sensor_dictionary["gps"] = [gps_latitude_longitude[1]]
-        temporary_sensor_dictionary["gps"].append(gps_latitude_longitude[2])
-    else:
-        temporary_sensor_dictionary["gps"] = ["NULL"]
-        temporary_sensor_dictionary["gps"].append("NULL")
+    if gps_latitude_longitude[0] == GPS_NO_ERROR: temporary_sensor_dictionary["gps"] = [gps_latitude_longitude[1], gps_latitude_longitude[2]]
+    else: temporary_sensor_dictionary["gps"] = ["NULL", "NULL"]
 
     # Return
     return temporary_sensor_dictionary

@@ -32,19 +32,6 @@ HEIGHT = 480 # Max Height
 CLARITY_CAPTURE = None # Clarity Capture Object
 CLARITY_CAPTURE_IMAGE_NAME = str(global_var.RPID) + "_clarity_[ts]_[val].jpg" # Name of Clarity Image
 
-def InitializeCamera():
-    global RAW_CAMERA
-    global RAW_CAPTURE
-    
-    try:
-        RAW_CAMERA = PiCamera()
-        RAW_CAMERA.resolution = (WIDTH, HEIGHT)
-        RAW_CAMERA.framerate = FRAMERATE
-        RAW_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
-    except Exception as e:
-        print("Exception Occured: {}".format(e))
-        return
-
 def ClarityCapture():
     # Capture Image and Threshold it
     frame_capture_gray = cv2.cvtColor(CLARITY_CAPTURE, cv2.COLOR_BGR2GRAY)
@@ -124,7 +111,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         # print(frame_full_path)
 
         # Move image to detection directory
-        time.sleep(0.5)
+        time.sleep(0.1)
         if os.path.exists(frame_full_path): 
             shutil.copy(frame_full_path, detection_and_filename_path)
             
@@ -148,8 +135,16 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
 
 def Main(programTime=None):
     # Set globals
+    global RAW_CAMERA
     global RAW_CAPTURE
     global CLARITY_CAPTURE
+    
+    try:
+        RAW_CAMERA = PiCamera()
+        RAW_CAMERA.resolution = (WIDTH, HEIGHT)
+        RAW_CAMERA.framerate = FRAMERATE
+        RAW_CAPTURE = PiRGBArray(RAW_CAMERA, size=(WIDTH, HEIGHT))
+    except Exception as e: print("Exception Occured: {}".format(e))
 
     # Initialize/Synchronize program time
     START_TIME = time.time() if programTime == None else programTime
@@ -209,13 +204,13 @@ def Main(programTime=None):
         timer_time = time.time()        
         timer_minute = (timer_time - START_TIME) % 60
         timer_second = (timer_time - START_TIME) % 1
-        total_timer_minute = 60 - timer_minute
-        total_timer_second = 1 - timer_second
-        # print("Total Minute: {}".format(str(total_timer_minute)))
-        # print("Total Second: {}".format(str(total_timer_second)))
+        #total_timer_minute = 60 - timer_minute
+        #total_timer_second = 1 - timer_second
+        #print("Total Minute: {}".format(str(timer_minute)))
+        #print("Total Second: {}".format(str(timer_second)))
 
         # Minute directory check - Move files in currMinuteDir to prevMinuteDir, if prevMinuteDir exists, delete all contents and store new files in there (new thread)
-        if frame_counter >= 60:#if total_timer_minute < 60 and total_timer_minute > 59.5:
+        if timer_minute >= 59.5:
             previous_minute_directory_list = os.listdir(PREVIOUS_MINUTE_DIRECTORY)
             current_minute_directory_list = os.listdir(CURRENT_MINUTE_DIRECTORY)
             for previous_frame in previous_minute_directory_list:
@@ -225,16 +220,16 @@ def Main(programTime=None):
                 print(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame))
                 os.rename(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame), os.path.join(PREVIOUS_MINUTE_DIRECTORY, current_frame))
                 print(os.path.join(PREVIOUS_MINUTE_DIRECTORY, current_frame))
-            frame_counter = 0
+            ClarityCapture()
+            time.sleep(0.5)
 
         # Capture Image
-        if total_timer_second < 1 and total_timer_second > 0.95:
+        if timer_second >= 0.9:
             current_time = datetime.now(timezone("America/Chicago")).strftime(DATE_AND_TIME_FORMAT)
             filename_safe_current_time = current_time.replace(":", "-")
             current_frame_name = str(global_var.RPID) + "_capture_[" + filename_safe_current_time + "].jpg"
             current_frame_name_full_path = CURRENT_MINUTE_DIRECTORY + current_frame_name
             cv2.imwrite(current_frame_name_full_path, frame)
-            frame_counter += 1
         
         # Clear Stream
         RAW_CAPTURE.truncate(0)
@@ -250,7 +245,6 @@ if __name__ == '__main__':
     finally: os.mkdir(CURRENT_MINUTE_DIRECTORY)
     if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY)
     if not os.path.isdir(CLARITY_DIRECTORY): os.mkdir(CLARITY_DIRECTORY)
-    InitializeCamera()
     Main()
 else:
     try: shutil.rmtree(PREVIOUS_MINUTE_DIRECTORY)
@@ -261,4 +255,3 @@ else:
     finally: os.mkdir(CURRENT_MINUTE_DIRECTORY)
     if not os.path.isdir(DETECTION_DIRECTORY): os.mkdir(DETECTION_DIRECTORY)
     if not os.path.isdir(CLARITY_DIRECTORY): os.mkdir(CLARITY_DIRECTORY)
-    InitializeCamera()
