@@ -192,7 +192,7 @@ def Main(programTime=None):
             
             # Capture intrusion thread
             if INTRUSION_THREAD == None or not INTRUSION_THREAD.isAlive():
-                INTRUSION_THREAD = Thread(target = CaptureIntrusion, args = (filename_safe_current_time, current_frame_name, 4, ))
+                INTRUSION_THREAD = Thread(target=CaptureIntrusion, args=(filename_safe_current_time, current_frame_name, 4))
                 INTRUSION_THREAD.setDaemon(True)
                 INTRUSION_THREAD.start()
                 

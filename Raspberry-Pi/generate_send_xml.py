@@ -170,19 +170,19 @@ def Main():
             with open(json_file, "w+") as status: json.dump(json_format, status, indent = 4)
                 
             # Send JSON in new thread
-            if SEND_STATUS_THREAD == None or not SEND_STATUS_THREAD.isAlive():
+            if SEND_STATUS_THREAD is None or not SEND_STATUS_THREAD.isAlive():
                 SEND_STATUS_THREAD = Thread(target=get_and_send_status, args=())
                 SEND_STATUS_THREAD.setDaemon(True)
                 SEND_STATUS_THREAD.start()
                 
             # Send images in new thread
-            if SEND_IMAGES_THREAD == None or not SEND_IMAGES_THREAD.isAlive():
+            if SEND_IMAGES_THREAD is None or not SEND_IMAGES_THREAD.isAlive():
                 SEND_IMAGES_THREAD = Thread(target=get_and_send_images, args=())
                 SEND_IMAGES_THREAD.setDaemon(True)
                 SEND_IMAGES_THREAD.start()
 
             # Send a single image in new thread
-            if SEND_CLARITY_THREAD == None or not SEND_CLARITY_THREAD.isAlive():
+            if SEND_CLARITY_THREAD is None or not SEND_CLARITY_THREAD.isAlive():
                SEND_CLARITY_THREAD = Thread(target=get_and_send_clarity, args=())
                SEND_CLARITY_THREAD.setDaemon(True)
                SEND_CLARITY_THREAD.start()
@@ -192,8 +192,7 @@ def Main():
             print("File transfers moved to a background thread...\nMain thread is now on standby for {0:.2} seconds...\n".format(str((60.0 - timer))))
             time.sleep(60.0 - timer)
         # while end
-    finally:
-        CAMERA_THREAD.join()
+    finally: CAMERA_THREAD.join()
 # Main() end
 
 if __name__ == "__main__":

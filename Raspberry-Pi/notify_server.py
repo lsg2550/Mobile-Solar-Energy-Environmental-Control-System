@@ -4,24 +4,23 @@ import global_var
 import requests
 
 def notification_for_thresholds(battery_voltage_value, battery_current_value,
-                   solar_panel_voltage_value, solar_panel_current_value,
-                   charge_controller_current_value,
-                   temperature_inner_value, temperature_outer_value,
-                   humidity_inner_value, humidity_outer_value,
-                   threshold_battery_voltage_lower, threshold_battery_voltage_upper,
-                   threshold_battery_current_lower, threshold_battery_current_upper,
-                   threshold_solar_panel_voltage_lower, threshold_solar_panel_voltage_upper,
-                   threshold_solar_panel_current_lower, threshold_solar_panel_current_upper,
-                   threshold_charge_controller_current_lower, threshold_charge_controller_current_upper,
-                   threshold_temperature_inner_lower, threshold_temperature_inner_upper,
-                   threshold_temperature_outer_lower, threshold_temperature_outer_upper,
-                   threshold_humidity_inner_lower, threshold_humidity_outer_lower,
-                   threshold_humidity_inner_upper, threshold_humidity_outer_upper):
+                                solar_panel_voltage_value, solar_panel_current_value,
+                                charge_controller_current_value,
+                                temperature_inner_value, temperature_outer_value,
+                                humidity_inner_value, humidity_outer_value,
+                                threshold_battery_voltage_lower, threshold_battery_voltage_upper,
+                                threshold_battery_current_lower, threshold_battery_current_upper,
+                                threshold_solar_panel_voltage_lower, threshold_solar_panel_voltage_upper,
+                                threshold_solar_panel_current_lower, threshold_solar_panel_current_upper,
+                                threshold_charge_controller_current_lower, threshold_charge_controller_current_upper,
+                                threshold_temperature_inner_lower, threshold_temperature_inner_upper,
+                                threshold_temperature_outer_lower, threshold_temperature_outer_upper,
+                                threshold_humidity_inner_lower, threshold_humidity_outer_lower,
+                                threshold_humidity_inner_upper, threshold_humidity_outer_upper):
     try:
         current_hour = int(datetime.now().strftime("%H")) # Uses military hours (0-23)
         if current_hour >= 9 and current_hour <= 16:
-            print("Contacting server for threshold notification...")            
-            
+            print("Contacting server for threshold notification...")
             if battery_voltage_value <= threshold_battery_voltage_lower or battery_voltage_value >= threshold_battery_voltage_upper:
                 global_var.PIPAYLOAD["noti"] = "bvoltage"
                 global_var.PIPAYLOAD["valu"] = battery_voltage_value
