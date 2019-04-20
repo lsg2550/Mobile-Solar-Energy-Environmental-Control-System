@@ -21,31 +21,31 @@ if(mysqli_num_rows($resultCurrentThresholds) > 0) {
         
         switch ($tempVitalName) {
             case "BatteryVoltage":
-                $tempVitalName = "Battery Voltage";
+                $tempVitalName = "Battery Voltage (V)";
                 break;
             case "BatteryCurrent":
-                $tempVitalName = "Battery Current";
+                $tempVitalName = "Battery Current (mA)";
                 break;
             case "SolarPanelVoltage":
-                $tempVitalName = "PV Voltage";
+                $tempVitalName = "PV Voltage (V)";
                 break;
             case "SolarPanelCurrent":
-                $tempVitalName = "PV Current";
+                $tempVitalName = "PV Current (mA)";
                 break;
             case "ChargeControllerCurrent":
-                $tempVitalName = "Charge Controller Current";
+                $tempVitalName = "Charge Controller Current (mA)";
                 break;
             case "TemperatureInner":
-                $tempVitalName = "Temperature Inner";
+                $tempVitalName = "Inside Temperature (C)";
                 break;
             case "TemperatureOuter":
-                $tempVitalName = "Temperature Outer";
+                $tempVitalName = "Outside Temperature (C)";
                 break;
             case "HumidityInner":
-                $tempVitalName = "Humidity Inner";
+                $tempVitalName = "Inside Humidity (g/m3)";
                 break;
             case "HumidityOuter":
-                $tempVitalName = "Humidity Outer";
+                $tempVitalName = "Outside Humidity (g/m3)";
                 break;
             default:
                 $tempVitalName = "SKIP";
