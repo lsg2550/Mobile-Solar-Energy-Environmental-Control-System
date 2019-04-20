@@ -7,8 +7,6 @@
     "spvoltageupper":"18",
     "spcurrentlower":"1000",
     "spcurrentupper":"8000",
-    "ccvoltagelower":"16",
-    "ccvoltageupper":"20",
     "cccurrentlower":"1000",
     "cccurrentupper":"10000",
     "temperatureinnerlower":20,
