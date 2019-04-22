@@ -52,6 +52,8 @@ def ClarityCapture():
     cv2.imwrite(CLARITY_DIRECTORY + filename_clarity, frame_threshold)
 
 def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
+    print("Motion capture starting...")    
+    
     # Create a detection directory for this instance of motion detected
     detection_and_filename_path = DETECTION_DIRECTORY + str(global_var.RPID) + "_[" + filenameSafeCurrentTime + "]" 
     if not os.path.isdir(detection_and_filename_path): os.mkdir(detection_and_filename_path)
@@ -62,6 +64,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
     current_frame_index = CURRENT_MINUTE_DIRECTORY.find(frameName) # Find the frame index where motion was detected
     index_counter = 0 # Counter to keep track of how many frames we collect before and after motion detection
 
+    print("Grabbing N frames before motion...")
     # Grab N frames before motion was detected
     try:
         for current_minute_frame in current_minute_directory_list[current_frame_index:current_frame_index - secondsThreshold:-1]:
@@ -77,6 +80,7 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
                 index_counter += 1
         except Exception as e: pass # Movement has been caught in the beginning of the loop (or some other issue occured) - thus there are no images to grab in the previous directory
 
+    print("Grabbing N frames after motion...")
     # Grab N frames after motion was detected
     timeout_max = 15
     timeout_counter = 0
@@ -129,7 +133,8 @@ def CaptureIntrusion(filenameSafeCurrentTime, frameName, secondsThreshold):
         else: 
             timeout_counter += 1
             if timeout_counter == timeout_max: break
-            
+    
+    print("Done capturing motion...")
     # Reqest Notification from CMS
     notify_server.notification_for_motion()
 
@@ -152,7 +157,6 @@ def Main(programTime=None):
     first_frame = None # This frame is used to compare against the next frame to determine changes (or motion) between the frames
 
     # Begin monitoring
-    frame_counter = 0
     for image in RAW_CAMERA.capture_continuous(RAW_CAPTURE, format="bgr", use_video_port=True):
         frame = image.array
         CLARITY_CAPTURE = frame.copy()
@@ -191,7 +195,7 @@ def Main(programTime=None):
             cv2.imwrite(current_frame_name_full_path, frame)
             
             # Capture intrusion thread
-            if INTRUSION_THREAD == None or not INTRUSION_THREAD.isAlive():
+            if INTRUSION_THREAD is None or not INTRUSION_THREAD.isAlive():
                 INTRUSION_THREAD = Thread(target=CaptureIntrusion, args=(filename_safe_current_time, current_frame_name, 4))
                 INTRUSION_THREAD.setDaemon(True)
                 INTRUSION_THREAD.start()
@@ -214,12 +218,13 @@ def Main(programTime=None):
             previous_minute_directory_list = os.listdir(PREVIOUS_MINUTE_DIRECTORY)
             current_minute_directory_list = os.listdir(CURRENT_MINUTE_DIRECTORY)
             for previous_frame in previous_minute_directory_list:
-                print(os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_frame))
+                #print(os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_frame))
                 os.unlink(os.path.join(PREVIOUS_MINUTE_DIRECTORY, previous_frame))
             for current_frame in current_minute_directory_list:
-                print(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame))
+                #print(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame))
                 os.rename(os.path.join(CURRENT_MINUTE_DIRECTORY, current_frame), os.path.join(PREVIOUS_MINUTE_DIRECTORY, current_frame))
-                print(os.path.join(PREVIOUS_MINUTE_DIRECTORY, current_frame))
+                #print(os.path.join(PREVIOUS_MINUTE_DIRECTORY, current_frame))
+            print("Taking clarity capture...")
             ClarityCapture()
             time.sleep(0.5)
 
