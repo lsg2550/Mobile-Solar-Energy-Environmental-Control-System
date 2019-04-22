@@ -16,7 +16,7 @@ function generateRPISelect() {
     require_once("../../index_files/connect.php");
 
     //Database Queries
-    $currentUser = $_SESSION['username']; //Get Current User Name
+    $currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Get Current User Name
     $sqlRPis = "SELECT rpiID FROM rpi WHERE owner='{$currentUser}';"; // Select all RPis belonging to the current user
 
     //Execute Queries

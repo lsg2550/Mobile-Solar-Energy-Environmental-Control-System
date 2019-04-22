@@ -6,10 +6,10 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
 
 //Database Queries
-$currentUser = $_SESSION['username']; //Get Current User Name
+$currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Get Current User Name
 $sqlCurrentStatus = "SELECT VN, V1, V2, TS, RPID FROM status NATURAL JOIN vitals WHERE USR='{$currentUser}';"; //Select all current status related to the current user
 $resultCurrentStatus = mysqli_query($conn, $sqlCurrentStatus);
-if (!$resultCurrentStatus || mysqli_num_rows($resultCurrentStatus) == 0) {return;}
+if (!$resultCurrentStatus || mysqli_num_rows($resultCurrentStatus) == 0) { doNothing(); }
 
 //Store CurrentStatus Query Results into $arrayCurrentStatus
 $arrayCurrentStatus = array();

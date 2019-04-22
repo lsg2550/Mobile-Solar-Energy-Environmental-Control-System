@@ -6,7 +6,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
 
 //Database Queries
-$currentUser = $_SESSION['username']; //Get Current User Name
+$currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Get Current User Name
 $sqlVitalsCurrentThresholds = "SELECT VN, VL, VU, RPID FROM vitals WHERE USR='{$currentUser}' ORDER BY VN;"; //Select vital settings (lower & upper limits) to display and allow user to change those vital settings
 
 //Execute Queries
@@ -24,16 +24,16 @@ if(mysqli_num_rows($resultCurrentThresholds) > 0) {
                 $tempVitalName = "Battery Voltage (V)";
                 break;
             case "BatteryCurrent":
-                $tempVitalName = "Battery Current (mA)";
+                $tempVitalName = "Battery Current (A)";
                 break;
             case "SolarPanelVoltage":
                 $tempVitalName = "PV Voltage (V)";
                 break;
             case "SolarPanelCurrent":
-                $tempVitalName = "PV Current (mA)";
+                $tempVitalName = "PV Current (A)";
                 break;
             case "ChargeControllerCurrent":
-                $tempVitalName = "Charge Controller Current (mA)";
+                $tempVitalName = "Charge Controller Current (A)";
                 break;
             case "TemperatureInner":
                 $tempVitalName = "Inside Temperature (C)";

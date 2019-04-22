@@ -6,7 +6,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
 require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 
 //Session
-$currentUser = $_SESSION["username"]; //Current User
+$currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Current User
 
 //POST
 $vitals = [isset($_POST["vital1"]) ? $_POST["vital1"] : '', isset($_POST["vital2"]) ? $_POST["vital2"] : '', isset($_POST["vital3"]) ? $_POST["vital3"] : '', isset($_POST["vital4"]) ? $_POST["vital4"] : '', isset($_POST["vital5"]) ? $_POST["vital5"] : '']; //Vitals the user selected to view

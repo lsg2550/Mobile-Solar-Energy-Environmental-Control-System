@@ -6,7 +6,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
 
 //Database Queries
-$currentUser = $_SESSION["username"]; //Current User
+$currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Current User
 $sqlLog = "SELECT V.VN, TYP, l.RPID, V1, V2, TS FROM log AS l NATURAL JOIN vitals AS V WHERE l.USR='{$currentUser}' ORDER BY l.RPID, l.TS DESC;"; //Select all logs related to the current user
 
 //Execute Queries
