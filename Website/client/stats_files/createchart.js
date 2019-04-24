@@ -24,10 +24,14 @@ function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, da
                             time: {
                                 unit: 'minute',
                                 unitStepSize: dataInterval,
-                                displayFormats: { minute: 'MMM D, YYYY h:mm:ss a' }
+                                tooltipFormat: 'MMM D, YYYY h:mm:ss a',
+                                //displayFormats: 'MMM D, YYYY h:mm:ss a',
+                                /*{ 
+                                    //minute: 'MMM D, YYYY h:mm:ss a' 
+                                }*/
                             },
                             ticks: {
-                                fontSize: 10, 
+                                fontSize: 12, 
                                 minRotation: 0, 
                                 maxRotation: 0,
                                 autoSkip: true,
@@ -36,19 +40,6 @@ function createchart(chartID, chartType, xAxisLabels, dataLabels, dataValues, da
                         }]
                     },
                     maintainAspectRatio: false,
-                }
-            });
-            break;
-        case "doughnut":
-            var doughnutChart = new Chart(ctx, {
-                type: chartType,
-                data: {
-                    labels: dataLabels,
-                    datasets: processDatasets(dataLabels, dataValues, dataCount, chartType)
-                },
-                options: {
-                    title: { display: true, text: "Sensor('s) Quality Ratio" },
-                    cutoutPercentage: 50
                 }
             });
             break;
@@ -79,7 +70,47 @@ function processDatasets(dataLabels, dataValues, dataCount, chartType) {
     switch (chartType) {
         case "line":
             for (let index = 0; index < dataCount; index++) {
-                hexColorCode = createRandomHex();
+                //hexColorCode = createRandomHex();
+
+                // This line of code is due to a request to hardcode colors for each node
+                switch (dataLabels[index]) {
+                    case "Battery Voltage":
+                        hexColorCode = "#ffbf00";
+                        break;
+                    case "Battery Current":
+                        hexColorCode = "#bc8d00";
+                        break;
+                    case "PV Voltage":
+                        hexColorCode = "#ff5d00";
+                        break;
+                    case "PV Current":
+                        hexColorCode = "#bc4500";
+                        break;
+                    case "CC Current":
+                        hexColorCode = "#ff0000";
+                        break;
+                    case "Inside Temperature":
+                        hexColorCode = "#1d00ff";
+                        break;
+                    case "Inside Humidity":
+                        hexColorCode = "#5c47ff";
+                        break;
+                    case "Outside Temperature":
+                        hexColorCode = "#00ff7b";
+                        break;
+                    case "Outside Humidity":
+                        hexColorCode = "#47ffa0";
+                        break;
+                    case "Clarity":
+                        hexColorCode = "#7bc3c4";
+                        break;
+                    case "Exhaust":
+                        hexColorCode = "#7a827e";
+                        break;
+                    default:
+                        break;
+                }
+
                 data.push({
                     label: dataLabels[index],
                     data: dataValues[index],
@@ -88,15 +119,6 @@ function processDatasets(dataLabels, dataValues, dataCount, chartType) {
                     fill: false
                 });
             }
-            break;
-        case "doughnut":
-            hexColorCode = createRandomHex(dataCount);
-            data.push({
-                label: dataLabels,
-                data: dataValues,
-                borderColor: hexColorCode,
-                backgroundColor: hexColorCode,
-            });
             break;
         default:
             break;

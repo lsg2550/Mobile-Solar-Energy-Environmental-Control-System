@@ -79,7 +79,7 @@ function generateRPISelect() {
                             <input type="time" class="time-range" id="time-end-select" name="time_end" value="17:00" required>
 
                             <!-- Select Time Interval -->
-                            <label for="time-interval">Time Interval:</label>
+                            <label for="time-interval">Major Tick Interval:</label>
                             <select id="time-interval" name="time_interval" >
                                 <option value="30">30 Minutes</option>
                                 <option value="60">1 Hour</option>
@@ -98,9 +98,11 @@ function generateRPISelect() {
                             <label>Vitals:</label>
                             <label>Battery</label><input type="checkbox" name="vital1" value="battery" checked> <!-- Voltage/Current -->
                             <label>PV</label><input type="checkbox" name="vital2" value="solar" checked> <!-- Voltage/Current -->
-                            <label>Temperature</label><input type="checkbox" name="vital3" value="temperature" checked> <!-- Inner/Outer -->
-                            <label>Humidity</label><input type="checkbox" name="vital4" value="humidity" checked> <!-- Inner/Outer -->
-                            <label>Exhaust</label><input type="checkbox" name="vital5" value="exhaust" checked> <!-- Single -->
+                            <label>CC</label><input type="checkbox" name="vital3" value="charge" checked> <!-- Current -->
+                            <label>Temperature</label><input type="checkbox" name="vital4" value="temperature" checked> <!-- Inner/Outer -->
+                            <label>Humidity</label><input type="checkbox" name="vital5" value="humidity" checked> <!-- Inner/Outer -->
+                            <label>Clarity</label><input type="checkbox" name="vital6" value="clarity" checked> <!-- Clarity-->
+                            <label>Exhaust</label><input type="checkbox" name="vital7" value="exhaust" checked> <!-- Single -->
                             <br />
 
                             <!-- Submit -->

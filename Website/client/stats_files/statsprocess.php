@@ -9,7 +9,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 $currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Current User
 
 //POST
-$vitals = [isset($_POST["vital1"]) ? $_POST["vital1"] : '', isset($_POST["vital2"]) ? $_POST["vital2"] : '', isset($_POST["vital3"]) ? $_POST["vital3"] : '', isset($_POST["vital4"]) ? $_POST["vital4"] : '', isset($_POST["vital5"]) ? $_POST["vital5"] : '']; //Vitals the user selected to view
+$vitals = [isset($_POST["vital1"]) ? $_POST["vital1"] : '', isset($_POST["vital2"]) ? $_POST["vital2"] : '', isset($_POST["vital3"]) ? $_POST["vital3"] : '', isset($_POST["vital4"]) ? $_POST["vital4"] : '', isset($_POST["vital5"]) ? $_POST["vital5"] : '', isset($_POST["vital6"]) ? $_POST["vital6"] : '', isset($_POST["vital7"]) ? $_POST["vital7"] : '']; //Vitals the user selected to view
 $dateStart = $_POST["date_start"]; //Starting date of logs/timestamps
 $dateEnd = $_POST["date_end"]; //Ending date of logs/timestamps
 $timeStart = date("H:i:s", strtotime($_POST["time_start"])); //Starting time of logs/timestamps
@@ -30,6 +30,9 @@ foreach ($vitals as $var) {
         case 'solar':
             $arrayVitals["SolarPanelVoltage"] = "SolarPanelVoltage";
             $arrayVitals["SolarPanelCurrent"] = "SolarPanelCurrent";
+            break;
+        case 'charge':
+            $arrayVitals["ChargeControllerCurrent"] = "ChargeControllerCurrent";
             break;
         case 'temperature':
             $arrayVitals["TemperatureInner"] = "TemperatureInner";
@@ -57,31 +60,28 @@ $arrayLogTS = array(); //This array will contain all the timestamps according to
 
 foreach ($arrayVitals as $vitalname) {
     $sqlLog = "SELECT V.VN, V1, DATE(TS) as DStamp, TIME(TS) as TStamp FROM log AS l NATURAL JOIN vitals AS V
-        WHERE l.USR='{$currentUser}'
-        AND l.RPID='{$rpi}'
-        AND TYP='ST'
-        AND V.VN='{$vitalname}'
-        AND TS BETWEEN '{$dateStart}' AND '{$dateEnd}'
-        ORDER BY TS ASC;";
+                WHERE l.USR='{$currentUser}'
+                AND l.RPID='{$rpi}'
+                AND TYP='ST'
+                AND V.VN='{$vitalname}'
+                AND DATE(TS) BETWEEN '{$dateStart}' AND '{$dateEnd}'
+                AND TIME(TS) BETWEEN '{$timeStart}' AND '{$timeEnd}'
+                ORDER BY TS ASC;";
     $resultLog = mysqli_query($conn, $sqlLog);
 
     if (!$resultLog || mysqli_num_rows($resultLog) == 0) { continue; } //If resultlog returned an error or no rows, continue to the next vital
-
+    
     while ($row = mysqli_fetch_assoc($resultLog)) {
-        $vitalTS = new DateTime($row['DStamp'] . $row['TStamp'], new DateTimeZone("America/Chicago"));
-        $timeFromVitalTS = date("H:i:s", strtotime($vitalTS->format('Y-m-d H:i:s'))); //Convert $vitalTS (datetime object) to a date object extracting time - for comparison against $timestart and $timeend
-        if ($timeFromVitalTS >= $timeStart && $timeFromVitalTS <= $timeEnd) { 
-            $arrayLogVitals[$row['VN']][] = $row['V1'];
-            $arrayLogTS[$row['VN']][] = $vitalTS->format('Y-m-d H:i:s');
-        }
+        $arrayLogVitals[$row['VN']][] = $row['V1'];
+        $arrayLogTS[$row['VN']][] = $row['DStamp'] . " " . $row['TStamp'];
     }
 }
 
 //Debug
-// debug($arrayLogVitals);
-// debug($arrayLogTS);
+//debug($arrayLogVitals);
+//debug($arrayLogTS);
 
-if (empty($arrayLogTS) && empty($arrayLogVital) && empty($arrayLogVitalName)) { outputError("Sorry! No data was found for the corresponding date and time!"); } //If nothing was found from the DB, then tell the user that nothing was found
+if (empty($arrayLogTS) && empty($arrayLogVital)) { outputError("Sorry! No data was found for the corresponding date and time!"); } //If nothing was found from the DB, then tell the user that nothing was found
 
 //Output
 if ($chartOrCSV == "chart") {  
@@ -118,6 +118,10 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
                 $arrayLogVitals["PV Current"] = $arrayLogVitals[$vitalName];
                 unset($arrayLogVitals[$vitalName]);
                 break;
+            case 'ChargeControllerCurrent':
+                $arrayLogVitals["CC Current"] = $arrayLogVitals[$vitalName];
+                unset($arrayLogVitals[$vitalName]);
+                break;
             case 'TemperatureInner':
                 $arrayLogVitals["Inside Temperature"] = $arrayLogVitals[$vitalName];
                 unset($arrayLogVitals[$vitalName]);
@@ -133,6 +137,11 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
             case 'HumidityOuter':
                 $arrayLogVitals["Outside Humidity"] = $arrayLogVitals[$vitalName];
                 unset($arrayLogVitals[$vitalName]);
+                break;
+            case 'Clarity':
+                $temporaryClarity = $arrayLogVitals[$vitalName];
+                unset($arrayLogVitals[$vitalName]);
+                $arrayLogVitals["Clarity"] = $temporaryClarity;
                 break;
             case 'Exhaust':
                 $temporaryExhaust = $arrayLogVitals[$vitalName];
@@ -177,10 +186,10 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
     // debug($arrayLogVitals); //Debug
 
     //Calculate Inside and Outside Sensor Successful Read Ratio
-    $innerKeyCount = count($arrayLogVitals["Inside Temperature"]) + count($arrayLogVitals["Inside Humidity"]);
-    $outerKeyCount = count($arrayLogVitals["Outside Temperature"]) + count($arrayLogVitals["Outside Humidity"]);
-    $optimalTemperatureRatio = [ "InnerSensor" => (($innerKeyCount - $optimalTemperatureRatio["InnerSensor"]) / $innerKeyCount),
-                                 "OuterSensor" => (($outerKeyCount - $optimalTemperatureRatio["OuterSensor"]) / $outerKeyCount) ];
+
+    $innerKeyCount = (isset($arrayLogVitals["Inside Temperature"])) ? count($arrayLogVitals["Inside Temperature"]) + count($arrayLogVitals["Inside Humidity"]) : doNothing();
+    $outerKeyCount = (isset($arrayLogVitals["Outside Temperature"])) ? count($arrayLogVitals["Outside Temperature"]) + count($arrayLogVitals["Outside Humidity"]) : doNothing();
+    $optimalTemperatureRatio = (isset($arrayLogVitals["Inside Temperature"]) && isset($arrayLogVitals["Outside Temperature"])) ? [ "InnerSensor" => (($innerKeyCount - $optimalTemperatureRatio["InnerSensor"]) / $innerKeyCount), "OuterSensor" => (($outerKeyCount - $optimalTemperatureRatio["OuterSensor"]) / $outerKeyCount) ] : doNothing();
     // debug($optimalTemperatureRatio); //Debug
 
     echo "<canvas class='charts-canvas' id='primary-chart'></canvas>";
@@ -213,9 +222,6 @@ function outputCSV($arrayLogVitals, $arrayLogTS) {
     echo $csvFolderName . $csvFileName;
 }
 
-function outputSensorSuccessRatio($optimalTemperatureRatio) {
-}
-
 function convertDateTimeToTimeStamp($arrOrSingleTimeStamp) {
     $convertedDateTimeArray = array();
 
@@ -230,7 +236,6 @@ function convertDateTimeToTimeStamp($arrOrSingleTimeStamp) {
 
 function outputError($message){
     echo "<h2 style='display: inline-block; text-align: center;'>{$message}</h2>";
-    outputSensorSuccessRatio(NULL);
     exit();
 }
 ?>
