@@ -6,7 +6,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
 require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 
 //Session
-$currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Current User
+$currentUID = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Current User
 
 //POST
 $vitals = [isset($_POST["vital1"]) ? $_POST["vital1"] : '', isset($_POST["vital2"]) ? $_POST["vital2"] : '', isset($_POST["vital3"]) ? $_POST["vital3"] : '', isset($_POST["vital4"]) ? $_POST["vital4"] : '', isset($_POST["vital5"]) ? $_POST["vital5"] : '', isset($_POST["vital6"]) ? $_POST["vital6"] : '', isset($_POST["vital7"]) ? $_POST["vital7"] : '']; //Vitals the user selected to view
@@ -59,21 +59,21 @@ $arrayLogVitals = array(); //This array will contain the vital names as keys tha
 $arrayLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
 
 foreach ($arrayVitals as $vitalname) {
-    $sqlLog = "SELECT V.VN, V1, DATE(TS) as DStamp, TIME(TS) as TStamp FROM log AS l NATURAL JOIN vitals AS V
-                WHERE l.USR='{$currentUser}'
-                AND l.RPID='{$rpi}'
-                AND TYP='ST'
-                AND V.VN='{$vitalname}'
-                AND DATE(TS) BETWEEN '{$dateStart}' AND '{$dateEnd}'
-                AND TIME(TS) BETWEEN '{$timeStart}' AND '{$timeEnd}'
-                ORDER BY TS ASC;";
+    $sqlLog = "SELECT V.vn, v1, DATE(ts) as DStamp, TIME(ts) as TStamp FROM log AS L NATURAL JOIN vitals AS V
+                WHERE L.uid='{$currentUID}'
+                AND L.rpid='{$rpi}'
+                AND typ='ST'
+                AND V.vn='{$vitalname}'
+                AND DATE(ts) BETWEEN '{$dateStart}' AND '{$dateEnd}'
+                AND TIME(ts) BETWEEN '{$timeStart}' AND '{$timeEnd}'
+                ORDER BY ts ASC;";
     $resultLog = mysqli_query($conn, $sqlLog);
 
     if (!$resultLog || mysqli_num_rows($resultLog) == 0) { continue; } //If resultlog returned an error or no rows, continue to the next vital
     
     while ($row = mysqli_fetch_assoc($resultLog)) {
-        $arrayLogVitals[$row['VN']][] = $row['V1'];
-        $arrayLogTS[$row['VN']][] = $row['DStamp'] . " " . $row['TStamp'];
+        $arrayLogVitals[$row['vn']][] = $row['v1'];
+        $arrayLogTS[$row['vn']][] = $row['DStamp'] . " " . $row['TStamp'];
     }
 }
 
@@ -200,12 +200,12 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
 
 function outputCSV($arrayLogVitals, $arrayLogTS) {
     //global
-    global $currentUser;
+    global $currentUID;
 
     //Create CSV
     $csvServerRoot = $_SERVER['DOCUMENT_ROOT'];
     $csvFolderName = "/clientcsv/";
-    $csvFileName = substr(hash("md5", $currentUser), 0, 8) . "_logs.csv";
+    $csvFileName = substr(hash("md5", $currentUID), 0, 8) . "_logs.csv";
     $csvFile = fopen($csvServerRoot . $csvFolderName . $csvFileName, "w");
 
     foreach ($arrayLogVitals as $vitalName => $vitalArray) {

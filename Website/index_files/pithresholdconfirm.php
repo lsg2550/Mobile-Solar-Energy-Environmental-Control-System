@@ -17,47 +17,47 @@
         $thresholdDictionary = new stdClass();
 
         // Query database for the RPi's thresholds
-        $sqlSelectRPiThresholds = "SELECT VN, VL, VU FROM vitals WHERE RPID='{$RASPBERRY_PI_ID}';";
+        $sqlSelectRPiThresholds = "SELECT vn, vl, vu FROM vitals WHERE rpid='{$RASPBERRY_PI_ID}';";
         $resultSelectRPiThresholds = mysqli_query($conn, $sqlSelectRPiThresholds);
 
         // From results, get the thresholds of every vital and store them into the threshold dictionary
         while($vital = mysqli_fetch_assoc($resultSelectRPiThresholds)) {
-            switch($vital["VN"]) {
+            switch($vital["vn"]) {
                 case "BatteryVoltage":
-                    $thresholdDictionary->voltagelower = $vital["VL"];
-                    $thresholdDictionary->voltageupper = $vital["VU"];
+                    $thresholdDictionary->voltagelower = $vital["vl"];
+                    $thresholdDictionary->voltageupper = $vital["vu"];
                     break;
                 case "BatteryCurrent":
-                    $thresholdDictionary->currentlower = $vital["VL"];
-                    $thresholdDictionary->currentupper = $vital["VU"];
+                    $thresholdDictionary->currentlower = $vital["vl"];
+                    $thresholdDictionary->currentupper = $vital["vu"];
                     break;
                 case "SolarPanelVoltage":
-                    $thresholdDictionary->spvoltagelower = $vital["VL"];
-                    $thresholdDictionary->spvoltageupper = $vital["VU"];
+                    $thresholdDictionary->spvoltagelower = $vital["vl"];
+                    $thresholdDictionary->spvoltageupper = $vital["vu"];
                     break;
                 case "SolarPanelCurrent":
-                    $thresholdDictionary->spcurrentlower = $vital["VL"];
-                    $thresholdDictionary->spcurrentupper = $vital["VU"];
+                    $thresholdDictionary->spcurrentlower = $vital["vl"];
+                    $thresholdDictionary->spcurrentupper = $vital["vu"];
                     break;
                 case "ChargeControllerCurrent":
-                    $thresholdDictionary->cccurrentlower = $vital["VL"];
-                    $thresholdDictionary->cccurrentupper = $vital["VU"];
+                    $thresholdDictionary->cccurrentlower = $vital["vl"];
+                    $thresholdDictionary->cccurrentupper = $vital["vu"];
                     break;
                 case "TemperatureInner":
-                    $thresholdDictionary->temperatureinnerlower = $vital["VL"];
-                    $thresholdDictionary->temperatureinnerupper = $vital["VU"];
+                    $thresholdDictionary->temperatureinnerlower = $vital["vl"];
+                    $thresholdDictionary->temperatureinnerupper = $vital["vu"];
                     break;
                 case "TemperatureOuter":
-                    $thresholdDictionary->temperatureouterlower = $vital["VL"];
-                    $thresholdDictionary->temperatureouterupper = $vital["VU"];
+                    $thresholdDictionary->temperatureouterlower = $vital["vl"];
+                    $thresholdDictionary->temperatureouterupper = $vital["vu"];
                     break;                
                 case "HumidityInner":
-                    $thresholdDictionary->humidityinnerlower = $vital["VL"];
-                    $thresholdDictionary->humidityinnerupper = $vital["VU"];
+                    $thresholdDictionary->humidityinnerlower = $vital["vl"];
+                    $thresholdDictionary->humidityinnerupper = $vital["vu"];
                     break;          
                 case "HumidityOuter":
-                    $thresholdDictionary->humidityouterlower = $vital["VL"];
-                    $thresholdDictionary->humidityouterupper = $vital["VU"];
+                    $thresholdDictionary->humidityouterlower = $vital["vl"];
+                    $thresholdDictionary->humidityouterupper = $vital["vu"];
                     break;
                 default:
                     break;

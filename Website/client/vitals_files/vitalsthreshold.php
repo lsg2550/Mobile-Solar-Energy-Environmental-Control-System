@@ -5,7 +5,7 @@
     require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 
     //This php code will update the 'vitals' table for the respective raspberry pi and its user
-    $currentUser = $_SESSION['username']; //Get Current User Name
+    $currentUID = $_SESSION['username']; //Get Current User Name
     $amtOfRPis = count(array_unique($_POST['rpid'])); //Get the amount of RPis to edit
     $amtOfVitals = count($_POST['vitalname']); //Get the amount of Vitals to edit - will be the same count for $vitalupper and $vitallower
     
@@ -29,13 +29,13 @@
             $tempVN = $listOfVitalNames[$counter_j];
 
             //Get VID
-            $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$tempVN}' AND RPID='{$tempRPi}' AND USR='{$currentUser}';";
+            $sqlGetVID = "SELECT vid FROM vitals WHERE vn='{$tempVN}' AND rpid='{$tempRPi}';";
             $resultSqlGetVID = mysqli_query($conn, $sqlGetVID);
-            $tempVID = mysqli_fetch_assoc($resultSqlGetVID)['VID'];
+            $tempVID = mysqli_fetch_assoc($resultSqlGetVID)['vid'];
 
             //Update Database
-            $sqlUpdate = "UPDATE vitals SET VL='{$tempVL}', VU='{$tempVU}' WHERE VN='{$tempVN}' AND RPID='{$tempRPi}' AND USR='{$currentUser}';";
-            $sqlLog = "INSERT INTO `log`(`VID`, `TYP`, `USR`, `RPID`, `V1`, `V2`, `TS`) VALUES ('{$tempVID}', 'UP', '{$currentUser}', '{$tempRPi}', '{$tempVL}', '{$tempVU}', '{$currentTimestamp}');";
+            $sqlUpdate = "UPDATE vitals SET vl='{$tempVL}', vu='{$tempVU}' WHERE vn='{$tempVN}' AND rpid='{$tempRPi}';";
+            $sqlLog = "INSERT INTO log(vid, typ, uid, rpid, v1, v2, ts) VALUES ('{$tempVID}', 'UP', '{$currentUID}', '{$tempRPi}', '{$tempVL}', '{$tempVU}', '{$currentTimestamp}');";
             $resultSqlUpdate = mysqli_query($conn, $sqlUpdate);
             $resultSqlLog = mysqli_query($conn, $sqlLog);
         }

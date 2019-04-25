@@ -17,11 +17,11 @@
     $RASPBERRY_PI_RESULT = $_GET['result']; // TODO: Filter result
 
     // Get owner of the RPi, aka the user
-    $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID={$RASPBERRY_PI_ID}";
+    $sqlGetUser = "SELECT `uid-owner` FROM rpi WHERE rpid={$RASPBERRY_PI_ID}";
     $resultsGetUser = mysqli_query($conn, $sqlGetUser);
-    $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
+    $UID = mysqli_fetch_assoc($resultsGetUser)['uid-owner'];
 
     // Update database with a NO or OK if the Raspberry Pi depending on the RPi's result
-    $sqlUpdateDatabaseWithResult = "INSERT INTO log('TYP', 'USR', 'RPID', 'TS') VALUES ('{$RASPBERRY_PI_RESULT}', '{$USR}', '{$RASPBERRY_PI_ID}', '{$CURRENT_TIMESTAMP}');";
+    $sqlUpdateDatabaseWithResult = "INSERT INTO log(vid, typ, uid, rpid, v1, v2, ts) VALUES ('', '{$RASPBERRY_PI_RESULT}', '{$UID}', '{$RASPBERRY_PI_ID}', '', '', '{$CURRENT_TIMESTAMP}');";
     mysqli_query($conn, $sqlUpdateDatabaseWithResult);
 ?>

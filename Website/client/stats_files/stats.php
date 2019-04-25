@@ -16,8 +16,8 @@ function generateRPISelect() {
     require_once("../../index_files/connect.php");
 
     //Database Queries
-    $currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Get Current User Name
-    $sqlRPis = "SELECT rpiID FROM rpi WHERE owner='{$currentUser}';"; // Select all RPis belonging to the current user
+    $currentUID = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Get Current User Name
+    $sqlRPis = "SELECT rpid FROM rpi WHERE `uid-owner`='{$currentUID}';"; // Select all RPis belonging to the current user
 
     //Execute Queries
     $resultRPis = mysqli_query($conn, $sqlRPis);
@@ -26,7 +26,7 @@ function generateRPISelect() {
     $arrayRPis = array(); 
     if(mysqli_num_rows($resultRPis) > 0) {
         while($row = mysqli_fetch_assoc($resultRPis)) {
-            $arrayRPis[] = $row['rpiID'];
+            $arrayRPis[] = $row['rpid'];
         }
     }
 

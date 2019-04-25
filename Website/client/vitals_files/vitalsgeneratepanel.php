@@ -6,8 +6,8 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
 
 //Database Queries
-$currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Get Current User Name
-$sqlVitalsCurrentThresholds = "SELECT VN, VL, VU, RPID FROM vitals WHERE USR='{$currentUser}' ORDER BY VN;"; //Select vital settings (lower & upper limits) to display and allow user to change those vital settings
+$currentUID = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Get Current User Name
+$sqlVitalsCurrentThresholds = "SELECT vn, vl, vu, rpi.rpid FROM vitals CROSS JOIN rpi WHERE `uid-owner`='{$currentUID}' ORDER BY vn;"; //Select vital settings (lower & upper limits) to display and allow user to change those vital settings
 
 //Execute Queries
 $resultCurrentThresholds = mysqli_query($conn, $sqlVitalsCurrentThresholds);
@@ -17,7 +17,7 @@ if (!$resultCurrentThresholds || mysqli_num_rows($resultCurrentThresholds) == 0)
 $arrayCurrentThreshold = array(); 
 if(mysqli_num_rows($resultCurrentThresholds) > 0) {
     while($row = mysqli_fetch_assoc($resultCurrentThresholds)) {
-        $tempVitalName = $row['VN'];
+        $tempVitalName = $row['vn'];
         
         switch ($tempVitalName) {
             case "BatteryVoltage":
@@ -53,7 +53,7 @@ if(mysqli_num_rows($resultCurrentThresholds) > 0) {
         }
 
         if($tempVitalName !== "SKIP") {
-            $tempRow = "[ {$tempVitalName}, {$row['VL']}, {$row['VU']}, {$row['RPID']}, {$row['VN']} ]"; //Last index is used to store the original name for form processing purposes (see generateVitalTHresholdControlPanel)
+            $tempRow = "[ {$tempVitalName}, {$row['vl']}, {$row['vu']}, {$row['rpid']}, {$row['vn']} ]"; //Last index is used to store the original name for form processing purposes (see generateVitalTHresholdControlPanel)
             $arrayCurrentThreshold[] = $tempRow;
         }
     }

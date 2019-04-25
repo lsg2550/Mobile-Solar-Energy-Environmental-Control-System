@@ -6,8 +6,8 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
 
 //Database Queries
-$currentUser = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Current User
-$sqlLog = "SELECT V.VN, TYP, l.RPID, V1, V2, TS FROM log AS l NATURAL JOIN vitals AS V WHERE l.USR='{$currentUser}' ORDER BY l.RPID, l.TS DESC;"; //Select all logs related to the current user
+$currentUID = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Current User
+$sqlLog = "SELECT V.vn, typ, L.rpid, v1, v2, ts FROM log AS L NATURAL JOIN vitals AS V WHERE L.uid='{$currentUID}' ORDER BY L.rpid, L.ts DESC;"; //Select all logs related to the current user
 
 //Execute Queries
 $resultLog = mysqli_query($conn, $sqlLog);
@@ -18,53 +18,56 @@ $arrayLog = array();
 if (mysqli_num_rows($resultLog) > 0) {
     while ($row = mysqli_fetch_assoc($resultLog)) {
         $tempVOne = "";
-        switch ($row['VN']) {
+        switch ($row['vn']) {
             case 'BatteryVoltage':
-                $row['VN'] = "Battery Voltage";
-                $tempVOne = round($row['V1'], 2) . "V";
+                $row['vn'] = "Battery Voltage";
+                $tempVOne = round($row['v1'], 2) . "V";
                 break;
             case 'SolarPanelVoltage':
-                $row['VN'] = "PV Voltage";
-                $tempVOne = round($row['V1'], 2) . "V";
+                $row['vn'] = "PV Voltage";
+                $tempVOne = round($row['v1'], 2) . "V";
                 break;
             case 'BatteryCurrent':
-                $row['VN'] = "Battery Current";
-                $tempVOne = round($row['V1'], 2) . "A";
+                $row['vn'] = "Battery Current";
+                $tempVOne = round($row['v1'], 2) . "A";
                 break;
             case 'SolarPanelCurrent':
-                $row['VN'] = "PV Current";
-                $tempVOne = round($row['V1'], 2) . "A";
+                $row['vn'] = "PV Current";
+                $tempVOne = round($row['v1'], 2) . "A";
                 break;
             case 'ChargeControllerCurrent':
-                $row['VN'] = "Charge Controller Current";
-                $tempVOne = round($row['V1'], 2) . "A";
+                $row['vn'] = "Charge Controller Current";
+                $tempVOne = round($row['v1'], 2) . "A";
                 break;
             case 'TemperatureInner':
-                $row['VN'] = "Inside Temperature";
-                $tempVOne = round($row['V1'], 2) . "&deg;C";
+                $row['vn'] = "Inside Temperature";
+                $tempVOne = round($row['v1'], 2) . "&deg;C";
                 break;
             case 'TemperatureOuter':
-                $row['VN'] = "Outside Temperature";
-                $tempVOne = round($row['V1'], 2) . "&deg;C";
+                $row['vn'] = "Outside Temperature";
+                $tempVOne = round($row['v1'], 2) . "&deg;C";
                 break;
             case 'HumidityInner':
-                $row['VN'] = "Inside Humidity";
-                $tempVOne = round($row['V1'], 2) . "g/m<sup>3</sup>";
+                $row['vn'] = "Inside Humidity";
+                $tempVOne = round($row['v1'], 2) . "g/m<sup>3</sup>";
                 break;
             case 'HumidityOuter':
-                $row['VN'] = "Outside Humidity";
-                $tempVOne = round($row['V1'], 2) . "g/m<sup>3</sup>";
+                $row['vn'] = "Outside Humidity";
+                $tempVOne = round($row['v1'], 2) . "g/m<sup>3</sup>";
                 break;
             case 'GPS':
-                $tempOne = (round($row['V1'], 2) > 0) ? round($row['V1'], 2) . '&deg;N' : round($row['V1'], 2) . '&deg;S';
-                $tempTwo = (round($row['V2'], 2) > 0) ? round($row['V2'], 2) . '&deg;E' : round($row['V2'], 2) . '&deg;W';
+                $tempOne = (round($row['v1'], 2) > 0) ? round($row['v1'], 2) . '&deg;N' : round($row['v1'], 2) . '&deg;S';
+                $tempTwo = (round($row['v2'], 2) > 0) ? round($row['v2'], 2) . '&deg;E' : round($row['v2'], 2) . '&deg;W';
                 $tempVOne = $tempOne . '&comma;' . $tempTwo;
                 break;
+            case 'Clarity':
+                $tempVOne = round($row['v1'], 2) . "%";
+                break;
             default:
-                $tempVOne = $row['V1'];
+                $tempVOne = $row['v1'];
                 break;
         }
-        $arrayLog[] = "[ {$row['VN']}, {$row['TYP']}, {$row['RPID']}, {$tempVOne}, {$row['TS']} ]";
+        $arrayLog[] = "[ {$row['vn']}, {$row['typ']}, {$row['rpid']}, {$tempVOne}, {$row['ts']} ]";
     }
 }
 ?>

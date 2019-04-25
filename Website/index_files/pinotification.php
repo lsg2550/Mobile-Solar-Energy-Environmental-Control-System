@@ -19,12 +19,12 @@
     $ESSI_TRIGGER_VALUE = $_GET['valu'];
 
     // Get owner (user) from database
-    $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$RASPBERRY_PI_ID}";
+    $sqlGetUser = "SELECT `uid-owner` FROM rpi WHERE rpid={$RASPBERRY_PI_ID}";
     $resultsGetUser = mysqli_query($conn, $sqlGetUser);
-    $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
+    $UID = mysqli_fetch_assoc($resultsGetUser)['uid-owner'];
 
     // Get owner's (user) email from the database
-    $sqlGetEmail = "SELECT email FROM users WHERE username = '{$USR}'";
+    $sqlGetEmail = "SELECT email FROM users WHERE uid='{$UID}'";
     $resultsGetEmail = mysqli_query($conn, $sqlGetEmail);
     $EMAIL = mysqli_fetch_assoc($resultsGetEmail)['email'];
 
@@ -35,16 +35,16 @@
             $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the battery voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
             break;
         case "bcurrent":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the battery current threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the battery current threshold with '{$ESSI_TRIGGER_VALUE}'A!";
             break;
         case "spvoltage":
             $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the pv voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
             break;
         case "spcurrent":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the pv current threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the pv current threshold with '{$ESSI_TRIGGER_VALUE}'A!";
             break;
         case "cccurrent":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the charge controller current threshold with '{$ESSI_TRIGGER_VALUE}'mA!";
+            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the charge controller current threshold with '{$ESSI_TRIGGER_VALUE}'A!";
             break;
         case "temperatureI":
             $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the inside temperature threshold with '{$ESSI_TRIGGER_VALUE}'F!";

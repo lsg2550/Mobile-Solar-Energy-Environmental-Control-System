@@ -9,9 +9,9 @@
         $TYP = "ST";
 
         //Init - Get Username
-        $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = {$_GET["rpid"]}";
+        $sqlGetUser = "SELECT `uid-owner` FROM rpi WHERE rpid={$_GET["rpid"]}";
         $resultsGetUser = mysqli_query($conn, $sqlGetUser);
-        $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
+        $UID = mysqli_fetch_assoc($resultsGetUser)['uid-owner'];
 
         //Load xml files from $listOfXMLFiles & process them - grab data and update database
         $xml = json_decode(file_get_contents($xmlDirectory . $xmlFileName));
@@ -37,13 +37,13 @@
                     }
 
                     //Get VID
-                    $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$VN}' AND RPID='{$RPID}' AND USR='{$USR}';";
+                    $sqlGetVID = "SELECT vid FROM vitals WHERE vn='{$VN}' AND rpid='{$RPID}';";
                     $resultGetVID = mysqli_query($conn, $sqlGetVID);
-                    $VID = mysqli_fetch_assoc($resultGetVID)['VID'];
+                    $VID = mysqli_fetch_assoc($resultGetVID)['vid'];
 
                     //Update DB
-                    $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
-                    $sqlUpdateCurrentStatus = "REPLACE INTO status (VID, V1, V2, TS, USR, RPID) VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$USR}', '{$RPID}');";
+                    $sqlInsertIntoLog = "INSERT INTO log (vid, typ, uid, rpid, v1, v2, ts) VALUES ('{$VID}', '{$TYP}', '{$UID}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
+                    $sqlUpdateCurrentStatus = "REPLACE INTO status (vid, v1, v2, ts, uid, rpid) VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$UID}', '{$RPID}');";
 
                     // Execute SQL queries to update the database
                     mysqli_query($conn, $sqlInsertIntoLog);

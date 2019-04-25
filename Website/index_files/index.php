@@ -11,7 +11,7 @@
     $pass = $_POST['password'];
 
     //Database Queries
-    $sqlValidate = "SELECT username, passwd FROM users WHERE username='{$user}' AND passwd=SHA1('{$pass}');"; //Select username and password from the user given username and password
+    $sqlValidate = "SELECT uid FROM users WHERE username='{$user}' AND passwd=SHA1('{$pass}');"; //Select username and password from the user given username and password
     $resultsValidate = mysqli_query($conn, $sqlValidate); //Execute Query
     if (!$resultsValidate || mysqli_num_rows($resultsValidate) == 0) { 
         // Log login attempt - update db 
@@ -23,12 +23,12 @@
         // Log login attempt - update db
 
         // Check if this user has access elsewhere
-        $sqlHaveAccess = "SELECT USR_ORIG FROM access WHERE USR='{$user}';";
+        $sqlHaveAccess = "SELECT `uid-owner` FROM access WHERE `uid-accessor`='{$uid}';";
         $resultsHaveAccess = mysqli_query($conn, $sqlHaveAccess);
 
-        $_SESSION['username_access'] = mysqli_fetch_assoc($resultsHaveAccess)["USR_ORIG"];
+        $_SESSION['username'] = $uid;
+        $_SESSION['username_access'] = mysqli_fetch_assoc($resultsHaveAccess)["uid-owner"]; // Change this, don't hardcode, there may be a chance that a specific user will have access to multiple RPi!
         $_SESSION['user'] = 1;
-        $_SESSION['username'] = $user;
         header("Location: /client/client.php");
     }
 

@@ -7,6 +7,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
     
 function getImages() {
     global $conn;
+    // Add code to specify users based off of minute directory id
 
     //Get the names of all detection folders
     //$detectFoldersPath = $_SERVER["DOCUMENT_ROOT"] . "/detectdir/";

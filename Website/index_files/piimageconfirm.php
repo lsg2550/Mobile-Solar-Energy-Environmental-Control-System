@@ -18,16 +18,16 @@
         global $RASPBERRY_PI_ID;
 
         // Get owner/user from database
-        $sqlGetUser = "SELECT owner FROM rpi WHERE rpiID = '{$RASPBERRY_PI_ID}'";
+        $sqlGetUser = "SELECT `uid-owner` FROM rpi WHERE rpid='{$RASPBERRY_PI_ID}'";
         $resultsGetUser = mysqli_query($conn, $sqlGetUser);
-        $USR = mysqli_fetch_assoc($resultsGetUser)['owner'];
+        $UID = mysqli_fetch_assoc($resultsGetUser)['uid-owner'];
 
         //Get VID from database
         $VN = "";
         if ($isClarity) { $VN = "Clarity"; } elseif ($isMotion) { $VN = "Photo"; }
-        $sqlGetVID = "SELECT VID FROM vitals WHERE VN='{$VN}' AND RPID='{$RASPBERRY_PI_ID}' AND USR='{$USR}';";
+        $sqlGetVID = "SELECT vid FROM vitals WHERE vn='{$VN}' AND rpid='{$RASPBERRY_PI_ID}';";
         $resultGetVID = mysqli_query($conn, $sqlGetVID);
-        $VID = mysqli_fetch_assoc($resultGetVID)['VID'];
+        $VID = mysqli_fetch_assoc($resultGetVID)['vid'];
 
         // Initialize Variables
         $TYP = "ST";
@@ -38,7 +38,7 @@
         $TS = getTimeStampFromFileName($fileName);
 
         //Update DB
-        $sqlInsertIntoLog = "INSERT INTO log (VID, TYP, USR, RPID, V1, V2, TS) VALUES ('{$VID}', '{$TYP}', '{$USR}', '{$RASPBERRY_PI_ID}', '{$V1}', '{$V2}', '{$TS}');";
+        $sqlInsertIntoLog = "INSERT INTO log (vid, typ, uid, rpid, v1, v2, ts) VALUES ('{$VID}', '{$TYP}', '{$UID}', '{$RASPBERRY_PI_ID}', '{$V1}', '{$V2}', '{$TS}');";
         #echo $sqlInsertIntoLog;
         mysqli_query($conn, $sqlInsertIntoLog);
         
