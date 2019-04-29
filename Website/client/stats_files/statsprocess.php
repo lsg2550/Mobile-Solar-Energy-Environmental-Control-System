@@ -52,14 +52,18 @@ foreach ($vitals as $var) {
             break;
     }
 }
-// debug($arrayVitals); //Debug
+
+//Debug
+//debug($arrayVitals); 
+$start_time = microtime(true);
+$counter = 0;
 
 //Database Queries
 $arrayLogVitals = array(); //This array will contain the vital names as keys that point to an array of the vital name's values
 $arrayLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
 
 foreach ($arrayVitals as $vitalname) {
-    $sqlLog = "SELECT V.vn, v1, DATE(ts) as DStamp, TIME(ts) as TStamp FROM log AS L NATURAL JOIN vitals AS V
+    $sqlLog = "SELECT V.vn, v1, DATE(ts) as DStamp, TIME(ts) as TStamp FROM logs AS L NATURAL JOIN vitals AS V
                 WHERE L.uid='{$currentUID}'
                 AND L.rpid='{$rpi}'
                 AND typ='ST'
@@ -68,26 +72,42 @@ foreach ($arrayVitals as $vitalname) {
                 AND TIME(ts) BETWEEN '{$timeStart}' AND '{$timeEnd}'
                 ORDER BY ts ASC;";
     $resultLog = mysqli_query($conn, $sqlLog);
+    //debug($sqlLog);
 
     if (!$resultLog || mysqli_num_rows($resultLog) == 0) { continue; } //If resultlog returned an error or no rows, continue to the next vital
     
     while ($row = mysqli_fetch_assoc($resultLog)) {
+        $counter += 1;
         $arrayLogVitals[$row['vn']][] = $row['v1'];
         $arrayLogTS[$row['vn']][] = $row['DStamp'] . " " . $row['TStamp'];
     }
 }
 
 //Debug
+$end_time = microtime(true);
+debug("Total time taken to retrieve from database: " . ($end_time - $start_time));
+debug("Total items from database: " . ($counter));
 //debug($arrayLogVitals);
 //debug($arrayLogTS);
 
 if (empty($arrayLogTS) && empty($arrayLogVital)) { outputError("Sorry! No data was found for the corresponding date and time!"); } //If nothing was found from the DB, then tell the user that nothing was found
 
+//Debug
+$start_time = microtime(true);
+
 //Output
 if ($chartOrCSV == "chart") {  
     outputCharts($arrayLogVitals, $arrayLogTS);
+
+    //Debug
+    $end_time = microtime(true);
+    debug("Total time taken to create chart: " . ($end_time - $start_time));
 } else if ($chartOrCSV == "csv") { 
     outputCSV($arrayLogVitals, $arrayLogTS);
+
+    //Debug
+    $end_time = microtime(true);
+    debug("Total time taken to create csv: " . ($end_time - $start_time));
 }
 
 function outputCharts($arrayLogVitals, $arrayLogTS) {

@@ -16,7 +16,7 @@
     //SQL get most recent timestamp
     while($result = mysqli_fetch_assoc($resultGetListOfRPis)) {
         //Get the most recent timestamp of the current RPi
-        $sqlGetMostRecentTimestamp = "SELECT ts FROM log WHERE rpid='{$result['rpid']}' AND typ='ST' ORDER BY TS DESC LIMIT 1;";
+        $sqlGetMostRecentTimestamp = "SELECT ts FROM logs WHERE rpid='{$result['rpid']}' AND typ='ST' ORDER BY TS DESC LIMIT 1;";
         $resultGetMostRecentTimestamp = mysqli_query($conn, $sqlGetMostRecentTimestamp);
         $lastUpdateByRPi = mysqli_fetch_assoc($resultGetMostRecentTimestamp)['ts'];
         if($lastUpdateByRPi == "") { continue; } //If there are no updates by the current RPi, move on to the next one (if any)

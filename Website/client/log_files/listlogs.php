@@ -7,7 +7,7 @@ require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
 
 //Database Queries
 $currentUID = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Current User
-$sqlLog = "SELECT V.vn, typ, L.rpid, v1, v2, ts FROM log AS L NATURAL JOIN vitals AS V WHERE L.uid='{$currentUID}' ORDER BY L.rpid, L.ts DESC;"; //Select all logs related to the current user
+$sqlLog = "SELECT V.vn, typ, L.rpid, v1, v2, ts FROM logs AS L NATURAL JOIN vitals AS V WHERE L.uid='{$currentUID}' ORDER BY L.rpid, L.ts DESC;"; //Select all logs related to the current user
 
 //Execute Queries
 $resultLog = mysqli_query($conn, $sqlLog);

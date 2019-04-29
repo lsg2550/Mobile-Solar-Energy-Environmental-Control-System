@@ -35,7 +35,7 @@
 
             //Update Database
             $sqlUpdate = "UPDATE vitals SET vl='{$tempVL}', vu='{$tempVU}' WHERE vn='{$tempVN}' AND rpid='{$tempRPi}';";
-            $sqlLog = "INSERT INTO log(vid, typ, uid, rpid, v1, v2, ts) VALUES ('{$tempVID}', 'UP', '{$currentUID}', '{$tempRPi}', '{$tempVL}', '{$tempVU}', '{$currentTimestamp}');";
+            $sqlLog = "INSERT INTO logs(vid, typ, uid, rpid, v1, v2, ts) VALUES ('{$tempVID}', 'UP', '{$currentUID}', '{$tempRPi}', '{$tempVL}', '{$tempVU}', '{$currentTimestamp}');";
             $resultSqlUpdate = mysqli_query($conn, $sqlUpdate);
             $resultSqlLog = mysqli_query($conn, $sqlLog);
         }

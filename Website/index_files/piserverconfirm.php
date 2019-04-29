@@ -22,6 +22,6 @@
     $UID = mysqli_fetch_assoc($resultsGetUser)['uid-owner'];
 
     // Update database with a NO or OK if the Raspberry Pi depending on the RPi's result
-    $sqlUpdateDatabaseWithResult = "INSERT INTO log(vid, typ, uid, rpid, v1, v2, ts) VALUES ('', '{$RASPBERRY_PI_RESULT}', '{$UID}', '{$RASPBERRY_PI_ID}', '', '', '{$CURRENT_TIMESTAMP}');";
+    $sqlUpdateDatabaseWithResult = "INSERT INTO logs(vid, typ, uid, rpid, v1, v2, ts) VALUES ('', '{$RASPBERRY_PI_RESULT}', '{$UID}', '{$RASPBERRY_PI_ID}', '', '', '{$CURRENT_TIMESTAMP}');";
     mysqli_query($conn, $sqlUpdateDatabaseWithResult);
 ?>

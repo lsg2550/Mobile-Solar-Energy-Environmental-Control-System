@@ -38,7 +38,7 @@
         $TS = getTimeStampFromFileName($fileName);
 
         //Update DB
-        $sqlInsertIntoLog = "INSERT INTO log (vid, typ, uid, rpid, v1, v2, ts) VALUES ('{$VID}', '{$TYP}', '{$UID}', '{$RASPBERRY_PI_ID}', '{$V1}', '{$V2}', '{$TS}');";
+        $sqlInsertIntoLog = "INSERT INTO logs (vid, typ, uid, rpid, v1, v2, ts) VALUES ('{$VID}', '{$TYP}', '{$UID}', '{$RASPBERRY_PI_ID}', '{$V1}', '{$V2}', '{$TS}');";
         #echo $sqlInsertIntoLog;
         mysqli_query($conn, $sqlInsertIntoLog);
         

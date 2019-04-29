@@ -1,4 +1,10 @@
 <?php
+    /**
+     * USE THIS ONLY IF 000webhost DELETES THE LOG TABLE FROM THE DATABASE
+     * ALL JSON FILES SHOULD BE STORED ON THE FILE SERVER (CMS) SO THAT THE LOG TABLE
+     * CAN BE RECOVERED!!
+     */
+
     function processXML($xmlFileName) {
         // Require
         require("connect.php");
@@ -43,11 +49,9 @@
 
                     //Update DB
                     $sqlInsertIntoLog = "INSERT INTO logs (vid, typ, uid, rpid, v1, v2, ts) VALUES ('{$VID}', '{$TYP}', '{$UID}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
-                    $sqlUpdateCurrentStatus = "REPLACE INTO status (vid, v1, v2, ts, rpid) VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$RPID}');";
-
+                    
                     // Execute SQL queries to update the database
                     mysqli_query($conn, $sqlInsertIntoLog);
-                    mysqli_query($conn, $sqlUpdateCurrentStatus);
             }
         }
 
@@ -57,13 +61,15 @@
 
     //TODO: Filter $_GET
     $xmlDirectory = "../../rpixmls/";
-    $xmlFilename = $_GET["xmlfile"];
-    $xmlFullFilePath = $xmlDirectory . $xmlFilename;
+    $xmlDirectoryFileNames = array_diff(scandir($xmlDirectory), array('.', '..'));
+    foreach ($xmlDirectoryFileNames as $index => $xmlFilename) {
+        $xmlFullFilePath = $xmlDirectory . $xmlFilename;
 
-    if(is_file($xmlFullFilePath)) {
-        try { 
-            processXML($xmlFilename); 
-            echo "OK";
-        } catch (Exception $e) { echo "ERROR"; }
-    } else { echo "NO"; }
+        if(is_file($xmlFullFilePath)) {
+            try { 
+                processXML($xmlFilename); 
+                echo "OK";
+            } catch (Exception $e) { echo "ERROR"; }
+        } else { echo "NO"; }
+    }
 ?>
