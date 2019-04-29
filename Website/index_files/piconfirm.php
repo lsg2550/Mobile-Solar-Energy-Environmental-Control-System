@@ -43,7 +43,8 @@
 
                     //Update DB
                     $sqlInsertIntoLog = "INSERT INTO logs (vid, typ, uid, rpid, v1, v2, ts) VALUES ('{$VID}', '{$TYP}', '{$UID}', '{$RPID}', '{$V1}', '{$V2}', '{$TS}');";
-                    $sqlUpdateCurrentStatus = "REPLACE INTO status (vid, v1, v2, ts, rpid) VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$RPID}');";
+                    $sqlUpdateCurrentStatus = "UPDATE status SET `v1`='{$V1}', `v2`='{$V2}', `ts`='{$TS}' WHERE `vid`='{$VID}' AND `rpid`='{$RPID}';";
+                    //$sqlUpdateCurrentStatus = "REPLACE INTO status (vid, v1, v2, ts, rpid) VALUES ('{$VID}', '{$V1}', '{$V2}', '{$TS}', '{$RPID}');";
 
                     // Execute SQL queries to update the database
                     mysqli_query($conn, $sqlInsertIntoLog);
