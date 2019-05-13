@@ -1,4 +1,9 @@
 <?php
+    /**
+     * Description: After the user submits their changes to thresholds this script will run. This script
+     * updates the threhsolds and updates the logs that threshold changes were made as 'UP'.
+     */
+
     //Require
     require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
     require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");

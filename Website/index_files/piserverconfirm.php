@@ -1,6 +1,5 @@
 <?php
     /**
-     * Name: piserverconfirm.php
      * Description: This script is called by the Raspberry Pi to tell the CMS that it did or did not retrieve 
      * a requested file. The raspberry pi will send its ID and a 'result' of 'NO' or 'OK'. OK is more expected
      * as failure to retrieve a file may be due to no internet connection in which would trigger an exception

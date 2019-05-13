@@ -1,6 +1,5 @@
 <?php
     /**
-     * Name: pinotification.php
      * Description: This script is called by the Raspberry Pi, when it runs its notification function.
      * In the notification function, if any of the ESSI sensors trigger a threshold flag, this script will
      * be called. Thus creating an email and sending it to the user.
@@ -15,8 +14,7 @@
 
     // Initialize Variables
     $RASPBERRY_PI_ID = $_GET['rpid'];
-    $ESSI_TRIGGER = $_GET['noti'];
-    $ESSI_TRIGGER_VALUE = $_GET['valu'];
+    $ESSI_TRIGGERS = $_GET['threshold_breachers'];
 
     // Get owner (user) from database
     $sqlGetUser = "SELECT `uid-owner` FROM rpi WHERE rpid={$RASPBERRY_PI_ID}";
@@ -30,43 +28,50 @@
 
     // Determine email message
     $emailMessage = "";
-    switch ($ESSI_TRIGGER) {
-        case "bvoltage":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the battery voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
-            break;
-        case "bcurrent":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the battery current threshold with '{$ESSI_TRIGGER_VALUE}'A!";
-            break;
-        case "spvoltage":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the pv voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
-            break;
-        case "spcurrent":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the pv current threshold with '{$ESSI_TRIGGER_VALUE}'A!";
-            break;
-        case "cccurrent":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the charge controller current threshold with '{$ESSI_TRIGGER_VALUE}'A!";
-            break;
-        case "temperatureI":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the inside temperature threshold with '{$ESSI_TRIGGER_VALUE}'F!";
-            break;        
-        case "temperatureO":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the outside temperature threshold with '{$ESSI_TRIGGER_VALUE}'F!";
-            break;
-        case "humidityI":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the inside humidity threshold with '{$ESSI_TRIGGER_VALUE}'F!";
-            break;        
-        case "humidityO":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has triggered the outside humidity threshold with '{$ESSI_TRIGGER_VALUE}'F!";
-            break;
-        case "motion":
-            $emailMessage = "'{$RASPBERRY_PI_ID}' has reported movement near your vehicle. Please check 'https://remote-ecs.000webhostapp.com/client/image_files/image.php' to view the images.";
-            break;
-        default:
-            exit();
+    foreach ($ESSI_TRIGGERS as $ESSI_TRIGGER => $ESSI_TRIGGER_VALUE) {
+        switch ($ESSI_TRIGGER) {
+            case "bvoltage":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has triggered the battery voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
+                break;
+            case "bcurrent":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has triggered the battery current threshold with '{$ESSI_TRIGGER_VALUE}'A!";
+                break;
+            case "spvoltage":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has triggered the pv voltage threshold with '{$ESSI_TRIGGER_VALUE}'V!";
+                break;
+            case "spcurrent":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has triggered the pv current threshold with '{$ESSI_TRIGGER_VALUE}'A!";
+                break;
+            case "cccurrent":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has triggered the charge controller current threshold with '{$ESSI_TRIGGER_VALUE}'A!";
+                break;
+            case "temperatureI":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has triggered the inside temperature threshold with '{$ESSI_TRIGGER_VALUE}'F!";
+                break;        
+            case "temperatureO":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has triggered the outside temperature threshold with '{$ESSI_TRIGGER_VALUE}'F!";
+                break;
+            case "humidityI":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has triggered the inside humidity threshold with '{$ESSI_TRIGGER_VALUE}'F!";
+                break;        
+            case "humidityO":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has triggered the outside humidity threshold with '{$ESSI_TRIGGER_VALUE}'F!";
+                break;
+            case "motion":
+                $emailMessage += "'{$RASPBERRY_PI_ID}' has reported movement near your vehicle. Please check 'https://remote-ecs.000webhostapp.com/client/image_files/image.php' to view the images.";
+                break;
+            default:
+                exit();
+        }
+        $emailMessage += "\n";
     }
 
     // Send Email to User
     //echo $emailMessage;
-    $emailMessage = wordwrap($emailMessage, 70);
-    mail($EMAIL, "Raspberry Pi {$RASPBERRY_PI_ID} Notification", $emailMessage);
+    if(trim($emailMessage) != "") { // Check if the email message is empty, if it is empty don't send anything, if it isn't then send the email
+        $emailMessage = wordwrap($emailMessage, 70);
+        mail($EMAIL, "Raspberry Pi {$RASPBERRY_PI_ID} Notification", $emailMessage);
+    }
+
+    echo "Notification Sent!"
 ?>

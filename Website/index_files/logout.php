@@ -1,4 +1,11 @@
 <?php
+    /**
+     * Description: This script logs the user out clearing their $_SESSION cookies and sending them back to the login page.
+     * 
+     * Note: ob_start() and ob_end_Flush() are required by 000webhost (or maybe browsers in general) to send the user elsewhere. All the code 
+     * executes as normal but actually processes once ob_end_Flush() is reached.
+     */
+
     //Buffer Start
     ob_start();
 

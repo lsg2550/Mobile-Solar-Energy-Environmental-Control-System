@@ -1,4 +1,14 @@
 <?php
+    /**
+     * Description: The vitals page will allow a user to control and set the thresholds of every RPi they own.
+     * 
+     * Note: Currently the database access table has user read/write permissions for a user who has access to a RPi.
+     * You may need to alter the code to allow users who have write permissions to also edit the thresholds of the 
+     * RPi, while those who have read permissions cannot. I made this change near the end of the of my thesis submission so
+     * I was unable to implement these changes. But it is all in the database so you would just need to make new SQL queries to
+     * get these permissions.
+     */
+
     //Require
     require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
     require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");

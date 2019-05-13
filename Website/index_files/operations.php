@@ -1,4 +1,9 @@
 <?php
+/**
+ * Description: This script contains different functions that multiple scripts use on the CMS, they are separated by broad use to the most specific use. The comments on the functions 
+ * states which scripts or functions use them.
+ */
+
 /**********************************************************************************
  * Code that can be used by most if not all functions * 
  *********************************************************************************/

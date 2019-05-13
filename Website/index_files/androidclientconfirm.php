@@ -1,4 +1,9 @@
 <?php
+    /**
+     * Description: The android app will call this script via http request to request the CMS to create the JSON files needed for the
+     * android app to process. This script will return a 'OK' or 'NO'. In which the android app will act accordingly to the status code.
+     */
+
     function generateAndroidJSONS() {
         //Require
         require("connect.php");

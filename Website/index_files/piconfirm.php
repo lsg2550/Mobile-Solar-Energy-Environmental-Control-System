@@ -1,4 +1,10 @@
 <?php
+    /**
+     * Description: The raspberry pi calls this script whenever it sends a status json file to the CMS. The RPi gives this script
+     * the name of the file in which this script will check if it exists. If it exists then it will read from the file and process
+     * the data to update the CurrentStatus and Logs table.
+     */
+
     function processXML($xmlFileName) {
         // Require
         require("connect.php");

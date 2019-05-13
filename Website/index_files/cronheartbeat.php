@@ -1,4 +1,9 @@
 <?php
+    /**
+     * Description: This script is run once a week to determine whether or not every raspberry pi has contacted the CMS. The limit this
+     * script gives is 7 days, so if a RPi has not contacted the CMS in >=7 days then this script will notify the owner of that respective RPi.
+     */
+
     //Require
     require("connect.php");
 

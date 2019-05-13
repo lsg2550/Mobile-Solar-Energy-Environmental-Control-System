@@ -1,32 +1,40 @@
 <?php
-//Require
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
-    
-function getImages() {
-    global $conn;
-    // Add code to specify users based off of minute directory id
+    /**
+     * Description: This page displays all the motion detection/capture images.
+     * 
+     * Note: Currently this page shares the same issues as the listlogs.php script where
+     * it will display the entirety of all the captured images. Please see the listlogs.php
+     * note for some suggestions on how to fix this.
+     */
 
-    //Get the names of all detection folders
-    //$detectFoldersPath = $_SERVER["DOCUMENT_ROOT"] . "/detectdir/";
-    $detectFoldersPath = "../../detectdir/";
-    $detectFoldersNames = array_diff(scandir($detectFoldersPath), array('.', '..'));
+    //Require
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
+        
+    function getImages() {
+        global $conn;
+        // Add code to specify users based off of minute directory id
 
-    //Iterate through each detection folder 
-    foreach ($detectFoldersNames as $detectFolderName) {
-        $detectFolderNameFullPath = array_diff(scandir($detectFoldersPath . $detectFolderName), array('.', '..'));
-        echo "<table id='imagelisttable'>";
-        echo "<caption><b>{$detectFolderName}</b></caption>";
-        echo "<tr><th>Image Name</th><th>Click to View</th></tr>";
-        foreach ($detectFolderNameFullPath as $detectImageName) {
-            $detectImageNameFullPath = preg_replace("/\s+/", "%20", $detectFoldersPath . $detectFolderName . "/" . $detectImageName);
-            echo "<tr><td>{$detectImageName}</td><td><a href={$detectImageNameFullPath} target='imagecurrent'>Click Here!</a></td></tr>";
+        //Get the names of all detection folders
+        //$detectFoldersPath = $_SERVER["DOCUMENT_ROOT"] . "/detectdir/";
+        $detectFoldersPath = "../../detectdir/";
+        $detectFoldersNames = array_diff(scandir($detectFoldersPath), array('.', '..'));
+
+        //Iterate through each detection folder 
+        foreach ($detectFoldersNames as $detectFolderName) {
+            $detectFolderNameFullPath = array_diff(scandir($detectFoldersPath . $detectFolderName), array('.', '..'));
+            echo "<table id='imagelisttable'>";
+            echo "<caption><b>{$detectFolderName}</b></caption>";
+            echo "<tr><th>Image Name</th><th>Click to View</th></tr>";
+            foreach ($detectFolderNameFullPath as $detectImageName) {
+                $detectImageNameFullPath = preg_replace("/\s+/", "%20", $detectFoldersPath . $detectFolderName . "/" . $detectImageName);
+                echo "<tr><td>{$detectImageName}</td><td><a href={$detectImageNameFullPath} target='imagecurrent'>Click Here!</a></td></tr>";
+            }
+            echo "</table>";
         }
-        echo "</table>";
     }
-}
 ?>
 
 <!DOCTYPE html>

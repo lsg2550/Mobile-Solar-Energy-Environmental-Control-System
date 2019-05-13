@@ -1,6 +1,5 @@
 <?php
     /**
-     * Name: pithresholdconfirm.php
      * Description: This script is called by the Raspberry Pi, where the RPi requests for a new/updated JSON file
      * with new/updated thresholds for the ESSI sensors.
      */

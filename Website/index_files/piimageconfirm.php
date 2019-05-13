@@ -1,6 +1,5 @@
 <?php
     /**
-     * Name: piimageconfirm.php
      * Description: This script is called by the Raspberry pi during the update interval.
      * This takes in two arguments, RPID and 'clarity' or 'capture'.
      * Both clarity and capture will contain the name of the respective file or directory.

@@ -1,42 +1,48 @@
 <?php
-//Require
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
+    /**
+     * Description: This script displays the chart and chart/csv options to the user for statistic viewing. 
+     * As with the other pages, if a user has access to an RPi that they don't own, grant them the ability to view
+     * the RPi.
+     */
 
-function getYesterdaysDate() {
-    $yesterdayDate = date("Y-m-d", time() - 60 * 60 * 24);
+    //Require
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
 
-    echo "<label for='date-start-select'>Start Date:</label>";
-    echo "<input type='date' class='date-range' id='date-start-select' name='date_start' value='{$yesterdayDate}' required>";
-    echo "<label for='date-end-select'>End Date:</label>";
-    echo "<input type='date' class='date-range' id='date-end-select' name='date_end' value='{$yesterdayDate}' required>";
-}
+    function getYesterdaysDate() {
+        $yesterdayDate = date("Y-m-d", time() - 60 * 60 * 24);
 
-function generateRPISelect() {
-    require_once("../../index_files/connect.php");
+        echo "<label for='date-start-select'>Start Date:</label>";
+        echo "<input type='date' class='date-range' id='date-start-select' name='date_start' value='{$yesterdayDate}' required>";
+        echo "<label for='date-end-select'>End Date:</label>";
+        echo "<input type='date' class='date-range' id='date-end-select' name='date_end' value='{$yesterdayDate}' required>";
+    }
 
-    //Database Queries
-    $currentUID = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Get Current User Name
-    $sqlRPis = "SELECT rpid FROM rpi WHERE `uid-owner`='{$currentUID}';"; // Select all RPis belonging to the current user
+    function generateRPISelect() {
+        require_once("../../index_files/connect.php");
 
-    //Execute Queries
-    $resultRPis = mysqli_query($conn, $sqlRPis);
+        //Database Queries
+        $currentUID = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Get Current User Name
+        $sqlRPis = "SELECT rpid FROM rpi WHERE `uid-owner`='{$currentUID}';"; // Select all RPis belonging to the current user
 
-    //Store RPis into an array of RPis
-    $arrayRPis = array(); 
-    if(mysqli_num_rows($resultRPis) > 0) {
-        while($row = mysqli_fetch_assoc($resultRPis)) {
-            $arrayRPis[] = $row['rpid'];
+        //Execute Queries
+        $resultRPis = mysqli_query($conn, $sqlRPis);
+
+        //Store RPis into an array of RPis
+        $arrayRPis = array(); 
+        if(mysqli_num_rows($resultRPis) > 0) {
+            while($row = mysqli_fetch_assoc($resultRPis)) {
+                $arrayRPis[] = $row['rpid'];
+            }
         }
-    }
 
-    # Create the HTML dropdown menu
-    echo "<select id='rpi-select' name='rpi_select' required>";
-    for ($i=0; $i < count($arrayRPis); $i++) { 
-        echo "<option value='{$arrayRPis[$i]}'>{$arrayRPis[$i]}</option>";
+        # Create the HTML dropdown menu
+        echo "<select id='rpi-select' name='rpi_select' required>";
+        for ($i=0; $i < count($arrayRPis); $i++) { 
+            echo "<option value='{$arrayRPis[$i]}'>{$arrayRPis[$i]}</option>";
+        }
+        echo "</select>";
     }
-    echo "</select>";
-}
 ?>
 
 <html>

@@ -1,114 +1,119 @@
 <?php
-//Require
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
-require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
+    /**
+     * Description: This script takes in the arguments provided by the user in the statistics options selection
+     * and processes the arguments to retrieve the respective information from the database. 
+     * 
+     * This script is used for both generating the chart and generating and downloading the csv file. Both share the 
+     * same code from retrieving from the database but will diverge to their respective functions depending on what the user selected.
+     * So if you need to edit one or the other, they have their own functions as 'outputCharts' and 'outputCSV'
+     */
 
-//Session
-$currentUID = (!empty($_SESSION['username_access'])) ? $_SESSION['username_access'] : $_SESSION['username']; //Current User
+    //Require
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessionstart.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/sessioncheck.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/operations.php");
+    require($_SERVER["DOCUMENT_ROOT"] . "/index_files/connect.php");
 
-//POST
-$vitals = [isset($_POST["vital1"]) ? $_POST["vital1"] : '', isset($_POST["vital2"]) ? $_POST["vital2"] : '', isset($_POST["vital3"]) ? $_POST["vital3"] : '', isset($_POST["vital4"]) ? $_POST["vital4"] : '', isset($_POST["vital5"]) ? $_POST["vital5"] : '', isset($_POST["vital6"]) ? $_POST["vital6"] : '', isset($_POST["vital7"]) ? $_POST["vital7"] : '']; //Vitals the user selected to view
-$dateStart = $_POST["date_start"]; //Starting date of logs/timestamps
-$dateEnd = $_POST["date_end"]; //Ending date of logs/timestamps
-$timeStart = date("H:i:s", strtotime($_POST["time_start"])); //Starting time of logs/timestamps
-$timeEnd = date("H:i:s", strtotime($_POST["time_end"])); //Ending time of logs/timestamps
-$rpi = $_POST["rpi_select"]; //The RaspberryPi the user selected
-$chartOrCSV = !isset($_POST["formaction"]) ? "chart" : $_POST["formaction"]; //if formaction is not set, we let it be "chart" by default (assuming this is just the page wanting charts on load, otherwise let chartorcsv be whatever the user requested
+    //POST
+    $vitals = [isset($_POST["vital1"]) ? $_POST["vital1"] : '', isset($_POST["vital2"]) ? $_POST["vital2"] : '', isset($_POST["vital3"]) ? $_POST["vital3"] : '', isset($_POST["vital4"]) ? $_POST["vital4"] : '', isset($_POST["vital5"]) ? $_POST["vital5"] : '', isset($_POST["vital6"]) ? $_POST["vital6"] : '', isset($_POST["vital7"]) ? $_POST["vital7"] : '']; //Vitals the user selected to view
+    $dateStart = $_POST["date_start"]; //Starting date of logs/timestamps
+    $dateEnd = $_POST["date_end"]; //Ending date of logs/timestamps
+    $timeStart = date("H:i:s", strtotime($_POST["time_start"])); //Starting time of logs/timestamps
+    $timeEnd = date("H:i:s", strtotime($_POST["time_end"])); //Ending time of logs/timestamps
+    $rpi = $_POST["rpi_select"]; //The RaspberryPi the user selected
+    $chartOrCSV = !isset($_POST["formaction"]) ? "chart" : $_POST["formaction"]; //if formaction is not set, we let it be "chart" by default (assuming this is just the page wanting charts on load, otherwise let chartorcsv be whatever the user requested
 
-if (array_filter($vitals) == empty($vitals)) { outputError("Please select atleast one vital to display!"); } //If the user selected no vitals then tell them to select atleast one vital
+    if (array_filter($vitals) == empty($vitals)) { outputError("Please select atleast one vital to display!"); } //If the user selected no vitals then tell them to select atleast one vital
 
-//Get the correct vital name
-$arrayVitals = array();
-foreach ($vitals as $var) {
-    switch ($var) {
-        case 'battery':
-            $arrayVitals["BatteryVoltage"] = "BatteryVoltage";
-            $arrayVitals["BatteryCurrent"] = "BatteryCurrent";
-            break;
-        case 'solar':
-            $arrayVitals["SolarPanelVoltage"] = "SolarPanelVoltage";
-            $arrayVitals["SolarPanelCurrent"] = "SolarPanelCurrent";
-            break;
-        case 'charge':
-            $arrayVitals["ChargeControllerCurrent"] = "ChargeControllerCurrent";
-            break;
-        case 'temperature':
-            $arrayVitals["TemperatureInner"] = "TemperatureInner";
-            $arrayVitals["TemperatureOuter"] = "TemperatureOuter";
-            break;
-        case 'humidity':
-            $arrayVitals["HumidityInner"] = "HumidityInner";
-            $arrayVitals["HumidityOuter"] = "HumidityOuter";
-            break;
-        case 'clarity':
-            $arrayVitals["Clarity"] = "Clarity";
-            break;
-        case 'exhaust':
-            $arrayVitals["Exhaust"] = "Exhaust";
-            break;
-        default:
-            break;
+    //Get the correct vital name
+    $arrayVitals = array();
+    foreach ($vitals as $var) {
+        switch ($var) {
+            case 'battery':
+                $arrayVitals["BatteryVoltage"] = "BatteryVoltage";
+                $arrayVitals["BatteryCurrent"] = "BatteryCurrent";
+                break;
+            case 'solar':
+                $arrayVitals["SolarPanelVoltage"] = "SolarPanelVoltage";
+                $arrayVitals["SolarPanelCurrent"] = "SolarPanelCurrent";
+                break;
+            case 'charge':
+                $arrayVitals["ChargeControllerCurrent"] = "ChargeControllerCurrent";
+                break;
+            case 'temperature':
+                $arrayVitals["TemperatureInner"] = "TemperatureInner";
+                $arrayVitals["TemperatureOuter"] = "TemperatureOuter";
+                break;
+            case 'humidity':
+                $arrayVitals["HumidityInner"] = "HumidityInner";
+                $arrayVitals["HumidityOuter"] = "HumidityOuter";
+                break;
+            case 'clarity':
+                $arrayVitals["Clarity"] = "Clarity";
+                break;
+            case 'exhaust':
+                $arrayVitals["Exhaust"] = "Exhaust";
+                break;
+            default:
+                break;
+        }
     }
-}
-
-//Debug
-//debug($arrayVitals); 
-$start_time = microtime(true);
-$counter = 0;
-
-//Database Queries
-$arrayLogVitals = array(); //This array will contain the vital names as keys that point to an array of the vital name's values
-$arrayLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
-
-foreach ($arrayVitals as $vitalname) {
-    $sqlLog = "SELECT V.vn, v1, DATE(ts) as DStamp, TIME(ts) as TStamp FROM logs AS L NATURAL JOIN vitals AS V
-                WHERE L.uid='{$currentUID}'
-                AND L.rpid='{$rpi}'
-                AND typ='ST'
-                AND V.vn='{$vitalname}'
-                AND DATE(ts) BETWEEN '{$dateStart}' AND '{$dateEnd}'
-                AND TIME(ts) BETWEEN '{$timeStart}' AND '{$timeEnd}'
-                ORDER BY ts ASC;";
-    $resultLog = mysqli_query($conn, $sqlLog);
-    //debug($sqlLog);
-
-    if (!$resultLog || mysqli_num_rows($resultLog) == 0) { continue; } //If resultlog returned an error or no rows, continue to the next vital
-    
-    while ($row = mysqli_fetch_assoc($resultLog)) {
-        $counter += 1;
-        $arrayLogVitals[$row['vn']][] = $row['v1'];
-        $arrayLogTS[$row['vn']][] = $row['DStamp'] . " " . $row['TStamp'];
-    }
-}
-
-//Debug
-$end_time = microtime(true);
-debug("Total time taken to retrieve from database: " . ($end_time - $start_time));
-debug("Total items from database: " . ($counter));
-//debug($arrayLogVitals);
-//debug($arrayLogTS);
-
-if (empty($arrayLogTS) && empty($arrayLogVital)) { outputError("Sorry! No data was found for the corresponding date and time!"); } //If nothing was found from the DB, then tell the user that nothing was found
-
-//Debug
-$start_time = microtime(true);
-
-//Output
-if ($chartOrCSV == "chart") {  
-    outputCharts($arrayLogVitals, $arrayLogTS);
 
     //Debug
-    $end_time = microtime(true);
-    debug("Total time taken to create chart: " . ($end_time - $start_time));
-} else if ($chartOrCSV == "csv") { 
-    outputCSV($arrayLogVitals, $arrayLogTS);
+    //debug($arrayVitals); 
+    //$start_time = microtime(true);
+    //$counter = 0;
+
+    //Database Queries
+    $arrayLogVitals = array(); //This array will contain the vital names as keys that point to an array of the vital name's values
+    $arrayLogTS = array(); //This array will contain all the timestamps according to the dateStart/End, timeStart/End, and timeInterval
+
+    foreach ($arrayVitals as $vitalname) {
+        $sqlLog = "SELECT V.vn, v1, DATE(ts) as DStamp, TIME(ts) as TStamp FROM logs AS L NATURAL JOIN vitals AS V
+                    WHERE L.rpid='{$rpi}'
+                    AND typ='ST'
+                    AND V.vn='{$vitalname}'
+                    AND DATE(ts) BETWEEN '{$dateStart}' AND '{$dateEnd}'
+                    AND TIME(ts) BETWEEN '{$timeStart}' AND '{$timeEnd}'
+                    ORDER BY ts ASC;";
+        $resultLog = mysqli_query($conn, $sqlLog);
+        //debug($sqlLog);
+
+        if (!$resultLog || mysqli_num_rows($resultLog) == 0) { continue; } //If resultlog returned an error or no rows, continue to the next vital
+        
+        while ($row = mysqli_fetch_assoc($resultLog)) {
+            //$counter += 1; // This counter is for time calculation - Don't uncomment it unless you want to count how many times this while loop runs
+            $arrayLogVitals[$row['vn']][] = $row['v1'];
+            $arrayLogTS[$row['vn']][] = $row['DStamp'] . " " . $row['TStamp'];
+        }
+    }
 
     //Debug
-    $end_time = microtime(true);
-    debug("Total time taken to create csv: " . ($end_time - $start_time));
-}
+    //$end_time = microtime(true);
+    //debug("Total time taken to retrieve from database: " . ($end_time - $start_time));
+    //debug("Total items from database: " . ($counter));
+    //debug($arrayLogVitals);
+    //debug($arrayLogTS);
+
+    if (empty($arrayLogTS) && empty($arrayLogVital)) { outputError("Sorry! No data was found for the corresponding date and time!"); } //If nothing was found from the DB, then tell the user that nothing was found
+
+    //Debug
+    //$start_time = microtime(true);
+
+    //Output
+    if ($chartOrCSV == "chart") {  
+        outputCharts($arrayLogVitals, $arrayLogTS);
+
+        //Debug
+        //$end_time = microtime(true);
+        //debug("Total time taken to create chart: " . ($end_time - $start_time));
+    } else if ($chartOrCSV == "csv") { 
+        outputCSV($arrayLogVitals, $arrayLogTS);
+
+        //Debug
+        //$end_time = microtime(true);
+        //debug("Total time taken to create csv: " . ($end_time - $start_time));
+    }
 
 function outputCharts($arrayLogVitals, $arrayLogTS) {
     //POST
@@ -220,12 +225,14 @@ function outputCharts($arrayLogVitals, $arrayLogTS) {
 
 function outputCSV($arrayLogVitals, $arrayLogTS) {
     //global
-    global $currentUID;
+    global $rpi;
+    global $dateStart;
+    global $dateEnd;
 
     //Create CSV
     $csvServerRoot = $_SERVER['DOCUMENT_ROOT'];
     $csvFolderName = "/clientcsv/";
-    $csvFileName = substr(hash("md5", $currentUID), 0, 8) . "_logs.csv";
+    $csvFileName = $rpi . "_" . $dateStart . "_" . $dateEnd . "_logs.csv";
     $csvFile = fopen($csvServerRoot . $csvFolderName . $csvFileName, "w");
 
     foreach ($arrayLogVitals as $vitalName => $vitalArray) {
