@@ -57,15 +57,15 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:id="@+id/relativeLayoutButton">
-        <Button
-            android:text="Sign-In"
-            android:id="@+id/buttonSignIn"
-            android:layout_width="240.0dp"
-            android:layout_height="wrap_content"
-            android:textColor="#ff000000"
-            android:textColorHighlight="#ff000000"
-            android:textStyle="bold"
-            android:textSize="16dp"
-            android:background="#ffffffff" />
+		<Button
+			android:text="Sign-In"
+			android:id="@+id/buttonSignIn"
+			android:layout_width="240.0dp"
+			android:layout_height="wrap_content"
+			android:textColor="#ff000000"
+			android:textColorHighlight="#ff000000"
+			android:textStyle="bold"
+			android:textSize="16dp"
+			android:background="#ff607d8b" />
     </RelativeLayout>
 </LinearLayout>

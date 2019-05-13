@@ -64,7 +64,7 @@
     <Compile Include="ExpandableListViewAdapter.cs" />
     <Compile Include="HttpConnector.cs" />
     <Compile Include="MyClient.cs" />
-    <Compile Include="MainActivity.cs" />
+    <Compile Include="LoginActivity.cs" />
     <Compile Include="Parse.cs" />
     <Compile Include="Resources\Resource.Designer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

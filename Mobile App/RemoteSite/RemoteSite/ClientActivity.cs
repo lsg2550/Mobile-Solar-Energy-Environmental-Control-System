@@ -2,6 +2,7 @@
 using Android.OS;
 using Android.Widget;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 
@@ -29,10 +30,13 @@ namespace RemoteSite {
         }
 
         public async void FillExpandableListAsync() {
-            //Payload
-            List<KeyValuePair<string, string>> payload = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("username", MyClient.GetInstance().User) };
+            // Payload
+            List<KeyValuePair<string, string>> payload = new List<KeyValuePair<string, string>> {
+                new KeyValuePair<string, string>("username", MyClient.GetInstance().User),
+                new KeyValuePair<string, string>("password", MyClient.GetInstance().Pass)
+            };
 
-            //Send Request
+            // Send request to server if it is available
             HttpContent content;
             HttpResponseMessage response;
             string responseString = "";
@@ -41,12 +45,13 @@ namespace RemoteSite {
                 response = await HttpConnector.client.PostAsync("http://remote-ecs.000webhostapp.com/index_files/androidclientconfirm.php", content);
                 responseString = await response.Content.ReadAsStringAsync();
                 responseString = Parse.ReplaceWhiteSpace(responseString);
+                Console.Write(responseString);
             } catch (HttpRequestException e) {
                 Toast.MakeText(this, e.Message, ToastLength.Long).Show();
                 return;
             }
 
-            //Check Response
+            // Check Response
             if (responseString == HttpConnector.ResponseCodes.NO.ToString()) {
                 Toast.MakeText(this, "Error received.\nPlease try again.", ToastLength.Long).Show();
                 return;
@@ -70,7 +75,7 @@ namespace RemoteSite {
             List<RPiCurrentStatus> currentStatus = JsonConvert.DeserializeObject<List<RPiCurrentStatus>>(responseStringJSONCS);
             List<RPiLog> log = JsonConvert.DeserializeObject<List<RPiLog>>(responseStringJSONL);
 
-            //Set List and Adapter
+            // Set List and Adapter
             ExpandableListView expandableListViewLog = FindViewById<ExpandableListView>(Resource.Id.expandableListViewLog);
             ExpandableListViewAdapter expandableListViewAdapterLog = new ExpandableListViewAdapter(currentStatus, log, this);
             expandableListViewLog.SetAdapter(expandableListViewAdapterLog);

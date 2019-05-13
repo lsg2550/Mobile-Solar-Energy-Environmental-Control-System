@@ -8,8 +8,14 @@
 
         //Database Queries
         $currentUser = $_POST["username"]; //Current User
-        $sqlCurrentStatus = "SELECT VN, VV, TS, RPID FROM status NATURAL JOIN vitals WHERE USR='{$currentUser}';"; //Select all current status related to the current user
-        $sqlLog = "SELECT VID, TYP, RPID, V1, V2, TS FROM log WHERE USR='{$currentUser}' ORDER BY RPID, TS;"; //Select all logs related to the current user
+        $currentPass = $_POST["password"]; // Current Password
+
+        $sqlCurrentUID = "SELECT uid FROM users WHERE username='{$currentUser}' AND passwd='{$currentPass}';";
+        $resultCurrentUID = mysqli_query($conn, $sqlCurrentUID);
+        $currentUID = mysqli_fetch_assoc($resultCurrentUID)['uid'];
+        
+        $sqlCurrentStatus = "SELECT VN, V1, V2, TS, RPID FROM (status NATURAL JOIN vitals) NATURAL JOIN rpi WHERE `uid-owner`='{$currentUID}';"; //Select all current status related to the current user
+        $sqlLog = "SELECT VID, TYP, RPID, V1, V2, TS FROM logs WHERE uid='{$currentUID}' ORDER BY RPID, TS;"; //Select all logs related to the current user
 
         //Execute Queries
         $resultCurrentStatus = mysqli_query($conn, $sqlCurrentStatus);
@@ -19,7 +25,7 @@
         $jsonCurrentStatus = array();
         if(mysqli_num_rows($resultCurrentStatus) > 0) {
             while($row = mysqli_fetch_assoc($resultCurrentStatus)) {
-                $tempRow = array( 'VN' => $row['VN'], 'VV' => $row['VV'], 'RPID' => $row['RPID'], 'TS' => $row['TS'] );
+                $tempRow = array( 'VN' => $row['VN'], 'V1' => $row['V1'], 'V2' => $row['V2'], 'RPID' => $row['RPID'], 'TS' => $row['TS'] );
                 $jsonCurrentStatus[] = $tempRow;
             }
         }

@@ -32,17 +32,11 @@ namespace RemoteSite {
 
         public override bool HasStableIds => false;
 
-        public override Java.Lang.Object GetChild(int groupPosition, int childPosition) {
-            return childNames[groupPosition][childPosition];
-        }
+        public override Java.Lang.Object GetChild(int groupPosition, int childPosition) => childNames[groupPosition][childPosition];
 
-        public override long GetChildId(int groupPosition, int childPosition) {
-            return childPosition;
-        }
+        public override long GetChildId(int groupPosition, int childPosition) => childPosition;
 
-        public override int GetChildrenCount(int groupPosition) {
-            return childNames[groupPosition].Count;
-        }
+        public override int GetChildrenCount(int groupPosition) => childNames[groupPosition].Count;
 
         public override View GetChildView(int groupPosition, int childPosition, bool isLastChild, View convertView, ViewGroup parent) {
             TextView textView = new TextView(context);
@@ -54,13 +48,9 @@ namespace RemoteSite {
             return textView;
         }
 
-        public override Java.Lang.Object GetGroup(int groupPosition) {
-            return groupNames[groupPosition];
-        }
+        public override Java.Lang.Object GetGroup(int groupPosition) => groupNames[groupPosition];
 
-        public override long GetGroupId(int groupPosition) {
-            return groupPosition;
-        }
+        public override long GetGroupId(int groupPosition) => groupPosition;
 
         public override View GetGroupView(int groupPosition, bool isExpanded, View convertView, ViewGroup parent) {
             TextView textView = new TextView(context);
